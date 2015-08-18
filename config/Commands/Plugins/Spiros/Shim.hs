@@ -155,7 +155,7 @@ def handleDGNUpdate(grammar, response):
     pass 
 
 def should_request(grammar,data):
-    b = data and not handle_microphone(grammar,data) and isUnicode(data)
+    b = data and not handle_microphone(grammar,data) and isUnicode(data) and not isNoise(data)
     print "should_request=", b
     return b
 
@@ -188,6 +188,9 @@ def isUnicode(data):
         print e
         print traceback.format_exc()
         return False
+
+def isNoise(data):
+    return data in [["the"],["if"]] #TODO hack, noise tends to be recognized as these short single words
 
 
 

@@ -15,11 +15,12 @@ import qualified Data.ByteString.Lazy.Char8    as BSC
 import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import           Servant
+import Data.Time
 
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
-
+import System.Mem
 
 -- ================================================================ --
 
@@ -99,24 +100,28 @@ spirosSetup settings = do
 -}
 spirosInterpret :: (Show a) => (forall r. RULED VSettings r a) -> [Text] -> Response ()
 spirosInterpret vSettings = \ws -> do
- liftIO$ putStrLn "" >> putStrLn "" >> putStrLn ""
 
- liftIO$ putStrLn$ "WORDS:"
- liftIO$ T.putStrLn$ T.intercalate (T.pack " ") ws
-
+ t0Parse <- liftIO$ getCurrentTime
  value <- e'ParseBest (vSettings&vConfig&vParser) ws & \case
   Left e -> left$ err400{errBody = BSC.pack (show e)}
   Right x -> return x
- liftIO$ putStrLn$ "VALUE:"
- liftIO$ print value
+ t1Parse <- liftIO$ getCurrentTime
 
  context <- liftIO$ OSX.runActions OSX.currentApplication
- liftIO$ putStrLn$ "CONTEXT:"
- liftIO$ print context
 
  let actions = (vSettings&vConfig&vDesugar) context value
  liftIO$ OSX.runActions actions
- liftIO$ putStrLn$ "ACTIONS:"
- liftIO$ putStrLn$ OSX.showActions actions
- return()
 
+ liftIO$ do
+  putStrLn "" >> putStrLn "" >> putStrLn ""
+  putStrLn$ "WORDS:"
+  T.putStrLn$ T.intercalate (T.pack " ") ws
+  putStrLn$ "VALUE:"
+  print value
+  putStrLn$ "CONTEXT:"
+  print context
+  putStrLn$ "ACTIONS:"
+  putStrLn$ OSX.showActions actions
+  putStrLn$ "TIME:"
+  putStrLn$ show (1000 * (t1Parse `diffUTCTime` t0Parse))
+  performMajorGC

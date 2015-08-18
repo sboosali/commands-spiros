@@ -51,7 +51,7 @@ library
   , commands-core
   , containers, mtl, wl-pprint-text, Earley, text, semigroups, lens, exceptions, parallel, async
   , either, bytestring, servant-server, transformers, filepath
-  , interpolatedstring-perl6, language-python
+  , interpolatedstring-perl6, language-python, time
 
  default-language: Haskell2010
  ghc-options:
