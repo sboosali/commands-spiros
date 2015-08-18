@@ -12,7 +12,7 @@ import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
-import           Commands.Plugins.Example.Phrase
+import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Example.Press
 import           Commands.Plugins.Example.Spacing
 import           Commands.Sugar.Alias
@@ -69,8 +69,9 @@ root = 'root <=> empty
  <|> KeyRiff_ <$> keyriff
  <|> KeyRiff_ <$> myShortcuts
  -- <|> KeyRiff_ <$> (keyriff <|> myShortcuts)
- <|> (Phrase_ . (:[])) <#> phraseC -- has "say" prefix
- <|> Phrase_     <#> phrase_  -- must be last, phrase falls back to wildcard.
+ <|> (Phrase_ . (:[]) . Spelled_ . (:[])) <$> character
+ <|> (Phrase_ . (:[])) <$> phraseC -- has "say" prefix
+ <|> Phrase_     <$> phrase_  -- must be last, phrase_ falls back to wildcard.
  -- <|> Roots       <#> (multipleC root)
 -- TODO <|> Frozen <#> "freeze" # root
 
@@ -134,7 +135,7 @@ data Edit = Edit Action Slice Region deriving (Show,Eq,Ord)
  -- "kill for line" -> Edit Cut Forwards Line, not {unexpected 'f', expecting end of input}
 
 edit = 'edit
- <=> Edit Cut Forwards Line <#> "kill" -- TODO this is why I abandoned parsec: it didn't backtrack sufficiently
+ <=> Edit Cut Forwards Line <#> "kill" -- TODO (doesn't work!) this is why I abandoned parsec: it didn't backtrack sufficiently.
 
  -- generic
  <|> Edit <#> action              # (slice -?- Whole) # (region -?- That) -- e.g. "cop" -> "cop whole that"
@@ -293,12 +294,12 @@ rootCommand = Command roots (argmax rankRoot) runRoot
 
 rankRoot = \case                --TODO fold over every field of every case, normalizing each case
  Repeat _ r -> rankRoot r
- Edit_ _ -> 1
- Undo -> 1
- ReplaceWith p1 p2 -> rankPhrase (p1<>p2)
- Click_ _ -> 1
- Move_ _ -> 1
- KeyRiff_ _ -> 1
+ Edit_ _ -> 100
+ Undo -> 100
+ ReplaceWith p1 p2 -> 100 + rankPhrase (p1<>p2)
+ Click_ _ -> 100
+ Move_ _ -> 100
+ KeyRiff_ _ -> 100
  Phrase_ p -> rankPhrase p
 
 runRoot = \case
@@ -330,7 +331,7 @@ runRoot = \case
 
   Phrase_ p' -> do
    insert =<< munge p'
-
+   insert " "
   KeyRiff_ kr -> runKeyRiff kr
 
   _ -> do nothing
@@ -343,7 +344,7 @@ type ElispSexp = String
 -- -- type ElispSexp = Sexp String String
 
 
-isEmacs x = if FilePath.takeBaseName x `elem` ["Emacs","Work","Notes","Diary","Obs"]
+isEmacs x = if FilePath.takeBaseName x `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
  then Just x
  else Nothing
 

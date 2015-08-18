@@ -23,8 +23,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- <|> "copy" $> [KeyPress [CommandMod] CKey]
  [ "undo"-: "M-z"
  , "salt"-: "M-a"
- , ""-: ""
- , ""-: ""
+ , "paste"-: "M-v"
+ , "stop"-: "C-g"
  , ""-: ""
  , ""-: ""
  , ""-: ""

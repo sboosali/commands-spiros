@@ -1,96 +1,50 @@
 {-# LANGUAGE DeriveFunctor, QuasiQuotes, RankNTypes, RecordWildCards #-}
 -- | (you should read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Shim where
+import           Commands.Frontends.Dragon13 hiding (getShim)
 
-import           Commands.Etc
-
-import           Control.Monad.Catch             (SomeException (..), throwM)
-import           Data.Text.Lazy                  (Text)
-import qualified Data.Text.Lazy                  as T
-import           Language.Python.Version2.Parser (parseModule)
 import           Text.InterpolatedString.Perl6
 
 import           GHC.Exts                        (IsString)
 
 
--- | "keyword arguments" for 'getShim'.
-data ShimR t = ShimR
- { __rules__      :: t  -- ^ a Python Docstring
- , __lists__      :: t  -- ^ a Python Dict
- , __export__     :: t  -- ^ a Python String
- -- TODO  this stuff below should probably be a separate interpolation, like servant-python
- , __serverHost__ :: t  -- ^ a Python String
- , __serverPort__ :: t  -- ^ a Python Int
- } deriving (Show,Eq,Ord,Functor)
-
--- | syntactically correct Python files (when constructed with 'newPythonFile').
-newtype PythonFile = PythonFile Text deriving (Show,Eq,Ord)
-
-
--- | smart constructor for 'PythonFile'.
---
--- make sure that the input is a valid (at least, syntactically correct)
--- Python file (with 'parseModule'), reports the syntax error otherwise.
---
--- a Kleisli arrow.
---
-newPythonFile :: Text -> Possibly PythonFile
-newPythonFile s = case parseModule (T.unpack s) "" of
- Right {} -> return $ PythonFile s
- Left  e  -> throwM $ SomeException e
-
-{- |
-
-given valid input, output will be a syntactically-valid Python (2.6)
-Module, that only depends on the standard library and @natlink@.
-
->>> let Right{} = newPythonFile (getShim (ShimR "'''rules'''" "{'list':''}" "export" "localhost" "8666"))
-
-the '__export__' must be exported by '__rules__'.
-
-the Haskell server runs at @('__serverHost__', '__serverPort__')@ on the host.
-
-some specializations:
-
-@
-getShim :: ShimR String -> String
-getShim :: ShimR Text   -> Text
-getShim :: ShimR Doc    -> Doc
-@
-
-= Implementation
-
-inside the 'qc', "what you see is what you get", besides:
-
-* escaping backslashes (e.g. @r'\\\\'@ renders as r'\\')
-* interpolating between braces (e.g. @{...}@ is not a dict). the quasiquote must use @dict(a=1)@ rather than @{'a':1}@ to not conflict with the quasiquoter's interpolation syntax.
-
--}
 getShim :: (IsString t, Monoid t) => ShimR t -> t
 getShim ShimR{..} = [qc|
 
+#-*- coding: utf-8 -*-
 # _commands.py
 
 # natlink13 library
 from natlinkmain import (setCheckForGrammarChanges)
 from natlinkutils import (GrammarBase)
+import natlink  # a DLL
 
 # standard library
 import time
 import json
-from urllib2 import urlopen
-
+import urllib2
+import traceback
 
 # interpolated from "H"askell
 
 H_RULES  = {__rules__}
 H_LISTS  = {__lists__}
 H_EXPORT = {__export__}
-
-H_SERVER_HOST = {__serverHost__}
+H_SERVER_HOST = {__serverHost__}  
 H_SERVER_PORT = {__serverPort__}
 
+# e.g. for debugging
+# H_RULES  = '''<test> exported = \{test};'''
+# H_LISTS  = dict(test=["upcase region'])
+# H_EXPORT = "test"
+# H_SERVER_HOST = "192.168.56.1"
+# H_SERVER_PORT = "1337"
+
 server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
+
+microphone_rule = '''<microphone> exported = mike on | mike off | mike dead ;'''
+microphone_export = "microphone"
+
 
 
 # the grammar
@@ -102,60 +56,72 @@ class NarcissisticGrammar(GrammarBase):
     * load(.., hypothesis=1)     means: every hypothesis, before the recognition, triggers gotHypothesis
     * activate(.., exclusive=1)  means: deactivate every other non-exclusive rule
 
-    (when both flags are set, NarcissisticGrammar.gotResultsObject is called on
+    (when both flags are set on load, NarcissisticGrammar.gotResultsObject is called on
     every recognition of every exclusive rule, including this class's rules
     of course, though I only expect this class to be active).
 
     '''
 
-    gramSpec = H_RULES
+    gramSpec = microphone_rule + H_RULES
 
     def initialize(self):
-        self.set_rules(H_RULES, [H_EXPORT])
+        self.set_rules(self.gramSpec, [microphone_export, H_EXPORT])
         self.set_lists(H_LISTS)
         self.doOnlyGotResultsObject = True # aborts all processing after calling gotResultsObject
 
     # called when speech is detected before recognition begins.
     def gotBegin(self, moduleInfo):
         # handleDGNContextResponse(timeit("/context", urlopen, ("%s/context" % server_address), timeout=0.1))
-        # TODO parameterize " Context"
+        # TODO parameterize "context" API
 
         print
         print
         print "-  -  -  -  gotBegin  -  -  -  -"
         # moduleInfo is just the current window in Windows
-        # print moduleInfo
 
     def gotHypothesis(self, words):
         print
-        print "-  -  -  -  gotHypothesis  -  -  -  -"
+        print "---------- gotHypothesis -------------"
         print words
 
+    # recognitionType = self | reject | other 
     def gotResultsObject(self, recognitionType, resultsObject):
+        print "---------- gotResultsObject ----------"
+        print "recognitionType =", recognitionType
+        if not recognitionType: return
         words = next(get_results(resultsObject), [])
         data  = munge_recognition(words)
-        url   = "%s/recognition/" % (server_address,)        # TODO parameterize "recognition"
+        url   = "%s/recognition/" % (server_address,)        # TODO parameterize "recognition" API
+
+        # print 'resultsObject =',resultsObject
+        print 'words =', words
+        print 'url   =', url
 
         try:
-            response = timeit(url, urlopen, url=url, data=json.dumps(data), timeout=0.1)
-            handleDGNUpdate(self, response)
+            if should_request(self,data):
+                print 'data  =', json.dumps(data)
+                request  = urllib2.Request(url, json.dumps(data), \{"Content-Type": "application/json"})
+                response = urllib2.urlopen(request)
+            pass
         except Exception as e:
             print
+            print "---------- error ------------------"
             print "sending the request and/or handling the response threw:"
             print e
+            print traceback.format_exc()
 
         # don't print until the request is sent the response is handled
         try:
             print
-            print "---------- gotResultsObject ----------"
-            print "words  =", words
             print "status =", response.getcode()
             print "body   =", response
         except NameError:
             print
         except Exception as e:
             print
+            print "---------- error ------------------"
             print e
+            print traceback.format_exc()
 
     # for debugging only, shows whether specific rules (rather than the generic dgndictation) are matching the recognition
     # not called when (self.doOnlyGotResultsObject=True)
@@ -181,6 +147,50 @@ class NarcissisticGrammar(GrammarBase):
         self.activateSet(exports, exclusive=1)
 
 
+
+# API
+
+# TODO             handleDGNUpdate(grammar, response)
+def handleDGNUpdate(grammar, response):
+    pass 
+
+def should_request(grammar,data):
+    b = data and not handle_microphone(grammar,data) and isUnicode(data)
+    print "should_request=", b
+    return b
+
+# returns true if it matched the recognition (and executed the magic action).
+# in which case, don't send a request to the server to execute any non-magic actions.
+# "mike off" deactivates all grammars besides the microphone grammer, "putting the microphone to sleep".
+def handle_microphone(grammar,data):
+    raw = " ".join(data)
+
+    if   raw == "mike on": 
+        # grammar.setMicState("on") 
+        grammar.activateSet([microphone_export, H_EXPORT], exclusive=1)
+        return True
+    elif raw == "mike off":
+        # grammar.setMicState("sleeping")
+        grammar.activateSet([microphone_export],exclusive=1)
+        return True
+    elif raw == "mike dead":
+        # the natlink.setMicState("off") # can't even be manually turned back on via the GUI
+        return True
+    else:
+        return False
+
+def isUnicode(data):
+    try:
+        for word in data:
+            word.decode('utf8')
+        return True
+    except UnicodeDecodeError as e:
+        print e
+        print traceback.format_exc()
+        return False
+
+
+
 # helpers
 
 # current time in milliseconds
@@ -200,10 +210,10 @@ def get_results(resultsObject):
 
 def munge_recognition(words):
     '''
-    >>> munge_recognition(['spell', r'a\\\\spelling-letter\\\\A', r',\\\\comma\\\\comma', r'a\\\\determiner', 'letter'])
+    >>> munge_recognition(['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter'])
     ["spell", "A", ",", "a", "letter"]
     '''
-    return [word.split(r'\\\\')[0] for word in words]
+    return [word.split('\\\\')[0] for word in words]
 
 # http://stackoverflow.com/questions/1685221/accurately-measure-time-python-function-takes
 def timeit(message, callback, *args, **kwargs):
@@ -233,4 +243,3 @@ def unload():
 
 load()
 |]
-

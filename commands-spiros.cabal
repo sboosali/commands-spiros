@@ -40,10 +40,10 @@ library
  exposed-modules:
   Commands.Plugins.Spiros
 
- other-modules:
   Commands.Plugins.Spiros.Root
   Commands.Plugins.Spiros.Shortcut
   Commands.Plugins.Spiros.Shim
+  Commands.Plugins.Spiros.Phrase
 --  Commands.Plugins.Spiros.
 
  build-depends:

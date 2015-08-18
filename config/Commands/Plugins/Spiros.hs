@@ -3,9 +3,10 @@
 module Commands.Plugins.Spiros where
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Etc
-import           Commands.Frontends.Dragon13
+import           Commands.Frontends.Dragon13 hiding (getShim)
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Plugins.Spiros.Root
+import           Commands.Plugins.Spiros.Shim (getShim)
 import           Commands.Servers.Servant
 
 import           Control.Lens                  hiding (from, ( # ))
@@ -73,7 +74,9 @@ spirosSetup settings = do
 
  applyShim getShim address (settings&vConfig&vGrammar) & \case
   Left e -> do
+   putStrLn$ (show e)
    return$ Left(VError (show e))
+
   Right (PythonFile shim) -> do
    putStrLn "" -- TODO logging
 
