@@ -121,8 +121,11 @@ type PItem = (Maybe PFunc, [Phrase])
 
 phrase_ :: DNSEarleyRHS z Phrase'
 phrase_ = complexGrammar 'phrase_
- (snoc <$> ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
- (snoc <$> ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD))
+-- (snoc     <$>             ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
+ (conssnoc <$> (phraseA <|> phraseB) <*> ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
+ (conssnoc <$> (phraseA <|> phraseB) <*> ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD))
+ where
+ conssnoc x ys z = [x] <> ys <> [z]
 
 -- | a sub-phrase where a phrase to the right is certain.
 --
@@ -155,6 +158,7 @@ phraseB = 'phraseB <=> empty
  -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
  -- <|> Spelled_  <#> "spell" # letters -- only, not characters
  <|> Pasted_     <#> "paste"
+ <|> Blank_      <#> "blank"
 
 -- | a sub-phrase where a phrase to the right is impossible.
 phraseC :: DNSEarleyRHS z Phrase_
@@ -183,7 +187,7 @@ joiner = 'joiner
  <|> Joiner "-" <#> "dash"
  <|> Joiner "/" <#> "file"
  <|> Joiner ""  <#> "squeeze"
- <|> CamelJoiner <#> "camel"
+ <|> CamelJoiner <#> "cam"
  <|> ClassJoiner <#> "class"
 
 brackets = 'brackets
@@ -197,88 +201,150 @@ brackets = 'brackets
  <|> bracket '|'      <#> "norm"
  -- <|> Brackets "**" "**" <#> "bold"
 
+-- disjoint vocabulary ("effects"), possibly overlapping parses ("results")
 character :: DNSEarleyRHS z Char
 character = 'character <=> empty
+ <|> punctuationRHS
+ <|> englishNumericRHS
+ <|> literalNumericRHS
+ <|> phoneticAlphabetRHS
+-- <|> shortAlphabetRHS
+-- <|> literalAlphabetRHS
 
- <|> '`' <#> "grave"
- <|> '~' <#> "till"
- <|> '!' <#> "bang"
- <|> '@' <#> "axe"
- <|> '#' <#> "pound"
- <|> '$' <#> "doll"
- <|> '%' <#> "purse"
- <|> '^' <#> "care"
- <|> '&' <#> "amp"
- <|> '*' <#> "star"
- <|> '(' <#> "lore"
- <|> ')' <#> "roar"
- <|> '-' <#> "dash"
- <|> '_' <#> "score"
- <|> '=' <#> "eek"
- <|> '+' <#> "plus"
- <|> '[' <#> "lack"
- <|> '{' <#> "lace"
- <|> ']' <#> "rack"
- <|> '}' <#> "race"
- <|> '\\' <#> "stroke"
- <|> '|' <#> "pipe"
- <|> ';' <#> "sem"
- <|> ':' <#> "coal"
- <|> '\'' <#> "tick"
- <|> '"' <#> "quote"
- <|> ',' <#> "com"
- <|> '<' <#> "less"
- <|> '.' <#> "dot"
- <|> '>' <#> "great"
- <|> '/' <#> "slash"
- <|> '?' <#> "quest"
- <|> ' ' <#> "ace"
- <|> '\t' <#> "tab"
- <|> '\n' <#> "line"
+punctuationRHS :: DNSEarleyRHS z Char
+punctuationRHS = vocab
+ [ "grave"-: '`'
+ , "till"-: '~'
+ , "bang"-: '!'
+ , "axe"-: '@'
+ , "pound"-: '#'
+ , "doll"-: '$'
+ , "purse"-: '%'
+ , "care"-: '^'
+ , "amp"-: '&'
+ , "star"-: '*'
+ , "lore"-: '('
+ , "roar"-: ')'
+ , "score"-: '_'
+ , "eek"-: '='
+ , "plus"-: '+'
+ , "lack"-: '['
+ , "lace"-: '{'
+ , "rack"-: ']'
+ , "race"-: '}'
+ , "stroke"-: '\\'
+ , "pipe"-: '|'
+ , "sem"-: ';'
+ , "coal"-: ':'
+ , "tick"-: '\''
+ , "quote"-: '"'
+ , "com"-: ','
+ , "less"-: '<'
+ , "dot"-: '.'
+ , "great"-: '>'
+ , "slash"-: '/'
+ , "quest"-: '?'
+ , "tab"-: '\t'
+ , "ace"-: ' '
+ , "line"-: '\n'
+ ]
 
- <|> '0' <#> "zero"
- <|> '1' <#> "one"
- <|> '2' <#> "two"
- <|> '3' <#> "three"
- <|> '4' <#> "four"
- <|> '5' <#> "five"
- <|> '6' <#> "six"
- <|> '7' <#> "seven"
- <|> '8' <#> "eight"
- <|> '9' <#> "nine"
-
- <|> 'a' <#> "ay"
- <|> 'b' <#> "bee"
- <|> 'c' <#> "sea"
- <|> 'd' <#> "dee"
- <|> 'e' <#> "eek"
- <|> 'f' <#> "eff"
- <|> 'g' <#> "gee"
- <|> 'h' <#> "aych"
- <|> 'i' <#> "eye"
- <|> 'j' <#> "jay"
- <|> 'k' <#> "kay"
- <|> 'l' <#> "el"
- <|> 'm' <#> "em"
- <|> 'n' <#> "en"
- <|> 'o' <#> "oh"
- <|> 'p' <#> "pea"
- <|> 'q' <#> "queue"
- <|> 'r' <#> "are"
- <|> 's' <#> "ess"
- <|> 't' <#> "tea"
- <|> 'u' <#> "you"
- <|> 'v' <#> "vee"
- <|> 'w' <#> "dub"
- <|> 'x' <#> "ex"
- <|> 'y' <#> "why"
- <|> 'z' <#> "zee"
- <|> alphabetRHS
-
+englishNumericRHS :: DNSEarleyRHS z Char
+englishNumericRHS = vocab
+ [ "zero"-: '0'
+ , "one"-: '1'
+ , "two"-: '2'
+ , "three"-: '3'
+ , "four"-: '4'
+ , "five"-: '5'
+ , "six"-: '6'
+ , "seven"-: '7'
+ , "eight"-: '8'
+ , "nine"-: '9'
+ ]
 
 {- | equivalent to:
 
 @
+ <|> '0' <$ "0"
+ <|> '1' <$ "1"
+ ...
+ <|> '9' <$ "9"
+@
+
+-}
+literalNumericRHS :: DNSEarleyRHS z Char
+literalNumericRHS = foldMap (\c -> c <$ token [c]) ['0'..'9']
+
+shortAlphabetRHS :: DNSEarleyRHS z Char
+shortAlphabetRHS = vocab
+ [ "ay"-: 'a'
+ , "bee"-: 'b'
+ , "sea"-: 'c'
+ , "dee"-: 'd'
+ , "eek"-: 'e'
+ , "eff"-: 'f'
+ , "gee"-: 'g'
+ , "aych"-: 'h'
+ , "eye"-: 'i'
+ , "jay"-: 'j'
+ , "kay"-: 'k'
+ , "el"-: 'l'
+ , "em"-: 'm'
+ , "en"-: 'n'
+ , "oh"-: 'o'
+ , "pea"-: 'p'
+ , "queue"-: 'q'
+ , "are"-: 'r'
+ , "ess"-: 's'
+ , "tea"-: 't'
+ , "you"-: 'u'
+ , "vee"-: 'v'
+ , "dub"-: 'w'
+ , "ex"-: 'x'
+ , "why"-: 'y'
+ , "zee"-: 'z'
+ ]
+
+phoneticAlphabetRHS :: DNSEarleyRHS z Char
+phoneticAlphabetRHS = vocab
+ [ "alpha"-: 'a'
+ , "bravo"-: 'b'
+ , "charlie"-: 'c'
+ , "delta"-: 'd'
+ , "echo"-: 'e'
+ , "foxtrot"-: 'f'
+ , "golf"-: 'g'
+ , "hotel"-: 'h'
+ , "india"-: 'i'
+ , "juliet"-: 'j'
+ , "kilo"-: 'k'
+ , "lima"-: 'l'
+ , "mike"-: 'm'
+ , "november"-: 'n'
+ , "oscar"-: 'o'
+ , "poppa"-: 'p'
+ , "quebec"-: 'q'
+ , "romeo"-: 'r'
+ , "sierra"-: 's'
+ , "tango"-: 't'
+ , "uniform"-: 'u'
+ , "victor"-: 'v'
+ , "whiskey"-: 'w'
+ , "x-ray"-: 'x'
+ , "yankee"-: 'y'
+ , "zulu"-: 'z'
+ ]
+
+{- | equivalent to:
+
+@
+ <|> 'a' <#> "a"
+ <|> 'b' <#> "b"
+ <|> 'c' <#> "c"
+ <|> ...
+ <|> 'z' <#> "z"
+
  <|> 'a' <#> "A"
  <|> 'b' <#> "B"
  <|> 'c' <#> "C"
@@ -287,9 +353,8 @@ character = 'character <=> empty
 @
 
 -}
-alphabetRHS :: DNSEarleyRHS z Char
--- alphabetRHS :: Functor (p i) => RHS p r l String Char
-alphabetRHS = foldMap (\c -> c <$ word [toUpper c]) ['a'..'z'] -- TODO What will we get back from Dragon anyway?
+literalAlphabetRHS :: DNSEarleyRHS z Char
+literalAlphabetRHS = foldMap (\c -> (c <$ token [c]) <|> (c <$ token [toUpper c])) ['a'..'z'] -- TODO What will we get back from Dragon anyway?
 
 dictation = dragonGrammar 'dictation
  ((Dictation . fmap T.unpack) <$> some anyWord)

@@ -10,7 +10,6 @@ import           GHC.Exts                        (IsString)
 
 getShim :: (IsString t, Monoid t) => ShimR t -> t
 getShim ShimR{..} = [qc|
-
 #-*- coding: utf-8 -*-
 # _commands.py
 
@@ -18,6 +17,8 @@ getShim ShimR{..} = [qc|
 from natlinkmain import (setCheckForGrammarChanges)
 from natlinkutils import (GrammarBase)
 import natlink  # a DLL
+# import natlinkmain
+# import natlinkutils
 
 # standard library
 import time
@@ -35,10 +36,10 @@ H_SERVER_PORT = {__serverPort__}
 
 # e.g. for debugging
 # H_RULES  = '''<test> exported = \{test};'''
-# H_LISTS  = dict(test=["upcase region'])
-# H_EXPORT = "test"
+# H_LISTS  = \{'test', ['upcase region']}
+# H_EXPORT = 'test'
 # H_SERVER_HOST = "192.168.56.1"
-# H_SERVER_PORT = "1337"
+# H_SERVER_PORT = '8666'
 
 server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 
@@ -190,7 +191,7 @@ def isUnicode(data):
         return False
 
 def isNoise(data):
-    return data in [["the"],["if"]] #TODO hack, noise tends to be recognized as these short single words
+    return data in [["the"],["if"],["him"],["A"],["that"]] #TODO hack, noise tends to be recognized as these short single words
 
 
 
@@ -245,4 +246,4 @@ def unload():
     GRAMMAR = None
 
 load()
-|]
+# |] -- trailing comment is hack

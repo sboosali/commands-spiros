@@ -25,7 +25,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "salt"-: "M-a"
  , "paste"-: "M-v"
  , "stop"-: "C-g"
- , ""-: ""
+ , "copy"-: "M-c"
  , ""-: ""
  , ""-: ""
  , ""-: ""

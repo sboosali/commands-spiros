@@ -18,6 +18,7 @@ import           Servant
 import Data.Time
 
 import           Control.Monad.IO.Class        (liftIO)
+import           Control.Monad
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 import System.Mem
@@ -43,7 +44,7 @@ spirosServer = serveNatlink (spirosSettings rootCommand)
 -- spirosServe plugin = serveNatlink (spirosSettings plugin)
 
 spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
-spirosSettings command = VSettings 1337 spirosSetup spirosInterpret (spirosUpdateConfig command)
+spirosSettings command = VSettings 8888 spirosSetup spirosInterpret (spirosUpdateConfig command)
 
 -- spirosSettings :: forall r a. VPlugin_ r a -> (VSettings_ r a)
 -- spirosSettings plugin = (defSettings runActions spirosUpdateConfig plugin)
@@ -101,27 +102,42 @@ spirosSetup settings = do
 spirosInterpret :: (Show a) => (forall r. RULED VSettings r a) -> [Text] -> Response ()
 spirosInterpret vSettings = \ws -> do
 
- t0Parse <- liftIO$ getCurrentTime
+ t0<- liftIO$ getCurrentTime
  value <- e'ParseBest (vSettings&vConfig&vParser) ws & \case
-  Left e -> left$ err400{errBody = BSC.pack (show e)}
   Right x -> return x
- t1Parse <- liftIO$ getCurrentTime
+  Left e -> do
+   liftIO$ do
+    replicateM_ 3 (putStrLn"")
+    putStrLn$ "ERROR:"
+    print e
+    putStrLn$ "WORDS:"
+    T.putStrLn$ T.intercalate (T.pack " ") ws
+   left$ err400{errBody = BSC.pack (show e)}
+
+ t1<- liftIO$ getCurrentTime
 
  context <- liftIO$ OSX.runActions OSX.currentApplication
 
  let actions = (vSettings&vConfig&vDesugar) context value
  liftIO$ OSX.runActions actions
+ t2<- liftIO$ getCurrentTime
 
  liftIO$ do
-  putStrLn "" >> putStrLn "" >> putStrLn ""
-  putStrLn$ "WORDS:"
-  T.putStrLn$ T.intercalate (T.pack " ") ws
-  putStrLn$ "VALUE:"
-  print value
+  replicateM_ 3 (putStrLn"")
+  putStrLn$ "ACTIONS:"
+  putStr  $ OSX.showActions actions
+  putStrLn ""
+  putStrLn$ "TIMES:"
+  putStrLn$ show (1000 * (t1 `diffUTCTime` t0))
+  putStrLn$ show (1000 * (t2 `diffUTCTime` t1))
+  putStrLn ""
   putStrLn$ "CONTEXT:"
   print context
-  putStrLn$ "ACTIONS:"
-  putStrLn$ OSX.showActions actions
-  putStrLn$ "TIME:"
-  putStrLn$ show (1000 * (t1Parse `diffUTCTime` t0Parse))
-  performMajorGC
+  putStrLn ""
+  putStrLn$ "VALUE:"
+  print value
+  putStrLn ""
+  putStrLn$ "WORDS:"
+  T.putStrLn$ T.intercalate (T.pack " ") ws
+--  performMajorGC
+  performMinorGC
