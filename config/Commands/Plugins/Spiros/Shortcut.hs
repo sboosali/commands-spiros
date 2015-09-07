@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
+
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
 import Commands.Plugins.Example.Press
@@ -24,12 +25,15 @@ myShortcuts = 'myShortcuts <=> shortcuts
  [ "undo"-: "M-z"
  , "salt"-: "M-a"
  , "paste"-: "M-v"
- , "stop"-: "C-g"
  , "copy"-: "M-c"
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
+ , "cut"-: "M-x"
+-- , "history"-: "A-"
+ , "kill"-: "C-k"
+ , "stop"-: "C-g"
+ -- , "build"-: "M-u"
+ , "check"-: "M-u"
+ , "buffers"-: "C-x b"
+ , "comment"-: "M-;"
  , ""-: ""
  , ""-: ""
  , ""-: ""

@@ -1,12 +1,13 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables                                          #-}
 module Commands.Plugins.Spiros where
+import           Commands.Plugins.Spiros.Root
+import           Commands.Plugins.Spiros.Shim (getShim)
+
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Etc
 import           Commands.Frontends.Dragon13 hiding (getShim)
 import           Commands.Mixins.DNS13OSX9
-import           Commands.Plugins.Spiros.Root
-import           Commands.Plugins.Spiros.Shim (getShim)
 import           Commands.Servers.Servant
 
 import           Control.Lens                  hiding (from, ( # ))
@@ -16,6 +17,7 @@ import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import           Servant
 import Data.Time
+import Data.Char
 
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
@@ -85,7 +87,7 @@ spirosSetup settings = do
    putStrLn$ T.unpack shim
    putStrLn ""
 
-   OSX.runActions$ OSX.setClipboard (T.unpack shim)
+   OSX.runActions$ OSX.setClipboard (T.unpack (T.filter isAscii shim))
 
    T.putStrLn$ displayAddress address
    putStrLn ""

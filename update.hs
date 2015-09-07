@@ -106,12 +106,6 @@ pushFiles = do
   mktree (directory source)
   cp config source
 
- -- fix imports, rename vars
- sh$ do
-  (file,_) <- select files
-  sed (has ("Spiros" *> return "Example")) (input file)
-  sed (has ("spiros" *> return "example")) (input file)
-
  -- don't backup, expect version control
  exitCode <- withPWD idir $do
   git ["--no-pager", "diff", "--exit-code"] .&&. git ["--no-pager", "diff", "--exit-code", "--cached"]
@@ -119,12 +113,17 @@ pushFiles = do
  unless (exitCode==ExitSuccess) $ do
   die$ "[git diff] nonempty"
 
+ -- fix imports, rename vars
+ let pat = (("Spiros" *> return "Example") <|> ("spiros" *> return "example")) -- no 'has' pattern
  sh$ do
   (file,_) <- select files
-  cp file (idir<>file)
+  output (idir<>file) (sed pat (input file))
 
  -- print commit messages, we pseudo-"merge" between two different repos
  git ["--no-pager", "log", "--pretty=%H%n%n%B", "--all"]
+ echo "M-x magit-status"
+ echo "(goto filename) press d"
+ echo "(goto filediff) press e"
 
  return ExitSuccess
 
@@ -134,11 +133,11 @@ pushFiles = do
 shell_ cmd      = shell cmd      empty
 proc_  cmd args = proc  cmd args empty
 
--- cp = Turtle.cp
-cp = \src dst -> echo (format ("cp ("%fp%") ("%fp%")") src dst) *> return ExitSuccess -- dry-run
+cp = Turtle.cp
+-- cp = \src dst -> echo (format ("cp ("%fp%") ("%fp%")") src dst) *> return ExitSuccess -- dry-run
 
--- sed = Turtle.sed
-sed = \pat inp -> return ExitSuccess
+sed = Turtle.sed
+-- sed = \pat inp -> return ExitSuccess
 
 fp2txt = format fp
 txt2fp = fromString . T.unpack

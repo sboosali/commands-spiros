@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor, QuasiQuotes, RankNTypes, RecordWildCards #-}
 -- | (you should read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Shim where
+
 import           Commands.Frontends.Dragon13 hiding (getShim)
 
 import           Text.InterpolatedString.Perl6
@@ -99,6 +100,13 @@ class NarcissisticGrammar(GrammarBase):
         print 'url   =', url
 
         try:
+
+#            if words and words!=["Microphone","off"]:
+#                self.activateSet([],exclusive=0)
+#                natlink.recognitionMimic(["Microphone","off"])
+#            else:
+#                self.activateSet([microphone_export, H_EXPORT], exclusive=1)
+
             if should_request(self,data):
                 print 'data  =', json.dumps(data)
                 request  = urllib2.Request(url, json.dumps(data), \{"Content-Type": "application/json"})

@@ -70,6 +70,7 @@ root :: R z Root
 root = 'root <=> empty
  <|> KeyRiff_ <$> keyriff
  <|> KeyRiff_ <$> myShortcuts
+
  <|> ReplaceWith <#> "replace" # phrase_ # "with" # phrase_ -- TODO
  -- TODO <|> ReplaceWith <#> "replace" # phrase # "with" # (phrase <|>? "blank")
  <|> Undo        <#> "no"         -- order matters..
@@ -82,7 +83,8 @@ root = 'root <=> empty
  -- <|> KeyRiff_ <$> (keyriff <|> myShortcuts)
  <|> (Phrase_ . (:[])) <#> phraseC -- has "say" prefix
  <|> Phrase_     <#> phrase_  -- must be last, phrase falls back to wildcard.
- -- <|> Roots       <#> (multipleC root)
+ -- <|> (Phrase_ . Dictated_)   <#> dictation
+
 -- TODO <|> Frozen <#> "freeze" # root
 
 data Emacs
@@ -130,56 +132,33 @@ direction = tidyGrammar
 {- | slice the region between the cursor and the 'Slice'. induces a string.
 -}
 data Slice = Whole | Backwards | Forwards  deriving (Show,Eq,Ord,Enum,Typeable)
--- data Slice = BackSlice | WholeSlice | ForSlice deriving (Show,Eq,Ord,Enum,Typeable)
--- slice = qualifiedGrammar
-slice = 'slice
- <=> Whole     <#> "whole"
- <|> Backwards <#> "back"
- <|> Forwards  <#> "for"
-
--- "for" is homophone with "four", while both Positive and Slice can be the prefix (i.e. competing for the same recognition).
-
+slice = 'slice <=> vocab
+ [ "whole"-:Whole
+ , "back"-: Backwards
+ , "fuss"-: Forwards
+ ]
+ -- "for" would be homophone with "four", while both Positive and Slice can be the prefix (i.e. competing for the same recognition).
+-- "four kill for word" should be [4 Kill Forwards Word] not [4 Kill Forwards Line, 4 Sel Whole Word]
+-- "four kill fuss word" is unambiguously [4 Kill Forwards Word]
 
 
 data Edit = Edit Action Slice Region deriving (Show,Eq,Ord)
 
- -- aliases: constructors are more specific (e.g. @Edit Cut Forwards Line@) than later alternatives; 'RHS's are prefixes (or identical) to later alternatives (e.g. @<#> "kill"@)
- -- prefixes (e.g. "kill") must come before their superstrings (e.g. "kill for line").
- -- otherwise, the prefix is committed prematurely, and parsec won't backtrack.
- -- TODO but wouldn't @<#> action # (slice -?- Whole) # (region -?- That)@ match "kill" before @<#> "kill"@ does? yes it does
+edit = 'edit
+ <=> Edit Cut Forwards Line <#> "kill"
+     -- i.e. "kill" -> "kill for line", not "kill whole that"
+ <|> Edit <$> action              <*> (slice -?- Whole) <*> (region -?- That)
+    -- e.g. "cop" or "cop that" or "cop whole" -> "cop whole that"
+ <|> Edit <$> (action -?- Select) <*> slice             <*> region
+    -- e.g. "for line" -> "sel for line"
 
- -- TODO we want:
+ -- the "kill" case is why I abandoned parsec: it didn't backtrack sufficiently. we want:
  -- "cop" -> Edit Copy Whole That
  -- "kill" -> Edit Cut Forwards Line, not Edit Cut Whole That
  -- "kill for line" -> Edit Cut Forwards Line, not {unexpected 'f', expecting end of input}
 
-edit = 'edit
- <=> Edit Cut Forwards Line <#> "kill" -- TODO this is why I abandoned parsec: it didn't backtrack sufficiently
-
- -- generic
- <|> Edit <#> action              # (slice -?- Whole) # (region -?- That) -- e.g. "cop" -> "cop whole that"
- <|> Edit <#> (action -?- Select) # (slice -?- Whole) # region            -- e.g. "word" -> "select whole word"
-
--- TODO ensure no alternative is empty, necessary? yes it is
- -- this causes the errors in parsing "say 638 Pine St., Redwood City 94063":
- -- <|> editing <#> (action-?) # (slice-?) # (region-?)
- -- probably because it always succeeds, because [zero*zero*zero = zero] i.e.
- -- I don't know why the alternatives following the annihilator didn't show up in the "expecting: ..." error though
-
--- TODO This should be exposed as a configuration. editConfig? editWith defEditing?
--- editWith editing = 'edit <=> editing <#> (direction-?) # (action-?) # (region-?)
--- edit = editWith defEditing
--- TODO
--- maybe RHS should have access to a configuration environment? Oh my.
+-- TODO maybe RHS should have access to a configuration environment? Oh my.
 -- could also provide the keyword (i.e. only literals) feature, rather than forcing it on the parser.
--- if it were State not Reader, it could also support contextual (mutable) vocabularies;
- -- no, that makes the code to hard to read I think. The controller should handle the mutation/reloading, not the model.
-editing :: Maybe Action -> Maybe Slice -> Maybe Region -> Edit
-editing = undefined -- TODO defaults <|> Edit <#> action # region
- -- <|> Edit undefined <#> region
- -- <|> flip Edit undefined <#> action
-
-
 
 
 data Action
@@ -190,7 +169,7 @@ data Action
  | Transpose                    -- read/write.
  | Google                       -- read-only.
  deriving (Show,Eq,Ord,Typeable)
--- action = enumGrammar
+
 action = 'action <=> empty
  <|> Select      <#> "sell"
  <|> Copy        <#> "cop"
@@ -220,7 +199,7 @@ data Region
  | Reference
  | Structure
  deriving (Show,Eq,Ord,Enum,Typeable)
--- region = enumGrammar
+
 region = 'region
  <=> That       <#> "that"
  <|> Character  <#> "char"
@@ -241,12 +220,7 @@ region = 'region
 
 data Click = Click Times Button deriving (Show,Eq)
 click = 'click <=>
- Click <#> optionalEnum times # optionalEnum button # "click"
- -- type inference with the {#} sugar even works for:
- --  Click <#> optionalEnum enumGrammar # optionalEnum enumGrammar # "click"
- -- the terminal "click" makes the grammar "non-canonical" i.e.
- --  where product types are merged with <*> (after "lifting" into RHS)
- --  and sum types are merged with <|> (after "tagging" with the constructor)
+ Click <$> (times-?-Single) <*> (button-?-LeftButton) # "click"
 
 data Times = Single | Double | Triple deriving (Show,Eq,Enum,Typeable)
 times = enumGrammar
