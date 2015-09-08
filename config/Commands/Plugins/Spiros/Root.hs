@@ -6,7 +6,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root where
-import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
+import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Emacs
+import           Commands.Plugins.Spiros.Emacs.Config
+import           Commands.Plugins.Spiros.Macros
+import           Commands.Plugins.Spiros.Phrase
+import           Commands.Plugins.Spiros.Shortcut
 
 import           Commands.Backends.OSX
 import           Commands.Etc
@@ -15,8 +20,6 @@ import           Commands.Mixins.DNS13OSX9
 -- import           Commands.Munging
 import           Commands.Plugins.Example.Press
 import           Commands.Plugins.Example.Spacing
-import           Commands.Plugins.Spiros.Phrase
-import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Sugar.Alias
 import           Commands.Sugar.Press
 
@@ -27,7 +30,6 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.IO as T
 import           Data.Typeable
 import           Numeric.Natural ()
-import qualified System.FilePath.Posix as FilePath
 
 import           Control.Applicative hiding (many, optional)
 import           Control.Monad (replicateM_, (>=>))
@@ -45,6 +47,7 @@ import           System.IO.Unsafe
 data Root
  = Repeat Positive Root
  | Roots (NonEmpty Root)
+ | Macro_ Macro
  | Edit_ Edit
  | ReplaceWith Phrase' Phrase'
  | Click_ Click
@@ -69,8 +72,10 @@ roots = 'roots
 -- root = set (comRule.ruleExpand) 1 $ 'root <=> empty
 root :: R z Root
 root = 'root <=> empty
+
  <|> KeyRiff_ <$> keyriff
  <|> KeyRiff_ <$> myShortcuts
+ <|> Macro_ <$> myMacros
 
  <|> ReplaceWith <#> "replace" # phrase_ # "with" # phrase_ -- TODO
  -- TODO <|> ReplaceWith <#> "replace" # phrase # "with" # (phrase <|>? "blank")
@@ -87,18 +92,6 @@ root = 'root <=> empty
  -- <|> (Phrase_ . Dictated_)   <#> dictation
 
 -- TODO <|> Frozen <#> "freeze" # root
-
-data Emacs
- = EmacsFunction (Maybe Phrase')
- | EmacsExpression (Maybe Phrase')
- deriving (Show,Eq)
-
-emacs = 'emacs <=> empty
- <|> EmacsFunction      <#> "run" # interactive_
- <|> EmacsExpression    <#> "eval" # (phrase_-?)
- <|> EmacsFunction (Just [Pasted_]) <#> "run paste"
- where
- interactive_ = (Just . word2phrase') <$> interactive
 
 data Move
  = Move Direction Region
@@ -351,114 +344,7 @@ runRoot = \case
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
 
-type ElispSexp = String
--- -- type ElispSexp = Sexp String String
-
-
-isEmacs x = if FilePath.takeBaseName x `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
- then Just x
- else Nothing
-
-nothing = return ()
-
-munge :: Phrase' -> Actions String
-munge p1 = do
- p2 <- splatPasted (pPhrase p1) <$> getClipboard
- return$ mungePhrase p2 defSpacing
-
-slot s = do
- delay 10
- sendText s
- sendKeyPress [] ReturnKey
-
-when :: [Application] -> Actions () -> (Application -> Actions ())
-when theseContexts thisAction = \theContext -> do
- if theContext `List.elem` theseContexts
- then thisAction
- else nothing
-
-
-
-
-
-
-
-runEmacs_ = \case 
- EmacsFunction   Nothing -> execute_extended_command
- EmacsFunction   (Just p') -> runEmacs =<< munge p'
- EmacsExpression Nothing -> eval_expression
- EmacsExpression (Just p') -> evalEmacs =<< munge p'
-
-execute_extended_command = press C w --TODO non-standard: make this configurable? ImplicitParams? this is the configuration! just put in separate module. or define this as a keypress, and explicitly turn it into an action at  use site.
-
-eval_expression = press M ':'
-
-{- | generates actions to evaluate a stringly-typed s-expression in Emacs, just like @M-:@.
-
-since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffers t)@ to work when the current buffer is already a minibuffer.
-
--}
-evalEmacs :: ElispSexp -> Actions ()
-evalEmacs sexp = do
- eval_expression
- slot sexp
-
--- parseSexp :: String -> Possibly ElispSexp
--- parseSexp = undefined
-
--- prettySexp :: ElispSexp -> String
--- prettySexp = undefined
-
-{- | generates actions to execute an interactive command in Emacs, just like @M-x@.
-
-a pseudo-rpc for Emacs:
-
-* "rpc" because you can call emacs commands (I.e. interactive functions) with arguments
-
-* "pseudo" because the return type is unit: the communication is via one-way keyboard-shortcuts, rather than a two-way channel like a network connection.
-
-no "type"-checking or arity-checking.
-
-since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffers t)@ to work when the current buffer is already a minibuffer.
-
--}
-runEmacsWith
- :: String                      --  ^ the name of the interactive command
- -> [String]                    --  ^ the arguments that would be manually entered, one at a time, in a minibuffer
- -> Actions ()
-runEmacsWith f xs = do
- execute_extended_command -- non-standard: make this configurable? ImplicitParams?
- slot f
- traverse_ slot xs
--- configurable by actions being a ReaderT? The solved another problem, delays or something.
--- or just let the user define it, after copying and pasting the Example Plug-in. That's the whole point of the configuration being Haskell.
---
--- integrate with a vocabulary. or simple sum grammar, falling back to dictation.
--- print a list of all interactive commands, tokenize by splitting on "-".
--- http://stackoverflow.com/questions/29953266/emacs-list-the-names-of-every-interactive-command
-
--- | like 'runEmacsWith', but takes no arguments.
-runEmacs :: String -> Actions ()
-runEmacs f = runEmacsWith f []
-
--- | like 'runEmacsWith', but takes string-returning-actions as arguments.
---
--- e.g. @runEmacsWithA "regexp-search" ['getClipboard']@
-runEmacsWithA :: String -> [Actions String] -> Actions ()
-runEmacsWithA f as = do
- xs <- traverse id as
- runEmacsWith f xs
-
--- | like 'runEmacsWith', but takes phrases as arguments $
---
--- e.g. @runEmacsWithP "regexp-search" ['PAtom' 'Pasted']@
-runEmacsWithP :: String -> [Phrase'] -> Actions ()
-runEmacsWithP f ps = do
- xs <- traverse munge ps
- runEmacsWith f xs
-
 -- the indirection (i.e. @data 'Move'@, not just a @String@) makes it easy to reinterpret in many ways (e.g. moveEmacs, moveIntelliJ, moveChromd , etc).
-
 moveEmacs :: Move -> Actions ()
 moveEmacs = \case
 
@@ -493,13 +379,6 @@ moveEmacs = \case
  -- MoveTo -> press
  _ -> nothing
 
--- TODO read application from environment, which determines the keyboard shortcut
--- an application is defined by the keyboard shortcuts it supports?
--- Rec?
--- Map String Actions
--- lookup "mark"
-mark = press C spc
-
 -- gets the given region of text from Emacs
 selected :: Slice -> Region -> Actions String
 selected s r = do
@@ -516,11 +395,6 @@ select r = \case
  Whole     -> beg_of r >> mark >> end_of r
  Backwards -> mark >> beg_of r
  Forwards  -> mark >> end_of r
-
-activate_mark = replicateM_ 2 exchange_point_and_mark
-
-exchange_point_and_mark = press C x >> press C x
--- exchange_point_and_mark = runEmacs "exchange-point-and-mark"
 
 {-
 

@@ -25,7 +25,7 @@ import qualified Data.List                        as List
 import           Data.Typeable                    (Typeable)
 import           GHC.Exts                         (IsString (..),IsList (..))
 import           Prelude                          hiding (foldr1, mapM)
-
+import           Control.Monad ((>=>)) 
 
 -- ================================================================ --
 -- Phrase_ types
@@ -658,6 +658,19 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
 
  fromPAtom :: PAtom -> Phrase
  fromPAtom = Atom . Right
+
+
+
+-- ================================================================ --
+
+munge :: Phrase' -> OSX.Actions String
+munge p1 = do
+ p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
+ return$ mungePhrase p2 defSpacing
+
+insertP :: Phrase' -> OSX.Actions_
+insertP = munge >=> OSX.insert
+
 
 
 -- ================================================================ --

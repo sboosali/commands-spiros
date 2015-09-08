@@ -23,6 +23,7 @@ import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
+import System.IO
 import System.Mem
 
 -- ================================================================ --
@@ -73,11 +74,13 @@ spirosUpdateConfig command = unsafePerformIO$ do
 
 spirosSetup :: RULED VSettings r a -> IO (Either VError ())
 spirosSetup settings = do
+ hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
 
  let address = Address (Host "192.168.56.1") (Port (settings&vPort))
 
  applyShim getShim address (settings&vConfig&vGrammar) & \case
   Left e -> do
+   putStrLn ""
    putStrLn$ (show e)
    return$ Left(VError (show e))
 
@@ -114,6 +117,7 @@ spirosInterpret vSettings = \ws -> do
     print e
     putStrLn$ "WORDS:"
     T.putStrLn$ T.intercalate (T.pack " ") ws
+    hFlush stdout
    left$ err400{errBody = BSC.pack (show e)}
 
  t1<- liftIO$ getCurrentTime
