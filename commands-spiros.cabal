@@ -41,6 +41,7 @@ library
   Commands.Plugins.Spiros.Shortcut
   Commands.Plugins.Spiros.Shim
   Commands.Plugins.Spiros.Phrase
+  Commands.Plugins.Spiros.Emacs.InteractiveCommands
 --  Commands.Plugins.Spiros.
 
  build-depends:
@@ -57,7 +58,7 @@ library
 
 -- ================================================================ --
 
-executable example
+executable server
  main-is: Main.hs
  hs-source-dirs: .
 
@@ -81,7 +82,6 @@ executable script
  default-language: Haskell2010
  ghc-options:
   -Wall
-  -fno-warn-unused-do-bind
 
  build-depends:
     commands-spiros

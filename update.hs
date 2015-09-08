@@ -1,4 +1,5 @@
 #!/usr/bin/env runhaskell
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-do-bind #-}
 {-# LANGUAGE OverloadedStrings, DoAndIfThenElse, LambdaCase #-} 
 import Turtle hiding (cp,sed)
 import qualified Turtle

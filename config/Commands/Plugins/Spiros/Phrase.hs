@@ -68,7 +68,11 @@ instance IsList Dictation where
  fromList = Dictation
  toList (Dictation ws) = ws
 
+word2phrase_ :: String -> Phrase_
 word2phrase_ = Dictated_ . Dictation . (:[])
+
+word2phrase' :: String -> Phrase'
+word2phrase' =  (:[]) . Dictated_ . Dictation . (:[])
 
 
 -- not {JoinerFunction ([String] -> String)} to keep the {Eq} instance for caching

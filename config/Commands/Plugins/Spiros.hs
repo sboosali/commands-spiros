@@ -84,7 +84,7 @@ spirosSetup settings = do
   Right (PythonFile shim) -> do
    putStrLn "" -- TODO logging
 
-   putStrLn$ T.unpack shim
+   -- putStrLn$ T.unpack shim  -- too long (5k lines)
    putStrLn ""
 
    OSX.runActions$ OSX.setClipboard (T.unpack (T.filter isAscii shim))

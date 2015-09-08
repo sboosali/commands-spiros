@@ -19,11 +19,11 @@ build: configure
 	cabal build
 
 run:
-	cabal run
+	cabal run server
 
 serve:
 	echo 'curl  -X POST  -H "Content-Type: application/json"  -d '"'"'["par","round","grave","camel","lit","async","break","break","action"]'"'"' "http://localhost:1337/recognition/"'
-	cabal run serve
+	cabal run server
 
 bench:
 	cabal configure --enable-benchmarks && cabal bench

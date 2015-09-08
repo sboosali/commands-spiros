@@ -6,37 +6,38 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root where
-import           Commands.Plugins.Spiros.Shortcut
+import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
 
-import Commands.Munging
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
-import           Commands.Plugins.Spiros.Phrase
+-- import           Commands.Munging
 import           Commands.Plugins.Example.Press
 import           Commands.Plugins.Example.Spacing
+import           Commands.Plugins.Spiros.Phrase
+import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Sugar.Alias
 import           Commands.Sugar.Press
 
 import           Control.Concurrent.Async
-import           Control.Lens                          hiding (from, ( # ))
-import           Data.List.NonEmpty                    (NonEmpty (..))
-import qualified Data.Text.Lazy                        as T
-import qualified Data.Text.Lazy.IO                     as T
+import           Control.Lens hiding (from, ( # ))
+import           Data.List.NonEmpty (NonEmpty (..))
+import qualified Data.Text.Lazy as T
+import qualified Data.Text.Lazy.IO as T
 import           Data.Typeable
-import           Numeric.Natural                       ()
-import qualified System.FilePath.Posix                 as FilePath
+import           Numeric.Natural ()
+import qualified System.FilePath.Posix as FilePath
 
-import           Control.Applicative                   hiding (many, optional)
-import           Control.Monad                         (replicateM_, (>=>))
+import           Control.Applicative hiding (many, optional)
+import           Control.Monad (replicateM_, (>=>))
 -- import           Control.Parallel
 import           Data.Foldable                         (Foldable (..), asum,
                                                         traverse_)
-import qualified Data.List                             as List
+import qualified Data.List as List
 import           Data.Monoid
-import           Prelude                           hiding (foldl, foldr1)
-import           System.Timeout                    (timeout)
+import           Prelude hiding (foldl, foldr1)
+import           System.Timeout (timeout)
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 
@@ -88,13 +89,16 @@ root = 'root <=> empty
 -- TODO <|> Frozen <#> "freeze" # root
 
 data Emacs
- = EmacsFunction (Maybe Dictation)
- | EmacsExpression (Maybe Dictation)
+ = EmacsFunction (Maybe Phrase')
+ | EmacsExpression (Maybe Phrase')
  deriving (Show,Eq)
 
 emacs = 'emacs <=> empty
- <|> EmacsFunction      <#> "run" # (dictation-?)
- <|> EmacsExpression    <#> "eval" # (dictation-?)
+ <|> EmacsFunction      <#> "run" # interactive_
+ <|> EmacsExpression    <#> "eval" # (phrase_-?)
+ <|> EmacsFunction (Just [Pasted_]) <#> "run paste"
+ where
+ interactive_ = (Just . word2phrase') <$> interactive
 
 data Move
  = Move Direction Region
@@ -358,9 +362,9 @@ isEmacs x = if FilePath.takeBaseName x `elem` ["Emacs","Work","Notes","Diary","O
 nothing = return ()
 
 munge :: Phrase' -> Actions String
-munge p = do
- q <- splatPasted (pPhrase p) <$> getClipboard
- return $ mungePhrase q defSpacing
+munge p1 = do
+ p2 <- splatPasted (pPhrase p1) <$> getClipboard
+ return$ mungePhrase p2 defSpacing
 
 slot s = do
  delay 10
@@ -380,10 +384,10 @@ when theseContexts thisAction = \theContext -> do
 
 
 runEmacs_ = \case 
- EmacsFunction   Nothing               -> execute_extended_command
- EmacsFunction   (Just (Dictation x')) -> runEmacs (dashCase x')
- EmacsExpression Nothing               -> eval_expression
- EmacsExpression (Just (Dictation x')) -> evalEmacs (dashCase x')
+ EmacsFunction   Nothing -> execute_extended_command
+ EmacsFunction   (Just p') -> runEmacs =<< munge p'
+ EmacsExpression Nothing -> eval_expression
+ EmacsExpression (Just p') -> evalEmacs =<< munge p'
 
 execute_extended_command = press C w --TODO non-standard: make this configurable? ImplicitParams? this is the configuration! just put in separate module. or define this as a keypress, and explicitly turn it into an action at  use site.
 

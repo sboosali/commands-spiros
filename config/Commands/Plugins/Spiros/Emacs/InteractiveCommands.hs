@@ -1,3 +1,17 @@
+{-# LANGUAGE  TemplateHaskell #-}
+module Commands.Plugins.Spiros.Emacs.InteractiveCommands where 
+
+import           Commands.Mixins.DNS13OSX9
+
+import Control.Arrow ((&&&))
+
+
+immutableVocabulary :: [String] -> DNSEarleyRHS z String
+immutableVocabulary = vocab . fmap (id &&& id) 
+
+interactive :: DNSEarleyRHS z String
+interactive = 'interactive <=> immutableVocabulary
+ [ ""
  , "desktop save in desktop dir"
  , "gnus score mode"
  , "tabbar mwheel switch tab"
@@ -4316,3 +4330,4 @@
  , "default indent new line"
  , "helm surfraw"
  , "org set tags to"
+ ] 
