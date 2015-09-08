@@ -23,6 +23,8 @@ files =
 -- ,""-: ""
  ]
 
+emacs_interactive_commands_file = "emacs-commands.txt" 
+
 -------------------------------------------------------------------------------
 
 main = do
@@ -37,17 +39,19 @@ main = do
  opts <- options "Update Script" (arg pOptions "action" "")
  runOptions opts >>= exit
 
-data Options = PullFiles | PushFiles
+data Options = PullFiles | PushFiles | MungeInteractiveCommands
  deriving (Show,Enum)
 
 pOptions = \case
   "pull" -> Just PullFiles
   "push" -> Just PushFiles
+  "munge" -> Just MungeInteractiveCommands
   _ -> Nothing
 
 runOptions = \case
  PullFiles -> pullFiles
  PushFiles -> pushFiles
+ MungeInteractiveCommands -> mungeInteractiveCommands
 
 -------------------------------------------------------------------------------
 
@@ -126,6 +130,16 @@ pushFiles = do
  echo "(goto filediff) press e"
 
  return ExitSuccess
+
+
+-------------------------------------------------------------------------------
+
+mungeInteractiveCommands = do
+ sh$ do
+  command <- input emacs_interactive_commands_file
+  die"mungeInteractiveCommands"
+ return ExitSuccess
+
 
 -------------------------------------------------------------------------------
 -- etc

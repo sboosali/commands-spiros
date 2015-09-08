@@ -17,6 +17,7 @@ tested-with: GHC == 7.10.1
 
 extra-source-files:
  README.md
+ emacs-interactive-commands.txt
 
 data-files:
 cabal-version:       >=1.10
@@ -70,5 +71,22 @@ executable example
   , commands-core
 
   , lens
+
+  , base ==4.8.*
+
+executable script
+ main-is: update.hs
+ hs-source-dirs: .
+
+ default-language: Haskell2010
+ ghc-options:
+  -Wall
+  -fno-warn-unused-do-bind
+
+ build-depends:
+    commands-spiros
+  , commands-core
+
+  , turtle, text 
 
   , base ==4.8.*
