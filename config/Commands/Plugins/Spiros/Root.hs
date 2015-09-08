@@ -18,7 +18,7 @@ import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 -- import           Commands.Munging
-import           Commands.Plugins.Example.Press
+import           Commands.Plugins.Example.Keys
 import           Commands.Plugins.Example.Spacing
 import           Commands.Sugar.Alias
 import           Commands.Sugar.Press

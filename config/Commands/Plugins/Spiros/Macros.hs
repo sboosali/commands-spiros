@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
--- import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
 
@@ -26,12 +26,18 @@ myMacrosRHS :: R z Actions_
 myMacrosRHS = empty
  <|> align_regexp <$ "align" <*> phrase_
  <|> select_buffer <$ "buff" <*> phrase_
+ <|> multi_occur <$ "occur" <*> phrase_
 
 align_regexp p' = do
-  runEmacsWait "align-regexp"
-  insertP p'
+ runEmacsWait "align-regexp"
+ insertP p'
 
 select_buffer p' = do
-  press C 'x' >> press 'b'
-  insertP p'
+ press C 'x' >> press 'b'
+ insertP p'
+
+multi_occur p' = do
+ runEmacsWait "multi-occur-in-matching-buffers"
+ slot "."                       -- match all buffers 
+ insertP p'                     -- match this regexp 
 

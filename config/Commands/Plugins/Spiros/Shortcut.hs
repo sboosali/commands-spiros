@@ -5,7 +5,7 @@ module Commands.Plugins.Spiros.Shortcut where
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
-import Commands.Plugins.Example.Press
+import Commands.Plugins.Example.Keys
 
 import           Data.Text.Lazy                 (Text)
 
@@ -36,10 +36,11 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "comment"-: "M-;"
  , "new file"-: "C-\\"
  , "replace"-: "M-r"
- , "space"-: "SPC"
- , ""-: ""
- , ""-: ""
- , ""-: ""
+ , "switch"-: "M-~"
+ , "space"-: "<spc>"
+ , "tab"-: "<tab>"
+ , "line"-: "<ret>"
+ , "del"-: "<del>"
  , ""-: ""
  , ""-: ""
  , ""-: ""
