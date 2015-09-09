@@ -32,7 +32,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "right"-: "<right>"
  , "F3"-: "<f3>"
  , "F4"-: "<f4>"
-
+ -- Global
  , "undo"-: "M-z"
  , "salt"-: "M-a"
  , "paste"-: "M-v"
@@ -40,6 +40,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "cut"-: "M-x"
 -- , "history"-: "A-" -- TODO 
  , "kill"-: "C-k"
+
+ -- Emacs
  , "stop"-: "C-g"
  , "check"-: "M-u"
  , "comment"-: "M-;"
@@ -50,7 +52,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "switch"-: "M-`"
  , "close buff"-: "C-x k" 
  , "close"-: "C-c C-c"
- , ""-: ""
+
+ -- Chrome
+ , "close tab"-: "M-w"
+ , "new tab"-: "M-t"
+
+ -- etc.
  , ""-: ""
  , ""-: ""
  , ""-: ""
