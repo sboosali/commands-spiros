@@ -1,10 +1,10 @@
 #!/usr/bin/env runhaskell
-{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-unused-do-bind -fno-warn-type-defaults -fno-warn-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings, DoAndIfThenElse, LambdaCase #-} 
 import Turtle hiding (cp,sed)
 import qualified Turtle
-import           GHC.Exts                        (fromString)
-import qualified Data.Text.Lazy                  as T
+-- import           GHC.Exts                        (fromString)
+-- import qualified Data.Text.Lazy                  as T
 
 -------------------------------------------------------------------------------
 -- config
@@ -137,7 +137,7 @@ pushFiles = do
 
 mungeInteractiveCommands = do
  sh$ do
-  command <- input emacs_interactive_commands_file
+  _command <- input emacs_interactive_commands_file
   die"mungeInteractiveCommands"
  return ExitSuccess
 
@@ -145,7 +145,7 @@ mungeInteractiveCommands = do
 -------------------------------------------------------------------------------
 -- etc
 
-shell_ cmd      = shell cmd      empty
+-- shell_ cmd      = shell cmd      empty
 proc_  cmd args = proc  cmd args empty
 
 cp = Turtle.cp
@@ -155,7 +155,7 @@ sed = Turtle.sed
 -- sed = \pat inp -> return ExitSuccess
 
 fp2txt = format fp
-txt2fp = fromString . T.unpack
+-- txt2fp = fromString . T.unpack
 
 git args = proc_ "git" args
 

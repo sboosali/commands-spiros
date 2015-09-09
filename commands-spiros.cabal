@@ -25,6 +25,8 @@ source-repository head
 
 library
     
+    if !os(osx)
+        buildable: False
     exposed-modules:
         Commands.Plugins.Spiros
         Commands.Plugins.Spiros.Etc
