@@ -45,11 +45,15 @@ myMacrosRHS0 = vocab
 
  , "man"-: do                   -- short for "commands server"
    openApplication "Commands"   -- TODO make less stringly-typed
+   delay 25
    move_window_down 
+   delay 25
    switch_buffer (word2phrase' "shell2")
 
- , ""-: do
-   nothing
+ , "next error"-: do
+   move_window_down
+   runEmacs "compilation-next-error"
+   press ret
 
  , ""-: do
    nothing
