@@ -5,6 +5,8 @@ module Commands.Plugins.Spiros.Phrase where
 
 import           Commands.Plugins.Example.Spacing
 
+import Commands.Sugar.Press 
+import Commands.Sugar.Alias
 import qualified Commands.Backends.OSX            as OSX
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
@@ -663,13 +665,19 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
 
 -- ================================================================ --
 
+slotP :: Phrase' -> OSX.Actions_
+slotP p' = do
+ OSX.delay 10
+ insertP p'
+ press ret
+
+insertP :: Phrase' -> OSX.Actions_
+insertP = munge >=> OSX.insert
+
 munge :: Phrase' -> OSX.Actions String
 munge p1 = do
  p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
  return$ mungePhrase p2 defSpacing
-
-insertP :: Phrase' -> OSX.Actions_
-insertP = munge >=> OSX.insert
 
 
 

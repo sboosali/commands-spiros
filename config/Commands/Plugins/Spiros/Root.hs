@@ -77,7 +77,6 @@ root = 'root <=> empty
  <|> KeyRiff_ <$> myShortcuts
  <|> Macro_ <$> myMacros
 
- <|> ReplaceWith <#> "replace" # phrase_ # "with" # phrase_ -- TODO
  -- TODO <|> ReplaceWith <#> "replace" # phrase # "with" # (phrase <|>? "blank")
  <|> Undo        <#> "no"         -- order matters..
  <|> Undo        <#> "no way"     -- .. the superstring "no way" should come before the substring "no" (unlike this example)
@@ -89,7 +88,7 @@ root = 'root <=> empty
  -- <|> KeyRiff_ <$> (keyriff <|> myShortcuts)
  <|> (Phrase_ . (:[])) <#> phraseC -- has "say" prefix
  <|> Phrase_     <#> phrase_  -- must be last, phrase falls back to wildcard.
- -- <|> (Phrase_ . Dictated_)   <#> dictation
+
 
 -- TODO <|> Frozen <#> "freeze" # root
 
@@ -294,12 +293,13 @@ bestRoot = argmax rankRoot
 rankRoot = \case                --TODO fold over every field of every case, normalizing each case
  Repeat _ r -> rankRoot r
  Roots rs -> sum $ fmap rankRoot rs
+ Macro_ _ -> 1000
+ KeyRiff_ _ -> 1000
  Edit_ _ -> 100
  Undo -> 100
  ReplaceWith p1 p2 -> 100 + rankPhrase (p1<>p2)
  Click_ _ -> 100
  Move_ _ -> 100
- KeyRiff_ _ -> 1000
  Phrase_ p -> rankPhrase p
  _ -> 100
 
@@ -308,7 +308,7 @@ runRoot = \case
  (isEmacs -> Just x') -> \case
    Roots rs -> traverse_ (runRoot x') rs
    Repeat n' c' -> replicateM_ (getPositive n') $ runRoot x' c' --TODO avoid duplication.
-   ReplaceWith this that -> runEmacsWithP "replace-regexp" [this, that]
+   Macro_ (Macro w') -> w'
    Edit_ a' -> editEmacs a'
    Move_ a' -> moveEmacs a'
    Emacs_ a' -> runEmacs_ a'
@@ -318,7 +318,7 @@ runRoot = \case
    Roots rs -> traverse_ (runRoot x') rs
    Repeat n' c' -> replicateM_ (getPositive n') $ runRoot x' c'
    ReplaceWith this that -> do
-     press M r
+     press M 'r'
      (munge this >>= insert) >> press tab
      munge that >>= slot
    x' -> runRoot_ x'
@@ -331,7 +331,7 @@ runRoot = \case
  -- unconditional runRoot (i.e. any context / global context)
  runRoot_ = \case
 
-  Undo -> press met z
+  Undo -> press met 'z'
 
   Phrase_ p' -> do
    insert =<< munge p'
@@ -348,32 +348,32 @@ runRoot = \case
 moveEmacs :: Move -> Actions ()
 moveEmacs = \case
 
- Move Left_ Character  -> press C b
- Move Right_ Character -> press C f
+ Move Left_ Character  -> press C 'b'
+ Move Right_ Character -> press C 'f'
 
- Move Left_ Word_      -> press M b
- Move Right_ Word_     -> press M f
+ Move Left_ Word_      -> press M 'b'
+ Move Right_ Word_     -> press M 'f'
 
- Move Left_ Group      -> press C M b
- Move Right_ Group     -> press C M f
+ Move Left_ Group      -> press C M 'b'
+ Move Right_ Group     -> press C M 'f'
 
- Move Up_ Line         -> press C p
- Move Down_ Line       -> press C n
+ Move Up_ Line         -> press C 'p'
+ Move Down_ Line       -> press C 'n'
 
  Move Up_ Block        -> press C up
  Move Down_ Block      -> press C down
 
  Move Up_ Screen       -> runEmacs "scroll-up-command"
- Move Down_ Screen     -> press C v
+ Move Down_ Screen     -> press C 'v'
 
  Move Up_ Page         -> runEmacs "backward-page"
  Move Down_ Page       -> runEmacs "forward-page"
 
- MoveTo Beginning Line       -> press C a
- MoveTo Ending  Line       -> press C e
+ MoveTo Beginning Line       -> press C 'a'
+ MoveTo Ending    Line       -> press C 'e'
 
  MoveTo Beginning Everything -> press M up
- MoveTo Ending Everything  -> press M down
+ MoveTo Ending    Everything -> press M down
 
  -- Move -> press
  -- MoveTo -> press
@@ -416,7 +416,7 @@ beg_of = \case
  Character  -> nothing
  Word_      -> evalEmacs "(beginning-of-thing 'word)"
  Group      -> evalEmacs "(beginning-of-thing 'list)"
- Line       -> press C a
+ Line       -> press C 'a'
  Block      -> evalEmacs "(beginning-of-thing 'block)"
  Page       -> evalEmacs "(beginning-of-thing 'page)"
  Screen     -> evalEmacs "(goto-char (window-start))"
@@ -431,7 +431,7 @@ end_of = \case
  Character  -> nothing          -- [press C f] is not idempotent, but [nothing] fails on [beg_of r >> mark >> end_of r]
  Word_      -> evalEmacs "(end-of-thing 'word)"
  Group      -> evalEmacs "(end-of-thing 'list)"
- Line       -> press C e
+ Line       -> press C 'e'
  Block      -> evalEmacs "(end-of-thing 'block)" -- non-standard: expects forward-block
  Page       -> evalEmacs "(end-of-thing 'page)"
  Screen     -> evalEmacs "(goto-char (window-end))"
@@ -463,17 +463,17 @@ editEmacs = \case
 
  Edit Copy s r -> do
   select r s
-  press M c                     -- like Cua-mode for Mac
+  press M 'c'                     -- like Cua-mode for Mac
 
  Edit Cut s r -> do
   select r s
-  press M x                     -- like Cua-mode for Mac
+  press M 'x'                     -- like Cua-mode for Mac
 
- Edit Transpose _ Character -> press C t
- Edit Transpose _ Word_ -> press M t
- Edit Transpose _ Group -> press C M t
- Edit Transpose _ Line -> press C x t
- Edit Transpose _ Block -> runEmacs "transpose-block" -- nonstandard
+ Edit Transpose _ Character -> press C 't'
+ Edit Transpose _ Word_     -> press M 't'
+ Edit Transpose _ Group     -> press C M 't'
+ Edit Transpose _ Line      -> press C 'x' 't'
+ Edit Transpose _ Block     -> runEmacs "transpose-block" -- nonstandard
  -- Edit Transpose _ ->
 
  -- That

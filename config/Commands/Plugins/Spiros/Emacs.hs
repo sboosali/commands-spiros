@@ -25,12 +25,17 @@ data Emacs
 -- ================================================================ --
 
 emacs = 'emacs <=> empty
- <|> EmacsFunction      <#> "run" # interactive_
- <|> EmacsExpression    <#> "eval" # (phrase_-?)
- <|> EmacsFunction   (Just [Pasted_]) <#> "run paste"
- <|> EmacsExpression (Just [Pasted_]) <#> "eval paste"  -- TODO shouldn't be necessary 
+ <|> EmacsFunction   (Just [Pasted_]) <#> ("run paste") 
+ <|> EmacsExpression (Just [Pasted_]) <#> ("eval paste") -- TODO shouldn't be necessary 
+ <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
+ <|> EmacsExpression    <#> "eval" <*> (phrase_-?)
+
+ -- <|> EmacsFunction   (Just [Pasted_]) <$ (t"run paste") 
+ -- <|> EmacsExpression (Just [Pasted_]) <$ (t"eval paste") -- TODO shouldn't be necessary 
+ -- <|> EmacsFunction      <$ "run"  <*> (interactive_-?)
+ -- <|> EmacsExpression    <$ "eval" <*> (phrase_-?)
  where
- interactive_ = (Just . word2phrase') <$> interactive   -- not a full phrase, for accuracy 
+ interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
 
 
 -- ================================================================ --

@@ -1,96 +1,86 @@
 name: commands-spiros
 version: 0.0.0
-synopsis: my configuration for commands
-category: Voice Control
-description:
- my configuration for commands: OS X backend; Dragon NaturallySpeaking frontend.
-author:     Spiros Boosalis
-maintainer: samboosalis@gmail.com
-homepage:    https://github.com/sboosali/commands-spiros#readme
-bug-reports: https://github.com/sboosali/commands-spiros/issues
-copyright:    Copyright (C) 2015 Spiros M. Boosalis
-license:      GPL-3
+cabal-version: >=1.10
+build-type: Simple
+license: GPL-3
 license-file: LICENSE
-build-type:  Simple
-stability:   experimental
-tested-with: GHC == 7.10.1
-
+copyright: Copyright (C) 2015 Spiros M. Boosalis
+maintainer: samboosalis@gmail.com
+stability: experimental
+homepage: https://github.com/sboosali/commands-spiros#readme
+bug-reports: https://github.com/sboosali/commands-spiros/issues
+synopsis: my configuration for commands
+description:
+    my configuration for commands: OS X backend; Dragon NaturallySpeaking frontend.
+category: Voice Control
+author: Spiros Boosalis
+tested-with: GHC ==7.10.1
 extra-source-files:
- README.md
- emacs-interactive-commands.txt
-
-data-files:
-cabal-version:       >=1.10
+    README.md
+    emacs-interactive-commands.txt
 
 source-repository head
- type:     git
- location: https://github.com/sboosali/commands-spiros
-
-
--- ================================================================ --
+    type: git
+    location: https://github.com/sboosali/commands-spiros
 
 library
-
- hs-source-dirs:
-  config
-
- exposed-modules:
-  Commands.Plugins.Spiros
-
-  Commands.Plugins.Spiros.Etc
-  Commands.Plugins.Spiros.Emacs
-  Commands.Plugins.Spiros.Emacs.Config
-  Commands.Plugins.Spiros.Emacs.InteractiveCommands
-  Commands.Plugins.Spiros.Root
-  Commands.Plugins.Spiros.Shortcut
-  Commands.Plugins.Spiros.Shim
-  Commands.Plugins.Spiros.Phrase
-  Commands.Plugins.Spiros.Macros
---  Commands.Plugins.Spiros.
-
- build-depends:
-    base                      ==4.8.*
-  , commands-core
-  , containers, mtl, wl-pprint-text, Earley ==0.9.*, text, semigroups, lens, exceptions, parallel, async
-  , either, bytestring, servant-server, transformers, filepath
-  , interpolatedstring-perl6 ==1.*, language-python==0.5.*, time
-
- default-language: Haskell2010
- ghc-options:
-  -Wall
-
-
--- ================================================================ --
+    
+    exposed-modules:
+        Commands.Plugins.Spiros
+        Commands.Plugins.Spiros.Etc
+        Commands.Plugins.Spiros.Emacs
+        Commands.Plugins.Spiros.Emacs.Config
+        Commands.Plugins.Spiros.Emacs.InteractiveCommands
+        Commands.Plugins.Spiros.Root
+        Commands.Plugins.Spiros.Shortcut
+        Commands.Plugins.Spiros.Shim
+        Commands.Plugins.Spiros.Phrase
+        Commands.Plugins.Spiros.Macros
+    build-depends:
+        base ==4.8.*,
+        commands-core -any,
+        containers -any,
+        mtl -any,
+        wl-pprint-text -any,
+        Earley ==0.9.*,
+        text -any,
+        semigroups -any,
+        lens -any,
+        exceptions -any,
+        parallel -any,
+        async -any,
+        either -any,
+        bytestring -any,
+        servant-server -any,
+        transformers -any,
+        filepath -any,
+        interpolatedstring-perl6 ==1.*,
+        language-python ==0.5.*,
+        time -any
+    default-language: Haskell2010
+    hs-source-dirs: config
+    ghc-options: -Wall
 
 executable server
- main-is: Main.hs
- hs-source-dirs: .
-
- default-language: Haskell2010
- ghc-options:
-  -Wall
-  -fno-warn-name-shadowing
-
- build-depends:
-    commands-spiros
-  , commands-core
-
-  , lens
-
-  , base ==4.8.*
+    main-is: Main.hs
+    build-depends:
+        commands-spiros -any,
+        commands-core -any,
+        lens -any,
+        base ==4.8.*
+    default-language: Haskell2010
+    hs-source-dirs: .
+    ghc-options: -Wall -fno-warn-name-shadowing
 
 executable script
- main-is: update.hs
- hs-source-dirs: .
+    main-is: update.hs
+    build-depends:
+        commands-spiros -any,
+        commands-core -any,
+        turtle -any,
+        text -any,
+        base ==4.8.*
+    default-language: Haskell2010
+    hs-source-dirs: .
+    ghc-options: -Wall
 
- default-language: Haskell2010
- ghc-options:
-  -Wall
-
- build-depends:
-    commands-spiros
-  , commands-core
-
-  , turtle, text 
-
-  , base ==4.8.*

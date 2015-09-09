@@ -2,6 +2,7 @@
 ignore/
 notes
 sources
+vocab.txt
 
 # Haskell
 dist

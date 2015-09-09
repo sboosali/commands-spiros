@@ -5,9 +5,12 @@ module Commands.Plugins.Spiros.Macros where
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
+import Commands.Plugins.Spiros.Emacs.Config
 
+import Commands.Sugar.Press 
+import Commands.Sugar.Alias
+import           Commands.Etc
 import Commands.Mixins.DNS13OSX9
-import           Commands.Sugar.Press
 import           Commands.Backends.OSX
 
 import           Control.Applicative
@@ -20,24 +23,70 @@ eqActions _a1 _a2 = False         -- TODO
 
 
 myMacros :: R z Macro
-myMacros = 'myMacros <=> Macro <$> myMacrosRHS
+myMacros = 'myMacros <=> Macro <$> (myMacrosRHS0 <|> myMacrosRHS)
 
-myMacrosRHS :: R z Actions_ 
+-- | macros with arguments
+myMacrosRHS :: R z Actions_
 myMacrosRHS = empty
- <|> align_regexp <$ "align" <*> phrase_
- <|> select_buffer <$ "buff" <*> phrase_
- <|> multi_occur <$ "occur" <*> phrase_
+ <|> align_regexp  <$ "align" <*> phrase_
+ <|> switch_buffer <$ "buff"  <*> phrase_
+ <|> multi_occur   <$ "occur" <*> phrase_
+ <|> replace_with  <$"replace" <*> phrase_ <*"with" <*> phrase_
 
 align_regexp p' = do
- runEmacsWait "align-regexp"
+ runEmacs "align-regexp"
  insertP p'
 
-select_buffer p' = do
+-- (setq confirm-nonexistent-file-or-buffer 'after-completion) only switches to a buffer without prompt when that buffer already exists
+switch_buffer p' = do
  press C 'x' >> press 'b'
- insertP p'
+ slotP p'
 
 multi_occur p' = do
- runEmacsWait "multi-occur-in-matching-buffers"
+ runEmacs "multi-occur-in-matching-buffers"
  slot "."                       -- match all buffers 
  insertP p'                     -- match this regexp 
 
+replace_with this that = do
+ runEmacsWithP "replace-regexp" [this, that]
+
+-- | macros without arguments
+myMacrosRHS0 :: R z Actions_
+myMacrosRHS0 = vocab
+ [ ""-: nothing
+
+ , "run again"-: do
+   execute_extended_command
+   press C up
+   press ret
+
+ , "eval again"-: do
+   eval_expression
+   press C up
+   press ret
+
+ , "to do"-: do
+   insert "TODO"
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ ]
