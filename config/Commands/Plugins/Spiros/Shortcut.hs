@@ -47,10 +47,10 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "comment"-: "M-;"
  , "new file"-: "C-\\"
  , "replace"-: "M-r"
- , "switch"-: "M-~"
  , "mark"-: "C-<spc>"
  , "switch"-: "M-`"
- , "close buff"-: "C-x k" 
+ , "close buff"-: "C-x k"
+ , "buffers"-: "C-x b"
  , "close"-: "C-c C-c"
 
  -- Chrome

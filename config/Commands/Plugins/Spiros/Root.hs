@@ -292,7 +292,7 @@ bestRoot = argmax rankRoot
 
 rankRoot = \case                --TODO fold over every field of every case, normalizing each case
  Repeat _ r -> rankRoot r
- Roots rs -> sum $ fmap rankRoot rs
+ Roots rs -> sum (fmap rankRoot rs) `div` (length rs)      --TODO what the heck is this even
  Macro_ _ -> 1000
  KeyRiff_ _ -> 1000
  Edit_ _ -> 100
@@ -307,7 +307,8 @@ runRoot = \case
 
  (isEmacs -> Just x') -> \case
    Roots rs -> traverse_ (runRoot x') rs
-   Repeat n' c' -> replicateM_ (getPositive n') $ runRoot x' c' --TODO avoid duplication.
+   Repeat n' c' -> do   --TODO avoid duplication.
+    traverse_ id $ List.intersperse (delay 10) $ replicate (getPositive n') (runRoot x' c')
    Macro_ (Macro w') -> w'
    Edit_ a' -> editEmacs a'
    Move_ a' -> moveEmacs a'
@@ -316,7 +317,7 @@ runRoot = \case
 
  x'@"Intellij" -> \case --TODO passed down context better
    Roots rs -> traverse_ (runRoot x') rs
-   Repeat n' c' -> replicateM_ (getPositive n') $ runRoot x' c'
+   -- Repeat n' c' -> nothing 
    ReplaceWith this that -> do
      press M 'r'
      (munge this >>= insert) >> press tab
@@ -324,12 +325,15 @@ runRoot = \case
    x' -> runRoot_ x'
 
  context -> \case
-   Repeat n' c' -> replicateM_ (getPositive n') $ runRoot context c' --TODO action grouping: insert nullop between each, for logging
+   Repeat n' c' -> do  --TODO action grouping: insert nullop between each, for logging
+    traverse_ id $ List.intersperse (delay 250) $ replicate (getPositive n') (runRoot context c') -- in chrome, keypresses are lost when the delay isn't long enough 
    a'           -> runRoot_ a'
 
  where
  -- unconditional runRoot (i.e. any context / global context)
  runRoot_ = \case
+
+  Macro_ (Macro w') -> w'
 
   Undo -> press met 'z'
 

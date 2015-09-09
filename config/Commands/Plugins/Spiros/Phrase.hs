@@ -74,8 +74,10 @@ word2phrase_ :: String -> Phrase_
 word2phrase_ = Dictated_ . Dictation . (:[])
 
 word2phrase' :: String -> Phrase'
-word2phrase' =  (:[]) . Dictated_ . Dictation . (:[])
+word2phrase' = (:[]) . Dictated_ . Dictation . (:[])
 
+blankPhrase :: Phrase'
+blankPhrase = [Blank_]
 
 -- not {JoinerFunction ([String] -> String)} to keep the {Eq} instance for caching
 -- fake equality? {JoinerFunction Name ([String] -> String)} so {JoinerFunction 'camelCase camelCase}
