@@ -172,7 +172,7 @@ action = 'action <=> empty
  <|> Cut         <#> "kill"
  <|> Delete      <#> "del"
  <|> Transpose   <#> "trans"
- <|> Google      <#> "google"
+ <|> Google      <#> "goo"
 
 
 

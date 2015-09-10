@@ -81,7 +81,7 @@ myMacrosRHS = empty
  <|> switch_buffer <$ "buff"  <*> phrase_
  <|> multi_occur   <$ "occur" <*> phrase_
  <|> replace_with  <$"replace" <*> phrase_ <*"with" <*> phrase_
- <|> google_for <$ ("google" <|> "ghoul" <|> "goo") <*> (dictation-?-"")
+ <|> google_for <$ ("google") <*> (dictation-?-"")
  <|> search_regexp <$ "search" <*> (phrase_-?)
  <|> find_text <$ "find" <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
  <|> goto_line <$ "go" <*> number

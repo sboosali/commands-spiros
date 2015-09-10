@@ -125,11 +125,11 @@ spirosInterpret vSettings = \ws -> do
  context <- liftIO$ OSX.runActions OSX.currentApplication
 
  let actions = (vSettings&vConfig&vDesugar) context value
- liftIO$ OSX.runActions actions
+ liftIO$ OSX.runActions actions -- the Objective-C bindings print out which functions are called
  t2<- liftIO$ getCurrentTime
 
  liftIO$ do
-  replicateM_ 3 (putStrLn"")
+  putStrLn""
   putStrLn$ "ACTIONS:"
   putStr  $ OSX.showActions actions
   putStrLn ""
@@ -146,4 +146,5 @@ spirosInterpret vSettings = \ws -> do
   putStrLn$ "WORDS:"
   T.putStrLn$ T.intercalate (T.pack " ") ws
 --  performMajorGC
+  replicateM_ 3 (putStrLn"")
   performMinorGC

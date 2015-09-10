@@ -32,13 +32,14 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "right"-: "<right>"
  , "F3"-: "<f3>"
  , "F4"-: "<f4>"
+
  -- Global
  , "undo"-: "M-z"
  , "salt"-: "M-a"
  , "paste"-: "M-v"
  , "copy"-: "M-c"
  , "cut"-: "M-x"
--- , "history"-: "A-" -- TODO 
+ , "history"-: "A-<spc>" -- TODO 
  , "kill"-: "C-k"
 
  -- Emacs
@@ -58,8 +59,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "new tab"-: "M-t"
 
  -- etc.
- , ""-: ""
- , ""-: ""
+ , "scroll"-: "<spc>"
+ , "scroll up"-: "S-<spc>"
  , ""-: ""
  , ""-: ""
  , ""-: ""

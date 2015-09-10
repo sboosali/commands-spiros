@@ -3,6 +3,8 @@ ignore/
 notes
 sources
 vocab.txt
+docs.md
+cbits/main
 
 # Haskell
 dist
