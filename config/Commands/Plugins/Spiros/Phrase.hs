@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFunctor, LambdaCase, TypeFamilies         #-}
-{-# LANGUAGE PostfixOperators, ScopedTypeVariables, TemplateHaskell #-}
+{-# LANGUAGE DeriveDataTypeable, DeriveFunctor, LambdaCase, TypeFamilies, FlexibleInstances         #-}
+{-# LANGUAGE PostfixOperators, ScopedTypeVariables, TemplateHaskell, TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 module Commands.Plugins.Spiros.Phrase where
+import           Commands.Plugins.Spiros.Etc
 
 import           Commands.Plugins.Example.Spacing
 
@@ -686,7 +687,7 @@ munge p1 = do
 -- ================================================================ --
 
 phraseCommand :: DNSEarleyCommand z [Phrase_]
-phraseCommand = Command phrase_ (argmax rankPhrase) $ \_ p -> do
+phraseCommand = Command phrase_ bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)
 
@@ -699,21 +700,33 @@ runPhrase_ spacing clipboard
 bestPhrase :: NonEmpty [Phrase_] -> [Phrase_]
 bestPhrase = argmax rankPhrase
 
--- the specificity ("probability") of the phrase parts. bigger is better.
+-- no list-generic instance, provides flexibility without OverlappingInstances  
+instance Rankable Phrase' where rank = rankPhrase
+instance Rankable (Maybe Phrase') where rank = maybe defaultRank rankPhrase
+
+instance Rankable Phrase_ where rank = rankPhrase_ 
+instance Rankable Dictation where rank = rankDictation 
+
 rankPhrase :: [Phrase_] -> Int
-rankPhrase = sum . fmap (\case
+rankPhrase = sum . fmap rankPhrase_
+
+-- the specificity ("probability") of the phrase parts. bigger is better.
+rankPhrase_ :: Phrase_ -> Int
+rankPhrase_ = \case
  Escaped_ _ -> 2000
- Quoted_ _ -> 100
- Pasted_ -> 100
- Blank_ -> 100
- Spelled_ _ -> 100
- Capped_ _ -> 100
- Separated_ _ -> 100
- Cased_ _ -> 100
- Joined_ _ -> 100
- Surrounded_ _ -> 100
- Dictated_ (Dictation ws) -> length ws - 1  -- [Dictated_ ["some","words"]] =1 is better than [Dictated_ ["some"], Dictated_ ["words"]] =0
- )
+ Quoted_ _ -> defaultRank
+ Pasted_ -> defaultRank
+ Blank_ -> defaultRank
+ Spelled_ _ -> defaultRank
+ Capped_ _ -> defaultRank
+ Separated_ _ -> defaultRank
+ Cased_ _ -> defaultRank
+ Joined_ _ -> defaultRank
+ Surrounded_ _ -> defaultRank
+ Dictated_ d -> rankDictation d 
+
+rankDictation (Dictation ws) = length ws - 1
+-- [Dictated_ ["some","words"]] =1 is better than [Dictated_ ["some"], Dictated_ ["words"]] =0
 
 -- -- | convenience function for testing how phrase_ parses
 -- parsePhrase_ :: [Text] -> String

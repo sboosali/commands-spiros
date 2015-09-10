@@ -1,4 +1,4 @@
-{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts        #-}
+{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds            #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
@@ -14,16 +14,78 @@ import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 
 import           Control.Applicative
-import Data.List (intercalate)
+-- import Data.List (intercalate)
+import Data.Function (on)
 
+newtype Macro = Macro (Apply Rankable Actions_)
+-- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
 
-newtype Macro = Macro Actions_
-instance Show Macro where show (Macro a0) = showActions a0
-instance Eq Macro where (==) (Macro a1) (Macro a2) = eqActions a1 a2
-eqActions _a1 _a2 = False         -- TODO 
+instance Show Macro where show (Macro _x) = "_"       -- TODO  showApply x
+-- showApply :: (Show a) => Apply Show a -> String
+-- showApply = show . runApply       -- TODO 
+
+instance Eq Macro where (==) (Macro x) (Macro y) = eqApply x y
+eqApply = eqActions `on` runApply    -- TODO also distinguish the constructors 
+eqActions _a1 _a2 = False         -- TODO
+
+-- | "freeze" function application, up to some arity. 
+-- the arguments are existentially quantified, but can be constrained.
+data Apply constraint r where
+ A0 :: (constraint r)                                           
+    =>                      r                       -> Apply constraint r    -- lol
+ A1 :: (constraint a)                                           
+    => (a ->                r) -> a                 -> Apply constraint r
+ A2 :: (constraint a, constraint b)                             
+    => (a -> b ->           r) -> a -> b            -> Apply constraint r
+ A3 :: (constraint a, constraint b, constraint c)               
+    => (a -> b -> c ->      r) -> a -> b -> c       -> Apply constraint r
+ A4 :: (constraint a, constraint b, constraint c, constraint d) 
+    => (a -> b -> c -> d -> r) -> a -> b -> c -> d  -> Apply constraint r
+
+instance Rankable (Apply Rankable r) where rank = rankApply
+
+-- arguments are existentially quantified 
+rankApply :: Apply Rankable r -> Int
+rankApply = \case
+ A0 r         -> rank r
+ A1 _ a       -> rank a
+ A2 _ a b     -> safeAverage [rank a, rank b]
+ A3 _ a b c   -> safeAverage [rank a, rank b, rank c]
+ A4 _ a b c d -> safeAverage [rank a, rank b, rank c, rank d]
+
+runApply :: Apply constraint r -> r
+runApply = \case
+ A0 f         -> f
+ A1 f a       -> f a
+ A2 f a b     -> f a b
+ A3 f a b c   -> f a b c
+ A4 f a b c d -> f a b c d
 
 myMacros :: R z Macro
-myMacros = 'myMacros <=> Macro <$> (myMacrosRHS0 <|> myMacrosRHS)
+myMacros = 'myMacros
+ <=> (Macro . A0) <$> myMacrosRHS0
+ <|> Macro        <$> myMacrosRHS
+
+-- | macros without arguments
+myAliases :: R z String
+myAliases = vocab
+ [ ""-: ""
+ , "arrow"-: "->"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ ]
 
 -- | macros without arguments
 myMacrosRHS0 :: R z Actions_
@@ -75,16 +137,17 @@ myMacrosRHS0 = vocab
 move_window_down = press S down
 
 -- | macros with arguments
-myMacrosRHS :: R z Actions_
+myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
- <|> align_regexp  <$ "align" <*> phrase_
- <|> switch_buffer <$ "buff"  <*> phrase_
- <|> multi_occur   <$ "occur" <*> phrase_
- <|> replace_with  <$"replace" <*> phrase_ <*"with" <*> phrase_
- <|> google_for <$ ("google") <*> (dictation-?-"")
- <|> search_regexp <$ "search" <*> (phrase_-?)
- <|> find_text <$ "find" <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
- <|> goto_line <$ "go" <*> number
+ <|> A1 align_regexp  <$ "align"    <*> phrase_
+ <|> A1 switch_buffer <$ "buff"     <*> phrase_
+ <|> A1 multi_occur   <$ "occur"    <*> phrase_
+ <|> A2 replace_with  <$"replace"   <*> phrase_ <*"with" <*> phrase_
+ <|> A1 google_for    <$ "goo" <*> (phrase_-?-blankPhrase)
+ <|> A1 search_regexp <$ "search"   <*> (phrase_-?)
+ <|> A1 find_text     <$ "find"     <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
+ <|> A1 goto_line     <$ "go"       <*> number
+-- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
 align_regexp p' = do
  runEmacs "align-regexp"
@@ -103,7 +166,9 @@ multi_occur p' = do
 replace_with this that = do
  runEmacsWithP "replace-regexp" [this, that]
 
-google_for (Dictation ws) = google (intercalate " " ws)
+google_for p = do
+ q <- munge p
+ google q
 
 search_regexp = \case
  Nothing -> do

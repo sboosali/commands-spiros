@@ -292,16 +292,16 @@ bestRoot = argmax rankRoot
 
 rankRoot = \case                --TODO fold over every field of every case, normalizing each case
  Repeat _ r -> rankRoot r
- Roots rs -> sum (fmap rankRoot rs) `div` (length rs)      --TODO what the heck is this even
- Macro_ _ -> 1000
+ Roots rs -> safeAverage (fmap rankRoot rs)      --TODO what the heck is this even
+ Macro_ (Macro w) -> 1000 + rankApply w
  KeyRiff_ _ -> 1000
- Edit_ _ -> 100
- Undo -> 100
- ReplaceWith p1 p2 -> 100 + rankPhrase (p1<>p2)
- Click_ _ -> 100
- Move_ _ -> 100
+ Edit_ _ -> defaultRank
+ Undo -> defaultRank
+ ReplaceWith p1 p2 -> defaultRank + rankPhrase (p1<>p2)
+ Click_ _ -> defaultRank
+ Move_ _ -> defaultRank
  Phrase_ p -> rankPhrase p
- _ -> 100
+ _ -> defaultRank
 
 runRoot = \case
 
@@ -309,7 +309,7 @@ runRoot = \case
    Roots rs -> traverse_ (runRoot x') rs
    Repeat n' c' -> do   --TODO avoid duplication.
     traverse_ id $ List.intersperse (delay 10) $ replicate (getPositive n') (runRoot x' c')
-   Macro_ (Macro w') -> w'
+   Macro_ (Macro w') -> runApply w'
    Edit_ a' -> editEmacs a'
    Move_ a' -> moveEmacs a'
    Emacs_ a' -> runEmacs_ a'
@@ -333,7 +333,7 @@ runRoot = \case
  -- unconditional runRoot (i.e. any context / global context)
  runRoot_ = \case
 
-  Macro_ (Macro w') -> w'
+  Macro_ (Macro w') -> runApply w'
 
   Undo -> press met 'z'
 
