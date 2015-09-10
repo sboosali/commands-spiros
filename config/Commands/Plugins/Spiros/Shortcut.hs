@@ -34,6 +34,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "F4"-: "<f4>"
 
  -- Global
+ , "no"-: "M-z"
  , "undo"-: "M-z"
  , "salt"-: "M-a"
  , "paste"-: "M-v"

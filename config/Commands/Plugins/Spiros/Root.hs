@@ -37,7 +37,7 @@ import           Control.Monad (replicateM_, (>=>))
 import           Data.Foldable                         (Foldable (..), asum,
                                                         traverse_)
 import qualified Data.List as List
-import           Data.Monoid
+-- import           Data.Monoid
 import           Prelude hiding (foldl, foldr1)
 import           System.Timeout (timeout)
 import           Control.Monad.ST.Unsafe
@@ -48,16 +48,13 @@ data Root
  = Repeat Positive Root
  | Roots (NonEmpty Root)
  | Macro_ Macro
- | Edit_ Edit
- | ReplaceWith Phrase' Phrase'
+ | KeyRiff_ KeyRiff
  | Click_ Click
+ | Edit_ Edit
  | Move_ Move
  | Emacs_ Emacs
- | KeyRiff_ KeyRiff
- | Undo
  | Phrase_ Phrase'
- -- Roots [Root]
--- TODO | Frozen freeze
+ | Dictation_ Dictation
  deriving (Show,Eq)
 
 rootses :: R z Root
@@ -77,18 +74,13 @@ root = 'root <=> empty
  <|> KeyRiff_ <$> myShortcuts
  <|> Macro_ <$> myMacros
 
- -- TODO <|> ReplaceWith <#> "replace" # phrase # "with" # (phrase <|>? "blank")
- <|> Undo        <#> "no"         -- order matters..
- <|> Undo        <#> "no way"     -- .. the superstring "no way" should come before the substring "no" (unlike this example)
  <|> Click_      <#> click
  <|> Edit_       <#> edit
  <|> Move_       <#> move
  <|> Emacs_ <#> emacs
 
- -- <|> KeyRiff_ <$> (keyriff <|> myShortcuts)
- <|> (Phrase_ . (:[])) <#> phraseC -- has "say" prefix
+ <|> Dictation_ <#> "say" # dictation
  <|> Phrase_     <#> phrase_  -- must be last, phrase falls back to wildcard.
-
 
 -- TODO <|> Frozen <#> "freeze" # root
 
@@ -296,10 +288,9 @@ rankRoot = \case                --TODO fold over every field of every case, norm
  Macro_ (Macro w) -> 1000 + rankApply w
  KeyRiff_ _ -> 1000
  Edit_ _ -> defaultRank
- Undo -> defaultRank
- ReplaceWith p1 p2 -> defaultRank + rankPhrase (p1<>p2)
  Click_ _ -> defaultRank
  Move_ _ -> defaultRank
+ Dictation_ _ -> 1000  -- must outrank phrase, because Dictated_ have low rank 
  Phrase_ p -> rankPhrase p
  _ -> defaultRank
 
@@ -318,10 +309,10 @@ runRoot = \case
  x'@"Intellij" -> \case --TODO passed down context better
    Roots rs -> traverse_ (runRoot x') rs
    -- Repeat n' c' -> nothing 
-   ReplaceWith this that -> do
-     press M 'r'
-     (munge this >>= insert) >> press tab
-     munge that >>= slot
+   -- ReplaceWith this that -> do
+   --   press M 'r'
+   --   (munge this >>= insert) >> press tab
+   --   munge that >>= slot
    x' -> runRoot_ x'
 
  context -> \case
@@ -335,18 +326,21 @@ runRoot = \case
 
   Macro_ (Macro w') -> runApply w'
 
-  Undo -> press met 'z'
-
   Phrase_ p' -> do
    insert =<< munge p'
    insert " "
   KeyRiff_ kr -> runKeyRiff kr
+
+  Dictation_ d -> runDictation d
 
   _ -> do nothing
 
 -- TODO Frozen r -> \case
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
+
+runDictation = \case
+ Dictation ws -> insert (List.intercalate " " ws)
 
 -- the indirection (i.e. @data 'Move'@, not just a @String@) makes it easy to reinterpret in many ways (e.g. moveEmacs, moveIntelliJ, moveChromd , etc).
 moveEmacs :: Move -> Actions ()

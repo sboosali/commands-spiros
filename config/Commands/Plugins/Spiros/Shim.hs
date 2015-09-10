@@ -254,4 +254,4 @@ def unload():
     GRAMMAR = None
 
 load()
-# |] -- trailing comment is hack
+# |] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
