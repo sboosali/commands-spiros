@@ -44,45 +44,66 @@ import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 
 
+data Roots
+ = Frozen Root
+ | Root_ Root
+ deriving (Show,Eq)
+
+roots :: R z Roots
+roots = 'roots
+ <=> Frozen <$ (token"freeze") <*> root --TODO recursion
+ <|> Root_ <$> root
+
 data Root
- = Repeat Positive Root
- | Roots (NonEmpty Root)
- | Macro_ Macro
- | KeyRiff_ KeyRiff
+  =  Acts_       [Acts]         -- ^ chained and repeated
+  |  Macro_      Number  Macro  -- ^ repeated 
+  |  Shortcut_   Number  Shortcut  -- ^ repeated 
+  |  Emacs_      Number  Emacs  -- ^ repeated 
+  |  Dictation_  Dictation      -- ^ 
+  |  Phrase_     Phrase'        -- ^ 
+ deriving (Show,Eq)
+
+root :: R z Root
+root = 'root <=> empty
+ <|> Acts_      <$> (acts-++)
+ <|> Emacs_     <$> (number-?-1) <*> emacs
+ <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
+ <|> Macro_     <$> (number-?-1) <*> myMacros
+ <|> Dictation_ <$  (token"say") <*> dictation
+ <|> Phrase_    <$> phrase_  -- must be last, phrase falls back to wildcard.
+
+data Acts
+ = ActsRW Int Act   -- ^ read/write actions
+ deriving (Show,Eq)
+
+acts = 'acts
+ <=> ActsRW <$> (number-?-1) <*> act
+
+data Act
+ = KeyRiff_ KeyRiff
  | Click_ Click
  | Edit_ Edit
  | Move_ Move
- | Emacs_ Emacs
- | Phrase_ Phrase'
- | Dictation_ Dictation
  deriving (Show,Eq)
 
-rootses :: R z Root
-rootses = 'rootses
- <=> Roots <$> roots `interleaving` (token"then")
-
-roots :: R z Root
-roots = 'roots
- <=> Repeat <$> positive <*> root --TODO no recursion for now
- <|> root --TODO redundant with the Roots case
-
--- root = set (comRule.ruleExpand) 1 $ 'root <=> empty
-root :: R z Root
-root = 'root <=> empty
-
+act = 'act <=> empty     -- boilerplate (mostly)
  <|> KeyRiff_ <$> keyriff
- <|> KeyRiff_ <$> myShortcuts
- <|> Macro_ <$> myMacros
+ <|> Click_   <$> click
+ <|> Edit_    <$> edit
+ <|> Move_    <$> move
 
- <|> Click_      <#> click
- <|> Edit_       <#> edit
- <|> Move_       <#> move
- <|> Emacs_ <#> emacs
+-- data Acts
+--  = ActRW Int Act   -- ^ actions can be chained (RW means read/write) 
+--  | ActRO Act   -- ^ idempotent(ish) actions don't need immediate repetition (RO means read-in only) .
 
- <|> Dictation_ <#> "say" # dictation
- <|> Phrase_     <#> phrase_  -- must be last, phrase falls back to wildcard.
+-- acts = 'acts
+--  <=> ActRW <$> (number-?-1) <*> actRW
+--  <|> ActRO <$> actRO
 
--- TODO <|> Frozen <#> "freeze" # root
+-- actRO = 'actRO <=> empty -- TODO
+
+-- actRW = 'actRW <=> empty
+--  <|> act
 
 data Move
  = Move Direction Region
@@ -270,74 +291,69 @@ positive = 'positive
 
 -- ================================================================ --
 
-rootCommand :: C z Root
-rootCommand = Command roots bestRoot runRoot
+rootsCommand :: C z Roots
+rootsCommand = Command roots bestRoots runRoots
 
-rootParser :: RULED EarleyParser s Root
-rootParser = EarleyParser rootProd bestRoot
+rootsParser :: RULED EarleyParser s Roots
+rootsParser = EarleyParser rootsProd bestRoots
 
-rootProd :: RULED EarleyProd s Root
--- rootProd = runST $ de'deriveParserObservedSharing roots
-rootProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots
+rootsProd :: RULED EarleyProd s Roots
+rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots
 
-bestRoot = argmax rankRoot
+bestRoots = argmax rankRoots
 
-rankRoot = \case                --TODO fold over every field of every case, normalizing each case
- Repeat _ r -> rankRoot r
- Roots rs -> safeAverage (fmap rankRoot rs)      --TODO what the heck is this even
- Macro_ (Macro w) -> 1000 + rankApply w
- KeyRiff_ _ -> 1000
- Edit_ _ -> defaultRank
- Click_ _ -> defaultRank
- Move_ _ -> defaultRank
- Dictation_ _ -> 1000  -- must outrank phrase, because Dictated_ have low rank 
- Phrase_ p -> rankPhrase p
- _ -> defaultRank
+rankRoots = \case                --TODO fold over every field of every case, normalizing each case
+ Frozen r -> highRank + rankRoot r
+ Root_ r   -> rankRoot r
 
-runRoot = \case
+rankRoot = \case
+ Acts_ ass            -> safeAverage (fmap rankActs ass) 
+ Macro_ _i (Macro f) -> highRank + rankApply f
+ Shortcut_ _i _s -> highRank
+ Emacs_ _i _m        -> highRank
+ Dictation_ _d       -> highRank
+ Phrase_    p        -> rankPhrase p
 
- (isEmacs -> Just x') -> \case
-   Roots rs -> traverse_ (runRoot x') rs
-   Repeat n' c' -> do   --TODO avoid duplication.
-    traverse_ id $ List.intersperse (delay 10) $ replicate (getPositive n') (runRoot x' c')
-   Macro_ (Macro w') -> runApply w'
-   Edit_ a' -> editEmacs a'
-   Move_ a' -> moveEmacs a'
-   Emacs_ a' -> runEmacs_ a'
-   a' -> runRoot_ a'
+rankActs = \case
+ ActsRW _i a -> rankAct a
 
- x'@"Intellij" -> \case --TODO passed down context better
-   Roots rs -> traverse_ (runRoot x') rs
-   -- Repeat n' c' -> nothing 
-   -- ReplaceWith this that -> do
-   --   press M 'r'
-   --   (munge this >>= insert) >> press tab
-   --   munge that >>= slot
-   x' -> runRoot_ x'
+rankAct = \case
+ KeyRiff_ _kr -> highRank
+ Click_ _c    -> defaultRank
+ Edit_ _e     -> defaultRank
+ Move_ _m     -> defaultRank
 
- context -> \case
-   Repeat n' c' -> do  --TODO action grouping: insert nullop between each, for logging
-    traverse_ id $ List.intersperse (delay 250) $ replicate (getPositive n') (runRoot context c') -- in chrome, keypresses are lost when the delay isn't long enough 
-   a'           -> runRoot_ a'
-
- where
- -- unconditional runRoot (i.e. any context / global context)
- runRoot_ = \case
-
-  Macro_ (Macro w') -> runApply w'
-
-  Phrase_ p' -> do
-   insert =<< munge p'
-   insert " "
-  KeyRiff_ kr -> runKeyRiff kr
-
-  Dictation_ d -> runDictation d
-
-  _ -> do nothing
-
--- TODO Frozen r -> \case
+runRoots context = \case
+ Frozen r -> insert (show r)
+ Root_ r  -> runRoot context r
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
+
+runRoot context = \case
+ Acts_ ass     -> onlyWhen isEmacs context $ traverse_ runActs ass      -- no delay 
+ Macro_ n f    -> runRepeat (contextualDelay context) n (runMacro f)
+ Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
+ Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
+ Dictation_ d -> runDictation d
+ Phrase_ p    -> runPhrase p
+
+contextualDelay = \case
+ (isEmacs   -> Just{}) -> emacsDelay
+ (isBrowser -> Just{}) -> browserDelay
+ _                     -> defaultDelay
+
+runActs = \case
+ ActsRW n a -> runRepeat emacsDelay n (runAct a)
+
+runAct = \case
+ KeyRiff_ kr -> runKeyRiff kr
+ Click_ _c    -> nothing
+ Edit_ a     -> editEmacs a
+ Move_ a     -> moveEmacs a
+
+runPhrase p = do
+ insert =<< munge p
+ insert " "
 
 runDictation = \case
  Dictation ws -> insert (List.intercalate " " ws)

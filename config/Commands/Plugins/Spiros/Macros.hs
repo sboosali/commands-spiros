@@ -28,6 +28,8 @@ instance Eq Macro where (==) (Macro x) (Macro y) = eqApply x y
 eqApply = eqActions `on` runApply    -- TODO also distinguish the constructors 
 eqActions _a1 _a2 = False         -- TODO
 
+runMacro (Macro f) = runApply f
+
 -- | "freeze" function application, up to some arity. 
 -- the arguments are existentially quantified, but can be constrained.
 data Apply constraint r where
@@ -110,11 +112,24 @@ myMacrosRHS0 = vocab
    delay 25
    move_window_down 
    delay 25
-   switch_buffer (word2phrase' "shell2")
+   switch_buffer (word2phrase' "*shell2*")
+
+ , "build"-: do
+   openApplication "Commands"   -- TODO make variable 
+   delay 100
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase' "*shell*") -- TODO make variable 
+   press M down
+   press C 'a'
+   press C 'k'
+   slot "make build"
 
  , "next error"-: do
    move_window_down
    runEmacs "compilation-next-error"
+   press M 'l'
+   press M 'l'
    press ret
 
  , ""-: do

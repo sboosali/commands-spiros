@@ -1,4 +1,5 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 module Commands.Plugins.Spiros.Emacs.Config where
 
 import           Commands.Sugar.Alias
@@ -11,6 +12,8 @@ import Control.Monad
 
 -- default ((), Actions_)
 
+
+emacsDelay = 10 :: Int                 -- milliseconds
 
 isEmacs :: FilePath -> Maybe FilePath
 isEmacs fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
@@ -37,3 +40,4 @@ execute_extended_command = press C 'w' --TODO non-standard: make this configurab
 
 eval_expression :: Actions_
 eval_expression = press M ':'
+

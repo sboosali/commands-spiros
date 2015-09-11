@@ -245,7 +245,7 @@ punctuationRHS = vocab
  , "star"-: '*'
  , "lore"-: '('
  , "roar"-: ')'
- , "hype"-: '-'
+ , "hit"-: '-'                  -- during a Phrase,Dragon recognizes "dash" literally as "-" 
  , "score"-: '_'
  , "eek"-: '='
  , "plus"-: '+'
@@ -267,7 +267,7 @@ punctuationRHS = vocab
  , "quest"-: '?'
  , "tab"-: '\t'
  , "ace"-: ' '
- , "line"-: '\n'
+ , "ret"-: '\n'  -- "line" conflicts with (Line :: Region)  
  ]
 
 englishNumericRHS :: DNSEarleyRHS z Char
@@ -305,8 +305,6 @@ digitRHS = vocab
  , "eight" -: 8
  , "nine"  -: 9
  ]
-
-type Number = Int
 
 number :: R z Number
 number = 'number <=> numberRHS
@@ -707,23 +705,23 @@ instance Rankable (Maybe Phrase') where rank = maybe defaultRank rankPhrase
 instance Rankable Phrase_ where rank = rankPhrase_ 
 instance Rankable Dictation where rank = rankDictation 
 
-rankPhrase :: [Phrase_] -> Int
+rankPhrase :: Phrase' -> Int
 rankPhrase = sum . fmap rankPhrase_
 
 -- the specificity ("probability") of the phrase parts. bigger is better.
 rankPhrase_ :: Phrase_ -> Int
 rankPhrase_ = \case
- Escaped_ _ -> 2000
- Quoted_ _ -> defaultRank
- Pasted_ -> defaultRank
- Blank_ -> defaultRank
- Spelled_ _ -> defaultRank
- Capped_ _ -> defaultRank
- Separated_ _ -> defaultRank
- Cased_ _ -> defaultRank
- Joined_ _ -> defaultRank
+ Escaped_ _    -> highRank
+ Quoted_ _     -> defaultRank
+ Pasted_       -> defaultRank
+ Blank_        -> defaultRank
+ Spelled_ _    -> defaultRank
+ Capped_ _     -> defaultRank
+ Separated_ _  -> defaultRank
+ Cased_ _      -> defaultRank
+ Joined_ _     -> defaultRank
  Surrounded_ _ -> defaultRank
- Dictated_ d -> rankDictation d 
+ Dictated_ d   -> rankDictation d 
 
 rankDictation (Dictation ws) = length ws - 1
 -- [Dictated_ ["some","words"]] =1 is better than [Dictated_ ["some"], Dictated_ ["words"]] =0

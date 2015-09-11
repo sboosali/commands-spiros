@@ -29,7 +29,7 @@ import System.Mem
 -- ================================================================ --
 
 spirosServer :: IO ()
-spirosServer = serveNatlink (spirosSettings rootCommand)
+spirosServer = serveNatlink (spirosSettings rootsCommand)
 -- spirosServer = spirosServe rootCommand
 -- spirosServer = spirosServe rootPlugin
 

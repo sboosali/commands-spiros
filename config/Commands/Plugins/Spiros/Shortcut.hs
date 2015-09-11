@@ -13,10 +13,18 @@ import           GHC.Exts                        (IsString (..))
 import Control.Applicative
 
 
-shortcuts :: (Functor'RHS n Text f) => [(String,String)] -> RHS n Text f KeyRiff
-shortcuts = foldMap $ \case
- ("","") -> empty               -- for convenience
- (s, k) -> keys k <$ fromString s
+newtype Shortcut = Shortcut KeyRiff
+ deriving (Show, Eq, Ord)
+
+-- runShortcut :: Shortcut -> 
+runShortcut (Shortcut kr) = runKeyRiff kr
+
+shortcuts :: (Functor'RHS n Text f) => [(String,String)] -> RHS n Text f Shortcut
+shortcuts
+ = fmap Shortcut
+ . foldMap (\case
+    ("",_) -> empty                              -- for convenience
+    (s,k)  -> keys k <$ fromString s)
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
 myShortcuts = 'myShortcuts <=> shortcuts
@@ -24,7 +32,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- <|> "copy" $> [KeyPress [CommandMod] CKey]
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
- , "line"-: "<ret>"
+ , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
  , "del"-: "<del>"
  , "up"-: "<up>"
  , "down"-: "<down>"
