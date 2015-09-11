@@ -151,14 +151,18 @@ slice = 'slice <=> vocab
 -- "four kill fuss word" is unambiguously [4 Kill Forwards Word]
 
 
+defaultAction = Select 
+defaultSlice = Whole
+defaultRegion = That
+
 data Edit = Edit Action Slice Region deriving (Show,Eq,Ord)
 
-edit = 'edit
- <=> Edit Cut Forwards Line <#> "kill"
-     -- i.e. "kill" -> "kill for line", not "kill whole that"
- <|> Edit <$> action              <*> (slice -?- Whole) <*> (region -?- That)
+edit = 'edit <=> empty 
+ -- <|> Edit Cut Forwards Line <#> "kill"
+ --     -- i.e. "kill" -> "kill for line", not "kill whole that"
+ <|> Edit <$> action              <*> (slice -?- defaultSlice) <*> (region -?- defaultRegion)
     -- e.g. "cop" or "cop that" or "cop whole" -> "cop whole that"
- <|> Edit <$> (action -?- Select) <*> slice             <*> region
+ <|> Edit <$> (action -?- defaultAction) <*> slice             <*> region
     -- e.g. "for line" -> "sel for line"
 
  -- the "kill" case is why I abandoned parsec: it didn't backtrack sufficiently. we want:
@@ -182,7 +186,7 @@ data Action
 action = 'action <=> empty
  <|> Select      <#> "sell"
  <|> Copy        <#> "cop"
- <|> Cut         <#> "kill"
+ <|> Cut         <#> "kill"      -- "cut" 
  <|> Delete      <#> "del"
  <|> Transpose   <#> "trans"
  <|> Google      <#> "goo"
@@ -320,8 +324,14 @@ rankActs = \case
 rankAct = \case
  KeyRiff_ _kr -> highRank
  Click_ _c    -> defaultRank
- Edit_ _e     -> defaultRank
+ Edit_ e      -> defaultRank + rankEdit e
  Move_ _m     -> defaultRank
+
+rankEdit (Edit a s r) = (sum . fmap fromEnum) [a /= defaultAction, s /= defaultSlice, r /= defaultRegion]
+-- defaults have lower rank
+-- disambiguates "cop fuss line" into [cop fuss line], not [cop] [fuss line] which comes first in the order 
+
+
 
 runRoots context = \case
  Frozen r -> insert (show r)

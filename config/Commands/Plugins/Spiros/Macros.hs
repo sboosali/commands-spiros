@@ -114,12 +114,13 @@ myMacrosRHS0 = vocab
    delay 25
    switch_buffer (word2phrase' "*shell2*")
 
- , "build"-: do
+ , "make"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
    move_window_down 
    delay 25
    switch_buffer (word2phrase' "*shell*") -- TODO make variable 
+   delay 100
    press M down
    press C 'a'
    press C 'k'
@@ -164,19 +165,19 @@ myMacrosRHS = empty
  <|> A1 goto_line     <$ "go"       <*> number
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
-align_regexp p' = do
+align_regexp p = do
  runEmacs "align-regexp"
- insertP p'
+ insertP p
 
 -- needs (setq confirm-nonexistent-file-or-buffer 'after-completion), which only switches to a buffer without prompt when that buffer already exists
-switch_buffer p' = do
+switch_buffer p = do
  press C 'x' >> press 'b'
- slotP p'
+ slotP p
 
-multi_occur p' = do
+multi_occur p = do
  runEmacs "multi-occur-in-matching-buffers"
  slot "."                       -- match all buffers 
- insertP p'                     -- match this regexp 
+ insertP p                     -- match this regexp 
 
 replace_with this that = do
  runEmacsWithP "replace-regexp" [this, that]
