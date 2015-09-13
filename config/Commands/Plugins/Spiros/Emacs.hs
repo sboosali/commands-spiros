@@ -4,7 +4,7 @@
 module Commands.Plugins.Spiros.Emacs where
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Emacs.Config
-import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
+-- import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
 import           Commands.Plugins.Spiros.Phrase
 
 import Commands.Mixins.DNS13OSX9
@@ -27,7 +27,7 @@ data Emacs
 emacs = 'emacs <=> empty
  <|> EmacsFunction   (Just [Pasted_]) <#> ("run paste") 
  <|> EmacsExpression (Just [Pasted_]) <#> ("eval paste") -- TODO shouldn't be necessary 
- <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
+ <|> EmacsFunction      <#> "run"  <*> (interactive_-?) -- TODO
  <|> EmacsExpression    <#> "eval" <*> (phrase_-?)
 
  -- <|> EmacsFunction   (Just [Pasted_]) <$ (t"run paste") 
@@ -35,7 +35,8 @@ emacs = 'emacs <=> empty
  -- <|> EmacsFunction      <$ "run"  <*> (interactive_-?)
  -- <|> EmacsExpression    <$ "eval" <*> (phrase_-?)
  where
- interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
+ -- interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
+ interactive_ = phrase_
 
 
 -- ================================================================ --

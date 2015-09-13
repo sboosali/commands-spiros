@@ -18,7 +18,7 @@ getShim ShimR{..} = [qc|
 from natlinkmain import (setCheckForGrammarChanges)
 from natlinkutils import (GrammarBase)
 import natlink  # a DLL
-# import natlinkmain
+import natlinkmain
 # import natlinkutils
 
 # standard library
@@ -47,6 +47,11 @@ server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 microphone_rule = '''<microphone> exported = mike on | mike off | mike dead ;'''
 microphone_export = "microphone"
 
+mode_rule = '''<mode> exported = dictating | commanding;'''
+mode_export = "mode"
+
+all_rules   =  microphone_rule  + mode_rule  + H_RULES
+all_exports = [microphone_export, mode_export, H_EXPORT]
 
 
 # the grammar
@@ -64,10 +69,10 @@ class NarcissisticGrammar(GrammarBase):
 
     '''
 
-    gramSpec = microphone_rule + H_RULES
+    gramSpec = None  # invalid init state
 
     def initialize(self):
-        self.set_rules(self.gramSpec, [microphone_export, H_EXPORT])
+        self.set_rules(all_rules, all_exports, exclusive=1)
         self.set_lists(H_LISTS)
         self.doOnlyGotResultsObject = True # aborts all processing after calling gotResultsObject
 
@@ -141,19 +146,19 @@ class NarcissisticGrammar(GrammarBase):
 
     # TODO    must it reload the grammar?
     # TODO    should include export for safety?
-    def set_rules(self, rules, exports):
+    def set_rules(self, rules, exports, exclusive):
         self.gramSpec = rules
         self.load(rules, allResults=1, hypothesis=1)
-        self.set_exports(exports)
+        self.set_exports(exports, exclusive)
+
+    # activateSet is idempotent, unlike activate
+    def set_exports(self, exports, exclusive):
+        self.activateSet(exports, exclusive=exclusive)
 
     # TODO must it reload the grammar?
     def set_lists(self, lists):
         for (lhs, rhs) in lists.items():
             self.setList(lhs, rhs)
-
-    # activateSet is idempotent, unlike activate
-    def set_exports(self, exports):
-        self.activateSet(exports, exclusive=1)
 
 
 
@@ -164,9 +169,12 @@ def handleDGNUpdate(grammar, response):
     pass 
 
 def should_request(grammar,data):
-    b = data and not handle_microphone(grammar,data) and isUnicode(data) and not isNoise(data)
-    print "should_request=", b
-    return b
+    isRecognitionGood = data and isUnicode(data) and not isNoise(data)
+    if isRecognitionGood:
+        isRecognitionMagical = handle_microphone(grammar,data) or handle_mode(grammar,data)
+        shouldRequest = isRecognitionGood and not isRecognitionMagical     # redundant for clarity
+        print "should_request =", shouldRequest
+        return shouldRequest
 
 # returns true if it matched the recognition (and executed the magic action).
 # in which case, don't send a request to the server to execute any non-magic actions.
@@ -188,6 +196,20 @@ def handle_microphone(grammar,data):
     else:
         return False
 
+def handle_mode(grammar,data):
+    raw = " ".join(data)
+#    print 'handle_mode(', raw, ')'
+
+    if   raw == "dictating":
+        grammar.activateSet([mode_export],exclusive=0)
+        natlinkmain.recognitionMimic(["Dictation","mode"]) 
+        return True
+    elif raw == "commanding":
+        grammar.activateSet(all_exports,exclusive=1)
+        return True
+    else:
+        return False
+
 def isUnicode(data):
     try:
         for word in data:
@@ -199,7 +221,7 @@ def isUnicode(data):
         return False
 
 def isNoise(data):
-    return data in [["the"],["if"],["him"],["A"],["that"]] #TODO hack, noise tends to be recognized as these short single words
+    return data in [["the"],["if"],["him"],["A"],["that"],["a"]] #TODO hack, noise tends to be recognized as these short single words
 
 
 
@@ -254,4 +276,4 @@ def unload():
     GRAMMAR = None
 
 load()
-# |] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
+#|] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents

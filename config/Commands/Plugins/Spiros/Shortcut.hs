@@ -54,7 +54,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- Emacs
  , "stop"-: "C-g"
  , "check"-: "M-u"
- , "comment"-: "M-;"
+ -- , "comment"-: "M-;"
  , "new file"-: "C-\\"
  , "replace"-: "M-r"
  , "mark"-: "C-<spc>"
@@ -70,7 +70,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- etc.
  , "scroll"-: "<spc>"
  , "scroll up"-: "S-<spc>"
- , ""-: ""
+ , "div"-: "M--"                -- TODO 
  , ""-: ""
  , ""-: ""
  , ""-: ""

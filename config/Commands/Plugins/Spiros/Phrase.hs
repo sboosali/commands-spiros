@@ -84,6 +84,15 @@ blankPhrase = [Blank_]
 -- fake equality? {JoinerFunction Name ([String] -> String)} so {JoinerFunction 'camelCase camelCase}
 -- maybe some type from data.split package, that both supports decidable equality and that can build functions
 
+snocPhrase :: Phrase' -> String -> Phrase'
+snocPhrase p s = p ++ [fromString s]
+
+instance IsString Phrase_ where
+ fromString = word2phrase_
+
+mergeAdjacentDictated :: Phrase' -> Phrase'
+mergeAdjacentDictated = id -- TODO
+
 
 -- ================================================================ --
 -- Phrase types
@@ -159,7 +168,7 @@ phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
  <|> Escaped_    <#> "lit" # keyword
  <|> Quoted_     <#> "quote" # dictation # "unquote"
- <|> Pasted_     <#> "paste"
+ <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
  -- <|> (Spelled_ . (:[])) <$> char --TODO
  -- <|> (Spelled_) <#> letter_
@@ -179,7 +188,7 @@ phraseB = 'phraseB <=> empty
  -- <$> alphabetRHS
  -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
  -- <|> Spelled_  <#> "spell" # letters -- only, not characters
- <|> Pasted_     <#> "paste"
+ <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
 
 -- | a sub-phrase where a phrase to the right is impossible.
@@ -255,7 +264,7 @@ punctuationRHS = vocab
  , "race"-: '}'
  , "stroke"-: '\\'
  , "pipe"-: '|'
- , "sem"-: ';'
+ , "sim"-: ';'
  , "coal"-: ':'
  , "tick"-: '\''
  , "quote"-: '"'

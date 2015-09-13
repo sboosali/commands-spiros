@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
+
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
@@ -113,6 +114,8 @@ myMacrosRHS0 = vocab
    move_window_down 
    delay 25
    switch_buffer (word2phrase' "*shell2*")
+   delay 25
+   window_bottom 
 
  , "make"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -163,6 +166,8 @@ myMacrosRHS = empty
  <|> A1 search_regexp <$ "search"   <*> (phrase_-?)
  <|> A1 find_text     <$ "find"     <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
+ <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
+
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
 align_regexp p = do
@@ -195,11 +200,17 @@ search_regexp = \case
 
 find_text p = do
  press M 'f'
+ delay browserDelay
  insertP p
 
 goto_line :: Int -> Actions_
 goto_line n = do
- press M 'g'    -- TODO generalize to AMonadAction
+ press M 'g'    -- TODO generalize to AMonadAction_, as well as PressFun 
  -- press (n::Int) 
  slot (show n)
+
+comment_with :: Maybe Phrase' -> Actions_
+comment_with p = do
+ press M ';'
+ maybe nothing insertP p
 

@@ -4,6 +4,7 @@ module Commands.Plugins.Spiros.Etc where
 
 -- import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
+import           Commands.Sugar.Press
 
 import qualified System.FilePath.Posix as FilePath
 
@@ -65,4 +66,24 @@ runRepeat delay_ times_
  . List.intersperse (delay delay_)
  . replicate times_
  --TODO action grouping: insert nullop between each, for logging
+
+-- used when sendText is too slow/laggy
+-- insertByClipboard :: String -> AMonadAction_
+insertByClipboard :: String -> Actions_
+insertByClipboard s = restoringClipboard $ do
+ setClipboard s
+ press_paste
+
+press_paste :: Actions_
+press_paste = press M 'v'
+
+-- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  
+-- benign race condition, as no lock is kept on the system clipboard
+restoringClipboard :: Actions a -> Actions a
+restoringClipboard m = do
+ contents <- getClipboard
+ x <- m
+ delay 100 -- otherwise, e.g. the old clipboard contents are reset before the temporary clipboard contents are paste TODO call Haskell from Objective-C on callback? 
+ setClipboard contents
+ return x
 

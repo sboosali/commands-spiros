@@ -41,3 +41,5 @@ execute_extended_command = press C 'w' --TODO non-standard: make this configurab
 eval_expression :: Actions_
 eval_expression = press M ':'
 
+window_bottom :: Actions_
+window_bottom = press M down

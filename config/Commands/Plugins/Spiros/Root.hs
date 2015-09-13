@@ -189,7 +189,7 @@ action = 'action <=> empty
  <|> Cut         <#> "kill"      -- "cut" 
  <|> Delete      <#> "del"
  <|> Transpose   <#> "trans"
- <|> Google      <#> "goo"
+ <|> Google      <#> "google"
 
 
 
@@ -345,7 +345,7 @@ runRoot context = \case
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
  Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
  Dictation_ d -> runDictation d
- Phrase_ p    -> runPhrase p
+ Phrase_ p    -> runPhrase context p
 
 contextualDelay = \case
  (isEmacs   -> Just{}) -> emacsDelay
@@ -361,9 +361,14 @@ runAct = \case
  Edit_ a     -> editEmacs a
  Move_ a     -> moveEmacs a
 
-runPhrase p = do
- insert =<< munge p
+runPhrase _context p = do
+ insertByClipboard =<< munge p
  insert " "
+
+ -- insert =<< munge p
+ -- insert " "
+
+ -- insertByClipboard =<< munge (snocPhrase p " ")
 
 runDictation = \case
  Dictation ws -> insert (List.intercalate " " ws)
