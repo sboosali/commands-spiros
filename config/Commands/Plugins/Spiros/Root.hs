@@ -362,13 +362,12 @@ runAct = \case
  Move_ a     -> moveEmacs a
 
 runPhrase _context p = do
- insertByClipboard =<< munge p
+ insert =<< munge p
  insert " "
 
- -- insert =<< munge p
- -- insert " "
-
- -- insertByClipboard =<< munge (snocPhrase p " ")
+runPhraseByClipboard _context p = do
+ insertByClipboard =<< munge p
+ insert " "
 
 runDictation = \case
  Dictation ws -> insert (List.intercalate " " ws)

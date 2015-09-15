@@ -205,7 +205,7 @@ find_text p = do
 
 goto_line :: Int -> Actions_
 goto_line n = do
- press M 'g'    -- TODO generalize to AMonadAction_, as well as PressFun 
+ press M 'g'    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 

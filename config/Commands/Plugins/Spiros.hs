@@ -128,14 +128,17 @@ spirosInterpret vSettings = \ws -> do
  liftIO$ OSX.runActions actions -- the Objective-C bindings print out which functions are called
  t2<- liftIO$ getCurrentTime
 
+ let d1 = (1000 * (t1 `diffUTCTime` t0))
+ let d2 = (1000 * (t2 `diffUTCTime` t1))
+
  liftIO$ do
   putStrLn""
   putStrLn$ "ACTIONS:"
   putStr  $ OSX.showActions actions
   putStrLn ""
   putStrLn$ "TIMES:"
-  putStrLn$ show (1000 * (t1 `diffUTCTime` t0))
-  putStrLn$ show (1000 * (t2 `diffUTCTime` t1))
+  putStrLn$ show d1
+  putStrLn$ show d2
   putStrLn ""
   putStrLn$ "CONTEXT:"
   print context
