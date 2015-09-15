@@ -44,9 +44,12 @@ H_SERVER_PORT = {__serverPort__}
 
 server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 
-microphone_rule = '''<microphone> exported = mike on | mike off | mike dead ;'''
+# see handle_microphone(...)
+# "wake up" is somewhat redundant with "mike on", but necessary because when the Dragon microphone puts itself to sleep, only "wake up" will wake it back up, and we handle that recognition to enable any disabled grammars in handle_microphone().
+microphone_rule = '''<microphone> exported = wake up | mike on | mike off | mike dead ;'''
 microphone_export = "microphone"
 
+# see handle_mode(...)
 mode_rule = '''<mode> exported = dictating | commanding;'''
 mode_export = "mode"
 
@@ -69,7 +72,7 @@ class NarcissisticGrammar(GrammarBase):
 
     '''
 
-    gramSpec = None  # invalid init state
+    gramSpec = None        # initialized in set_rules(...) 
 
     def initialize(self):
         self.set_rules(all_rules, all_exports, exclusive=1)
@@ -168,43 +171,49 @@ class NarcissisticGrammar(GrammarBase):
 def handleDGNUpdate(grammar, response):
     pass 
 
+# data :: [String] 
+# datum :: String
 def should_request(grammar,data):
     isRecognitionGood = data and isUnicode(data) and not isNoise(data)
     if isRecognitionGood:
-        isRecognitionMagical = handle_microphone(grammar,data) or handle_mode(grammar,data)
+        datum = " ".join(data)
+        isRecognitionMagical = handle_abrogation(data) or handle_microphone(grammar,datum) or handle_mode(grammar,datum)
         shouldRequest = isRecognitionGood and not isRecognitionMagical     # redundant for clarity
         print "should_request =", shouldRequest
         return shouldRequest
 
+# you can abort any recognition by saying "abrogate". as a rare word, it will rarely be dictated (except for bootstrapping). if you must say it, it supports the "say" prefix (i.e. recognize literally everything after it). 
+def handle_abrogation(data):
+    return data[0] != "say" and "abrogate" in data 
+
 # returns true if it matched the recognition (and executed the magic action).
 # in which case, don't send a request to the server to execute any non-magic actions.
 # "mike off" deactivates all grammars besides the microphone grammer, "putting the microphone to sleep".
-def handle_microphone(grammar,data):
-    raw = " ".join(data)
+def handle_microphone(grammar,datum):
 
-    if   raw == "mike on": 
+    if  datum == "wake up" or datum == "mike on":
         # grammar.setMicState("on") 
         grammar.activateSet([microphone_export, H_EXPORT], exclusive=1)
         return True
-    elif raw == "mike off":
+    elif datum == "mike off":
         # grammar.setMicState("sleeping")
         grammar.activateSet([microphone_export],exclusive=1)
         return True
-    elif raw == "mike dead":
+    elif datum == "mike dead":
         # the natlink.setMicState("off") # can't even be manually turned back on via the GUI
         return True
     else:
         return False
 
-def handle_mode(grammar,data):
-    raw = " ".join(data)
-#    print 'handle_mode(', raw, ')'
+def handle_mode(grammar,datum):
 
-    if   raw == "dictating":
+#    print 'handle_mode(', datum, ')'
+
+    if   datum == "dictating":
         grammar.activateSet([mode_export],exclusive=0)
         natlinkmain.recognitionMimic(["Dictation","mode"]) 
         return True
-    elif raw == "commanding":
+    elif datum == "commanding":
         grammar.activateSet(all_exports,exclusive=1)
         return True
     else:
