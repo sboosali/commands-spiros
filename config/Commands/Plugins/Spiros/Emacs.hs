@@ -27,7 +27,7 @@ data Emacs
 emacs = 'emacs <=> empty
  <|> EmacsFunction   (Just [Pasted_]) <#> ("run paste") 
  <|> EmacsExpression (Just [Pasted_]) <#> ("eval paste") -- TODO shouldn't be necessary 
- <|> EmacsFunction      <#> "run"  <*> (interactive_-?) -- TODO
+ <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
  <|> EmacsExpression    <#> "eval" <*> (phrase_-?)
 
  -- <|> EmacsFunction   (Just [Pasted_]) <$ (t"run paste") 
@@ -36,7 +36,7 @@ emacs = 'emacs <=> empty
  -- <|> EmacsExpression    <$ "eval" <*> (phrase_-?)
  where
  -- interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
- interactive_ = phrase_
+ interactive_ = phrase_ -- TODO takes fifteen seconds to load a vocabulary of five thousand 
 
 
 -- ================================================================ --
@@ -117,3 +117,9 @@ runEmacsWithP f ps = do
  xs <- traverse munge ps
  runEmacsWith f xs
 
+rankEmacs :: Emacs -> Int
+rankEmacs = \case 
+ EmacsFunction   Nothing  -> 0
+ EmacsFunction   (Just p) -> rankPhrase p
+ EmacsExpression Nothing  -> 0
+ EmacsExpression (Just p) -> rankPhrase p

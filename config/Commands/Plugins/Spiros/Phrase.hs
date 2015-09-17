@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFunctor, LambdaCase, TypeFamilies, FlexibleInstances         #-}
 {-# LANGUAGE PostfixOperators, ScopedTypeVariables, TemplateHaskell, TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
+{-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Phrase where
 import           Commands.Plugins.Spiros.Etc
 

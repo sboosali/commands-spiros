@@ -8,6 +8,8 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
 import Commands.Plugins.Spiros.Emacs.Config
 
+import Commands.Plugins.Example.Keys
+import Commands.Sugar.Keys
 import Commands.Sugar.Press 
 import Commands.Sugar.Alias
 import           Commands.Etc
@@ -74,7 +76,7 @@ myAliases :: R z String
 myAliases = vocab
  [ ""-: ""
  , "arrow"-: "->"
- , ""-: ""
+ , "to do"-: "TODO"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -108,20 +110,11 @@ myMacrosRHS0 = vocab
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
 
- , "man"-: do                   -- short for "commands server"
-   openApplication "Commands"   -- TODO make less stringly-typed
-   delay 25
-   move_window_down 
-   delay 25
-   switch_buffer (word2phrase' "*shell2*")
-   delay 25
-   window_bottom 
-
  , "make"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
    move_window_down 
-   delay 25
+   delay 100
    switch_buffer (word2phrase' "*shell*") -- TODO make variable 
    delay 100
    press M down
@@ -136,11 +129,52 @@ myMacrosRHS0 = vocab
    press M 'l'
    press ret
 
- , ""-: do
-   nothing
+ , "man"-: do                   -- short for "commands server"
+   openApplication "Commands"   -- TODO make less stringly-typed
+   delay 25
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase' "*shell2*")
+   delay 25
+   window_bottom 
 
- , ""-: do
-   nothing
+ , "shell"-: do
+   openApplication "Commands"   -- TODO make less stringly-typed
+   delay 25
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase' "*shell*")
+   delay 25
+   window_bottom 
+
+ , "macro"-: do
+   openApplication "Commands"   -- TODO make variable 
+   delay 100
+   move_window_up
+   delay 100
+   switch_buffer (word2phrase' "Macro.hs") -- TODO make variable 
+   delay 100
+
+ , "shortcut"-: do
+   openApplication "Commands"   -- TODO make variable 
+   delay 100
+   move_window_up
+   delay 100
+   switch_buffer (word2phrase' "Shortcut.hs") -- TODO make variable 
+   delay 100
+
+ , "notes"-: do
+   openApplication "Notes"   -- TODO make variable
+
+ -- TODO make "C-x C-y" the commands key prefix
+ , "copy register"-: do
+   runKeyRiff (kbd"C-x C-y r c") -- nonstandard: my-register 
+
+ , "paste register"-: do
+   runKeyRiff (kbd"C-x C-y r v") -- nonstandard: my-register 
+
+ , "clear register"-: do
+   runKeyRiff (kbd"C-x C-y r d") -- nonstandard: my-register 
 
  , ""-: do
    nothing
@@ -155,6 +189,16 @@ myMacrosRHS0 = vocab
 
 move_window_down = press S down
 
+move_window_up = press S up
+
+open_pad = do
+   openApplication "Commands"   -- TODO make variable 
+   delay 100
+   move_window_down
+   delay 100
+   switch_buffer (word2phrase' "*pad*") -- TODO make variable 
+   delay 100
+
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
@@ -167,6 +211,7 @@ myMacrosRHS = empty
  <|> A1 find_text     <$ "find"     <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
  <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
+ <|> A1 write_to_pad  <$ "pad"  <*> (phrase_-?)
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
@@ -212,5 +257,10 @@ goto_line n = do
 comment_with :: Maybe Phrase' -> Actions_
 comment_with p = do
  press M ';'
+ maybe nothing insertP p
+
+write_to_pad p = do
+ open_pad
+ press ret
  maybe nothing insertP p
 

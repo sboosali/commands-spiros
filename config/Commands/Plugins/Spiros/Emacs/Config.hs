@@ -5,6 +5,7 @@ module Commands.Plugins.Spiros.Emacs.Config where
 import           Commands.Sugar.Alias
 import           Commands.Sugar.Press
 import           Commands.Backends.OSX
+-- import           Commands.Plugins.Example.Keys
 
 import qualified System.FilePath.Posix as FilePath
 

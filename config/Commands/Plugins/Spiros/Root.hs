@@ -314,7 +314,7 @@ rankRoot = \case
  Acts_ ass            -> safeAverage (fmap rankActs ass) 
  Macro_ _i (Macro f) -> highRank + rankApply f
  Shortcut_ _i _s -> highRank
- Emacs_ _i _m        -> highRank
+ Emacs_ _i e        -> highRank + rankEmacs e
  Dictation_ _d       -> highRank
  Phrase_    p        -> rankPhrase p
 

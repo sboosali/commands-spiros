@@ -125,7 +125,9 @@ spirosInterpret vSettings = \ws -> do
  context <- liftIO$ OSX.runActions OSX.currentApplication
 
  let actions = (vSettings&vConfig&vDesugar) context value
- liftIO$ OSX.runActions actions -- the Objective-C bindings print out which functions are called
+ liftIO$ OSX.runActionsWithDelay 10 actions
+  -- delay in milliseconds 
+  -- the Objective-C bindings print out which functions are called
  t2<- liftIO$ getCurrentTime
 
  let d1 = (1000 * (t1 `diffUTCTime` t0))
@@ -148,6 +150,8 @@ spirosInterpret vSettings = \ws -> do
   putStrLn ""
   putStrLn$ "WORDS:"
   T.putStrLn$ T.intercalate (T.pack " ") ws
---  performMajorGC
   replicateM_ 3 (putStrLn"")
-  performMinorGC
+
+  -- performMinorGC
+  performMajorGC
+

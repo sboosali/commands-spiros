@@ -6,6 +6,8 @@ module Commands.Plugins.Spiros.Shortcut where
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
 import Commands.Plugins.Example.Keys
+import Commands.Sugar.Keys
+import Commands.Backends.OSX.Types
 
 import           Data.Text.Lazy                 (Text)
 
@@ -24,11 +26,11 @@ shortcuts
  = fmap Shortcut
  . foldMap (\case
     ("",_) -> empty                              -- for convenience
-    (s,k)  -> keys k <$ fromString s)
+    (s,k)  -> kbd k <$ fromString s)
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
 myShortcuts = 'myShortcuts <=> shortcuts
- -- <|> "copy" $> keys"M-c"
+ -- <|> "copy" $> kbd"M-c"
  -- <|> "copy" $> [KeyPress [CommandMod] CKey]
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
@@ -62,6 +64,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "close buff"-: "C-x k"
  , "buffers"-: "C-x b"
  , "close"-: "C-c C-c"
+ , "full-screen"-: "C-x 1"
+ , "split screen"-: "C-x 2"
 
  -- Chrome
  , "close tab"-: "M-w"

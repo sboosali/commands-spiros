@@ -73,6 +73,7 @@ class NarcissisticGrammar(GrammarBase):
     '''
 
     gramSpec = None        # initialized in set_rules(...) 
+    should_request = True
 
     def initialize(self):
         self.set_rules(all_rules, all_exports, exclusive=1)
@@ -178,7 +179,7 @@ def should_request(grammar,data):
     if isRecognitionGood:
         datum = " ".join(data)
         isRecognitionMagical = handle_abrogation(data) or handle_microphone(grammar,datum) or handle_mode(grammar,datum)
-        shouldRequest = isRecognitionGood and not isRecognitionMagical     # redundant for clarity
+        shouldRequest = isRecognitionGood and not isRecognitionMagical and grammar.should_request    # redundant for clarity
         print "should_request =", shouldRequest
         return shouldRequest
 
@@ -212,9 +213,11 @@ def handle_mode(grammar,datum):
     if   datum == "dictating":
         grammar.activateSet([mode_export],exclusive=0)
         natlinkmain.recognitionMimic(["Dictation","mode"]) 
+        grammar.should_request = False
         return True
     elif datum == "commanding":
         grammar.activateSet(all_exports,exclusive=1)
+        grammar.should_request = True
         return True
     else:
         return False
