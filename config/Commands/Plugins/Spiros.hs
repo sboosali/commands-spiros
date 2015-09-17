@@ -125,8 +125,8 @@ spirosInterpret vSettings = \ws -> do
  context <- liftIO$ OSX.runActions OSX.currentApplication
 
  let actions = (vSettings&vConfig&vDesugar) context value
- liftIO$ OSX.runActionsWithDelay 10 actions
-  -- delay in milliseconds 
+ liftIO$ OSX.runActionsWithDelay 5 actions
+  -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
  t2<- liftIO$ getCurrentTime
 

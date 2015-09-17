@@ -1,11 +1,11 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 module Commands.Plugins.Spiros.Emacs.Config where
+-- import           Commands.Plugins.Spiros.Keys
 
 import           Commands.Sugar.Alias
 import           Commands.Sugar.Press
 import           Commands.Backends.OSX
--- import           Commands.Plugins.Example.Keys
 
 import qualified System.FilePath.Posix as FilePath
 

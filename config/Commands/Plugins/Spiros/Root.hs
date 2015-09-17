@@ -14,13 +14,13 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
+import Commands.Plugins.Spiros.Keys
 
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 -- import           Commands.Munging
-import           Commands.Plugins.Example.Keys
 import           Commands.Plugins.Example.Spacing
 
 import           Control.Concurrent.Async

@@ -3,10 +3,10 @@
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
 import Commands.Plugins.Spiros.Etc
+import Commands.Plugins.Spiros.Keys
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
-import Commands.Plugins.Example.Keys
 import Commands.Sugar.Keys
 import Commands.Backends.OSX.Types
 
@@ -56,7 +56,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "paste"-: "M-v"
  , "copy"-: "M-c"
  , "cut"-: "M-x"
- , "history"-: "A-<spc>" -- TODO 
  , "kill"-: "C-k"
 
  -- Emacs

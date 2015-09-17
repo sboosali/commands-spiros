@@ -40,6 +40,7 @@ library
         Commands.Plugins.Spiros.Macros
         Commands.Plugins.Spiros.Edit
         Commands.Plugins.Spiros.Shell
+        Commands.Plugins.Spiros.Keys
     build-depends:
         base ==4.8.*,
         commands-core -any,

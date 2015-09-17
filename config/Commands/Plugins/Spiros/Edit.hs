@@ -18,34 +18,21 @@ import           Control.Applicative
 -- ================================================================ --
 
 data Move
- = Move   Direction Region
- | MoveTo Endpoint  Region
+ = Move   Direction Region      -- ^ 
+ | MoveTo Endpoint  Region      -- ^ idempotent 
  deriving (Show,Eq,Ord)
 move = 'move
- <=> Move   <#> direction # region
- <|> MoveTo <#> endpoint # region
--- TODO scrap this boilerplate.
---
--- can't scrap it with GHC.generics because the grammars are values not instance methods.
--- but maybe we can:
- -- with singleton stuff (?)
- -- with reflection, by building a new instance at runtime?
- -- given all children derive Generic and/or Data, by building a new generic grammar for each
- -- given all children derive Grammatical. and DeriveAnyClass makes this easier! deriving (Generic, Grammatical)
---
--- we could scrap it with TemplateHaskell if we were really wanted to, to gain that edit-once property, lowercasing the type to get the value, but I don't want to.
--- move = defaultRule 'move
--- defaultRule "move" OR spliceRule ''Move
---
+ <=> Move   <$> direction <*> region
+ <|> MoveTo <$> endpoint  <*> region
 
 -- | Slice and Direction both have too many values.
-data Endpoint = Beginning | Ending deriving (Bounded,Enum,Eq,Ord,Read,Show)
+data Endpoint = Beginning | Ending deriving (Show,Eq,Ord,Bounded,Enum)
 endpoint = 'endpoint
  <=> Beginning <#> "beg"
  <|> Ending    <#> "end"
 
 -- | orthogonal directions in three-dimensional space. @... <=> Up_ <#> "up" <|> ...@
-data Direction = Up_ | Down_ | Left_ | Right_ | In_ | Out_  deriving (Show,Eq,Ord,Enum)
+data Direction = Up_ | Down_ | Left_ | Right_ | In_ | Out_  deriving (Show,Eq,Ord,Bounded,Enum)
 direction = tidyGrammar
 -- direction = transformedGrammar (filter (/= '_'))
 -- direction = qualifiedGrammarWith "_"
@@ -77,7 +64,7 @@ data Action
  | Delete                       -- read/write.
  | Transpose                    -- read/write.
  | Google                       -- read-only.
- deriving (Show,Eq,Ord)
+ deriving (Show,Eq,Ord,Enum,Bounded)
 
 action = 'action <=> empty
  <|> Select      <#> "sell"
@@ -89,7 +76,7 @@ action = 'action <=> empty
 
 {- | slice the region between the cursor and the 'Slice'. induces a string.
 -}
-data Slice = Whole | Backwards | Forwards  deriving (Show,Eq,Ord,Enum)
+data Slice = Whole | Backwards | Forwards  deriving (Show,Eq,Ord,Enum,Bounded)
 slice = 'slice <=> vocab
  [ "whole"-:Whole
  , "back"-: Backwards
@@ -117,7 +104,7 @@ data Region
  | Function_
  | Reference
  | Structure
- deriving (Show,Eq,Ord,Enum)
+ deriving (Show,Eq,Ord,Enum,Bounded)
 
 region = 'region
  <=> That       <#> "that"

@@ -8,8 +8,8 @@ import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Edit
 import Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Shell
+import Commands.Plugins.Spiros.Keys
 
-import Commands.Plugins.Example.Keys
 import Commands.Sugar.Keys
 import Commands.Sugar.Press 
 import Commands.Sugar.Alias
@@ -121,18 +121,13 @@ myMacrosRHS0 = vocab
  , "next error"-: do
    move_window_down
    runEmacs "compilation-next-error"
-   press M 'l'
-   press M 'l'
+   press C 'l'
+   press C 'l'
    press ret
 
  , "man"-: do                   -- short for "commands server"
-   openApplication "Commands"   -- TODO make less stringly-typed
-   delay 25
-   move_window_down 
-   delay 25
-   switch_buffer (word2phrase' "*shell2*")
-   delay 25
-   window_bottom 
+   openApplication "Terminal"   -- TODO make less stringly-typed
+   press del
 
  , "macro"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -208,6 +203,8 @@ move_window_down = press S down
 
 move_window_up = press S up
 
+toggle_clipboard_history = press alt spc               -- Alfred
+
 open_pad = do
    openApplication "Commands"   -- TODO make variable 
    delay 100
@@ -222,7 +219,8 @@ emacs_reach_shell = do
    switch_buffer (word2phrase' "*shell*")
    delay 25
    window_bottom                -- TODO make typed/generic like runEdit
-   runEdit (Edit Delete Whole Line)
+   runMove (MoveTo Beginning Line)
+   runEdit (Edit Delete Forwards Line)
 
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
@@ -237,7 +235,9 @@ myMacrosRHS = empty
  <|> A1 goto_line     <$ "go"       <*> number
  <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
  <|> A1 write_to_pad  <$ "pad"  <*> (phrase_-?)
- <|> A1 run_shell <$ "shell" <*> (shell-|-(phrase_-?))
+ <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase_-?))
+ <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase_-?)
+-- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
@@ -262,12 +262,9 @@ google_for p = do
  q <- munge p
  google q
 
-search_regexp = \case
- Nothing -> do
+search_regexp p = do
   press C 's'
- Just p -> do
-  press C 's'
-  insertP p
+  maybe nothing insertP p
 
 find_text p = do
  press M 'f'
@@ -295,5 +292,10 @@ run_shell (Left s) = do
  runShell s
 run_shell (Right p) = do
  emacs_reach_shell
+ maybe nothing insertP p
+
+query_clipboard_history p = do
+ toggle_clipboard_history
+ delay 500
  maybe nothing insertP p
 
