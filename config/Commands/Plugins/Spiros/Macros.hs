@@ -177,6 +177,36 @@ myMacrosRHS0 = vocab
  , "clear register"-: do
    runKeyRiff (kbd"C-x C-y r d") -- nonstandard: my-register 
 
+ , "magic"-: do
+   runEmacs "magit-status"
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
  , ""-: do
    nothing
 

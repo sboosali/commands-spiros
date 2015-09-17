@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
+import Commands.Plugins.Spiros.Etc
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
@@ -12,7 +13,7 @@ import Commands.Backends.OSX.Types
 import           Data.Text.Lazy                 (Text)
 
 import           GHC.Exts                        (IsString (..))
-import Control.Applicative
+-- import Control.Applicative
 
 
 newtype Shortcut = Shortcut KeyRiff
@@ -41,6 +42,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "right"-: "<right>"
  , "F3"-: "<f3>"
  , "F4"-: "<f4>"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
 
  -- Global
  , "no"-: "M-z"
@@ -65,10 +72,34 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "close"-: "C-c C-c"
  , "full-screen"-: "C-x 1"
  , "split screen"-: "C-x 2"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+
+ -- Emacs magit-status
+ , "commit"-: "c c"
+ , "stage"-: "s"
+ , "stage all"-: "S-s"
+ , "unstage"-: "u"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
 
  -- Chrome
  , "close tab"-: "M-w"
  , "new tab"-: "M-t"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
 
  -- etc.
  , "scroll"-: "<spc>"
@@ -76,8 +107,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "div"-: "M--"                -- (it parses) 
  , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "bookmark"-: "M-d"
- , ""-: ""
- , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
