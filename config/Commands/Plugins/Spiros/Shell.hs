@@ -73,6 +73,8 @@ shellCommands =
 
 -- ================================================================ --
 
+instance (Rankable Shell) where rank = rankShell
+
 rankShell :: Ranking Shell
 rankShell = \case
  Shell _cmd args -> rankPhrase args

@@ -2,11 +2,12 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
-
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
+import           Commands.Plugins.Spiros.Edit
 import Commands.Plugins.Spiros.Emacs.Config
+import           Commands.Plugins.Spiros.Shell
 
 import Commands.Plugins.Example.Keys
 import Commands.Sugar.Keys
@@ -114,13 +115,7 @@ myMacrosRHS0 = vocab
  , "make"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
-   move_window_down 
-   delay 100
-   switch_buffer (word2phrase' "*shell*") -- TODO make variable 
-   delay 100
-   press M down
-   press C 'a'
-   press C 'k'
+   emacs_reach_shell
    slot "make build"
 
  , "next error"-: do
@@ -136,15 +131,6 @@ myMacrosRHS0 = vocab
    move_window_down 
    delay 25
    switch_buffer (word2phrase' "*shell2*")
-   delay 25
-   window_bottom 
-
- , "shell"-: do
-   openApplication "Commands"   -- TODO make less stringly-typed
-   delay 25
-   move_window_down 
-   delay 25
-   switch_buffer (word2phrase' "*shell*")
    delay 25
    window_bottom 
 
@@ -230,6 +216,14 @@ open_pad = do
    switch_buffer (word2phrase' "*pad*") -- TODO make variable 
    delay 100
 
+emacs_reach_shell = do
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase' "*shell*")
+   delay 25
+   window_bottom                -- TODO make typed/generic like runEdit
+   runEdit (Edit Delete Whole Line)
+
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
@@ -243,6 +237,7 @@ myMacrosRHS = empty
  <|> A1 goto_line     <$ "go"       <*> number
  <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
  <|> A1 write_to_pad  <$ "pad"  <*> (phrase_-?)
+ <|> A1 run_shell <$ "shell" <*> (shell-|-(phrase_-?))
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
@@ -293,5 +288,12 @@ comment_with p = do
 write_to_pad p = do
  open_pad
  press ret
+ maybe nothing insertP p
+
+run_shell (Left s) = do
+ emacs_reach_shell
+ runShell s
+run_shell (Right p) = do
+ emacs_reach_shell
  maybe nothing insertP p
 

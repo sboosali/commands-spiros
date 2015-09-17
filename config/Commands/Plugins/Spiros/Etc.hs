@@ -65,8 +65,8 @@ highRank :: Int
 highRank = 1000
 
 instance Rankable Int where rank = id
-
 instance Rankable Actions_         -- TODO
+instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = either rank rank
 
 isBrowser x = if FilePath.takeBaseName x `elem` ["Firefox", "Chrome"]
  then Just x
