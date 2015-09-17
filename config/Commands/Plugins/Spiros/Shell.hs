@@ -10,16 +10,15 @@ import           Commands.Mixins.DNS13OSX9
 
 import           GHC.Exts                          (IsString (..))
 import Data.Monoid                           ((<>))
-import           Control.Applicative
+-- import           Control.Applicative
 
 
 data Shell
  = Shell String Phrase'
  deriving (Show,Eq,Ord)
 
-shell = foldMap go shellCommands
+shell = foldMap go (filterBlanks shellCommands)
  where
- go ("","") = empty
  go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase_-?-blankPhrase)
 
 shellCommands =

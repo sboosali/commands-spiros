@@ -20,6 +20,7 @@ import           Control.Applicative
 -- import Data.List (intercalate)
 import Data.Function (on)
 
+
 newtype Macro = Macro (Apply Rankable Actions_)
 -- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
 

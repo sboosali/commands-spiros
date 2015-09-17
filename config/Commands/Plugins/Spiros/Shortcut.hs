@@ -24,9 +24,8 @@ runShortcut (Shortcut kr) = runKeyRiff kr
 shortcuts :: (Functor'RHS n Text f) => [(String,String)] -> RHS n Text f Shortcut
 shortcuts
  = fmap Shortcut
- . foldMap (\case
-    ("",_) -> empty                              -- for convenience
-    (s,k)  -> kbd k <$ fromString s)
+ . foldMap (\(s,k) -> kbd k <$ fromString s)
+ . filterBlanks
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
 myShortcuts = 'myShortcuts <=> shortcuts
