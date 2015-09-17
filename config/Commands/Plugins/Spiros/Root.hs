@@ -11,6 +11,7 @@ import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Macros
 import           Commands.Plugins.Spiros.Phrase
+import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Shortcut
 
 import           Commands.Backends.OSX
@@ -55,12 +56,13 @@ roots = 'roots
  <|> Root_ <$> root
 
 data Root
-  =  Acts_       [Acts]         -- ^ chained and repeated
-  |  Macro_      Number  Macro  -- ^ repeated 
-  |  Shortcut_   Number  Shortcut  -- ^ repeated 
-  |  Emacs_      Number  Emacs  -- ^ repeated 
-  |  Dictation_  Dictation      -- ^ 
-  |  Phrase_     Phrase'        -- ^ 
+ = Acts_       [Acts]         -- ^ chained and repeated
+ | Macro_      Number  Macro  -- ^ repeated 
+ | Shortcut_   Number  Shortcut  -- ^ repeated 
+ | Shell_              Shell  -- ^
+ | Emacs_      Number  Emacs  -- ^ repeated 
+ | Dictation_  Dictation      -- ^ 
+ | Phrase_     Phrase'        -- ^ 
  deriving (Show,Eq)
 
 root :: R z Root
@@ -69,6 +71,7 @@ root = 'root <=> empty
  <|> Emacs_     <$> (number-?-1) <*> emacs
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
  <|> Macro_     <$> (number-?-1) <*> myMacros
+ <|> Shell_     <$>                  shell
  <|> Dictation_ <$  (token"say") <*> dictation
  <|> Phrase_    <$> phrase_  -- must be last, phrase falls back to wildcard.
 
@@ -314,6 +317,7 @@ rankRoot = \case
  Acts_ ass            -> safeAverage (fmap rankActs ass) 
  Macro_ _i (Macro f) -> highRank + rankApply f
  Shortcut_ _i _s -> highRank
+ Shell_ s           -> highRank + rankShell s
  Emacs_ _i e        -> highRank + rankEmacs e
  Dictation_ _d       -> highRank
  Phrase_    p        -> rankPhrase p
@@ -343,6 +347,7 @@ runRoot context = \case
  Acts_ ass     -> onlyWhen isEmacs context $ traverse_ runActs ass      -- no delay 
  Macro_ n f    -> runRepeat (contextualDelay context) n (runMacro f)
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
+ Shell_ s      -> runShell s
  Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
  Dictation_ d -> runDictation d
  Phrase_ p    -> runPhrase context p

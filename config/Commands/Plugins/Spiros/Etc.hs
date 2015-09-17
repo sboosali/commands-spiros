@@ -12,6 +12,9 @@ import Data.Foldable
 import qualified Data.List as List
 
 
+both :: a -> (a, a)
+both a = (a, a)
+
 type Number = Int
 
 -- average xs = realToFrac (sum xs) / genericLength xs
@@ -34,11 +37,17 @@ slot s = do
 isDefaultBrowser :: AMonadAction (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
  x@"Google Chrome" -> return$ Just x
- _                 -> return$ Nothing 
+ _                 -> return$ Nothing
 
--- lawless, domain-specific, 'Ord'-like typeclass
-class    Rankable a where
- rank :: a -> Int
+type Desugaring a = a -> Actions_
+
+type Ranking a = a -> Int
+
+-- lawless, domain-specific, 'Ord'-like typeclass.
+-- used by @data Apply@, permitting "ranking a function" by ranking its arguments (before application). 
+-- can be derived, avoiding boilerplate. 
+class Rankable a where          -- TODO a ranking that's relative, not absolute.
+ rank :: Ranking a
  rank _ = defaultRank
 
 defaultRank :: Int

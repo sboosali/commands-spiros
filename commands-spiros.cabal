@@ -38,6 +38,7 @@ library
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Phrase
         Commands.Plugins.Spiros.Macros
+        Commands.Plugins.Spiros.Shell
     build-depends:
         base ==4.8.*,
         commands-core -any,
