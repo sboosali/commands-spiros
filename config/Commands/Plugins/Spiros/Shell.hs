@@ -17,7 +17,7 @@ data Shell
  = Shell String Phrase'
  deriving (Show,Eq,Ord)
 
-shell = foldMap go (filterBlanks shellCommands)
+shell = 'shell <=> foldMap go (filterBlanks shellCommands)
  where
  go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase_-?-blankPhrase)
 
@@ -27,7 +27,7 @@ shellCommands =
  , "make dear"-: "mkdir"
  , "remove dear"-: "rmdir"
  , "get"-: "git"
- , ""-: ""
+ , "CD"-: "cd"
  , ""-: ""
  , ""-: ""
  , ""-: ""

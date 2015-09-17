@@ -217,7 +217,7 @@ joiner = 'joiner
  <|> Joiner "-" <#> "dash"
  <|> Joiner "/" <#> "file"
  <|> Joiner ""  <#> "squeeze"
- <|> CamelJoiner <#> "cam"
+ <|> CamelJoiner <#> "camel"    -- "cam"
  <|> ClassJoiner <#> "class"
 
 brackets = 'brackets

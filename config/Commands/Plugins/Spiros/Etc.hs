@@ -10,18 +10,7 @@ import qualified System.FilePath.Posix as FilePath
 
 import Data.Foldable
 import qualified Data.List as List
-import           GHC.Exts                          (IsString (..))
 
-
--- for convenience when writing string dicts, let's you make a value equal to its key
-both :: a -> (a, a)
-both a = (a, a)
-
--- for convenience when writing string dicts, lets you leave keys/values blank
-filterBlanks :: (IsString s, Eq s) => [(s, s)] -> [(s, s)]
-filterBlanks = filter $ \case
- ("","") -> False
- (_,_)   -> True
 
 type Number = Int
 

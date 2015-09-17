@@ -20,6 +20,7 @@ import           Commands.Backends.OSX
 import           Control.Applicative
 -- import Data.List (intercalate)
 import Data.Function (on)
+import Control.Arrow (second) 
 
 
 newtype Macro = Macro (Apply Rankable Actions_)
@@ -68,35 +69,45 @@ runApply = \case
  A3 f a b c   -> f a b c
  A4 f a b c d -> f a b c d
 
+
+
+-- ================================================================ --
+
+move_window_down = press S down
+
+move_window_up = press S up
+
+toggle_clipboard_history = press alt spc               -- Alfred
+
+open_pad = do
+   openApplication "Commands"   -- TODO make variable 
+   delay 100
+   move_window_down
+   delay 100
+   switch_buffer (word2phrase' "*pad*") -- TODO make variable 
+   delay 100
+
+emacs_reach_shell = do
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase' "*shell*")
+   delay 25
+   window_bottom                -- TODO make typed/generic like runEdit
+   runMove (MoveTo Beginning Line)
+   runEdit (Edit Delete Forwards Line)
+
+
+
+-- ================================================================ --
+
 myMacros :: R z Macro
 myMacros = 'myMacros
  <=> (Macro . A0) <$> myMacrosRHS0
  <|> Macro        <$> myMacrosRHS
 
 -- | macros without arguments
-myAliases :: R z String
-myAliases = vocab
- [ ""-: ""
- , "arrow"-: "->"
- , "to do"-: "TODO"
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- ]
-
--- | macros without arguments
 myMacrosRHS0 :: R z Actions_
-myMacrosRHS0 = vocab
+myMacrosRHS0 = myAliases <|> myApps <|> vocab
  [ ""-: nothing
 
  , "run again"-: do
@@ -125,9 +136,9 @@ myMacrosRHS0 = vocab
    press C 'l'
    press ret
 
- , "man"-: do                   -- short for "commands server"
+ , "serve"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
-   press del
+   press spc
 
  , "macro"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -144,9 +155,6 @@ myMacrosRHS0 = vocab
    delay 100
    switch_buffer (word2phrase' "Shortcut.hs") -- TODO make variable 
    delay 100
-
- , "notes"-: do
-   openApplication "Notes"   -- TODO make variable
 
  -- TODO make "C-x C-y" the commands key prefix
  , "copy register"-: do
@@ -199,28 +207,49 @@ myMacrosRHS0 = vocab
 
  ]
 
-move_window_down = press S down
+-- | macros without arguments
+myAliases :: R z Actions_             -- String
+myAliases = vocab$ fmap (second sendText)
+ [ ""-: ""
+ , "arrow"-: "->"
+ , "to do"-: "TODO"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ ]
 
-move_window_up = press S up
+myApps :: R z Actions_
+myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
+ [ "max"      -: "Emacs"
+ , "man"      -: "Commands"
+ , "work"     -: "Work"
+ , "notes"    -: "Notes"
+ , "jobs"     -: "Obs"
+ , "chrome"   -: "Google Chrome"
+ , "fox"      -: "Firefox"
+ , "terminal" -: "Terminal"
+ , "dragon"   -: "VirtualBoxVM"
+ , "jelly"    -: "IntelliJ"
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ ]
 
-toggle_clipboard_history = press alt spc               -- Alfred
 
-open_pad = do
-   openApplication "Commands"   -- TODO make variable 
-   delay 100
-   move_window_down
-   delay 100
-   switch_buffer (word2phrase' "*pad*") -- TODO make variable 
-   delay 100
 
-emacs_reach_shell = do
-   move_window_down 
-   delay 25
-   switch_buffer (word2phrase' "*shell*")
-   delay 25
-   window_bottom                -- TODO make typed/generic like runEdit
-   runMove (MoveTo Beginning Line)
-   runEdit (Edit Delete Forwards Line)
+
+-- ================================================================ --
 
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
