@@ -2,7 +2,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
-import Commands.Plugins.Spiros.Etc
 import Commands.Plugins.Spiros.Keys
 
 import Commands.Etc
@@ -32,6 +31,8 @@ shortcuts
 myShortcuts = 'myShortcuts <=> shortcuts
  -- <|> "copy" $> kbd"M-c"
  -- <|> "copy" $> [KeyPress [CommandMod] CKey]
+
+ -- keys
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
  , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
@@ -57,6 +58,13 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "copy"-: "M-c"
  , "cut"-: "M-x"
  , "kill"-: "C-k"
+
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
 
  -- Emacs
  , "stop"-: "C-g"
@@ -93,7 +101,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- Chrome
  , "close tab"-: "M-w"
  , "new tab"-: "M-t"
- , ""-: ""
+ , "last"-: "M-9"
  , ""-: ""
  , ""-: ""
  , ""-: ""

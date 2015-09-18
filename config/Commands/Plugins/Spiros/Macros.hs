@@ -107,7 +107,7 @@ myMacros = 'myMacros
 
 -- | macros without arguments
 myMacrosRHS0 :: R z Actions_
-myMacrosRHS0 = myAliases <|> myApps <|> vocab
+myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  [ ""-: nothing
 
  , "run again"-: do
@@ -138,7 +138,7 @@ myMacrosRHS0 = myAliases <|> myApps <|> vocab
 
  , "serve"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
-   press spc
+   press del
 
  , "macro"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -227,6 +227,11 @@ myAliases = vocab$ fmap (second sendText)
  , ""-: ""
  , ""-: ""
  ]
+
+myOrdinals :: R z Actions_
+myOrdinals = (uncurry sendKeyPress . addMod CommandMod . (either __BUG__ id) . digit2keypress) <$> (__inlineRHS__(ordinalDigit))
+ -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
+ -- the cast is safe because: ordinalDigit is between zero and nine, inclusive 
 
 myApps :: R z Actions_
 myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed

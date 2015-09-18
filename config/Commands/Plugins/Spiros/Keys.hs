@@ -45,7 +45,7 @@ so we can't embed the one into the other, but we'll just keep things simple with
 -}
 key :: R z KeyPress
 key = 'key
- <=> ((either __BUG__ id) . char2keypress) <$> (inlineRHS(character))
+ <=> ((either __BUG__ id) . char2keypress) <$> (__inlineRHS__(character))
   -- inlined to trigger vocabulary optimization, the right-hand side which must have only tokens
 
  <|> "up" $> KeyPress [] UpArrowKey
@@ -101,27 +101,35 @@ key = 'key
 --  <|> "eff twenty" $> KeyPress [] F20Key
 
 -- | an ordinal numeral
-ordinal = 'ordinal
- <=> (1::Int) <$ "one"
- <|> 2 <$ "two"
- <|> 3 <$ "three"
- <|> 4 <$ "four"
- <|> 5 <$ "five"
- <|> 6 <$ "six"
- <|> 7 <$ "seven"
- <|> 8 <$ "eight"
- <|> 9 <$ "nine"
- <|> 10 <$ "ten"
- <|> 11 <$ "eleven"
- <|> 12 <$ "twelve"
- <|> 13 <$ "thirteen"
- <|> 14 <$ "fourteen"
- <|> 15 <$ "fifteen"
- <|> 16 <$ "sixteen"
- <|> 17 <$ "seventeen"
- <|> 18 <$ "eighteen"
- <|> 19 <$ "nineteen"
- <|> 20 <$ "twenty"
+ordinal :: (Num a) => R z a
+ordinal = 'ordinal <=> (__inlineRHS__(ordinalDigit)) <|> vocab
+ [ "tenth"-: 10
+ , "eleven"-: 11
+ , "twelve"-: 12
+ , "thirteen"-: 13
+ , "fourteen"-: 14
+ , "fifteen"-: 15
+ , "sixteen"-: 16
+ , "seventeen"-: 17
+ , "eighteen"-: 18
+ , "nineteenth"-: 19
+ , "twentieth"-: 20
+ ]
+
+-- | an ordinal numeral, between 0 (zeroth) and 9 (ninth) inclusive
+ordinalDigit :: (Num a) => R z a
+ordinalDigit = 'ordinalDigit <=> vocab
+ [ "zeroth"-: 0
+ , "first"-: 1
+ , "second"-: 2
+ , "third"-: 3
+ , "fourth"-: 4
+ , "fifth"-: 5
+ , "sixth"-: 6
+ , "seventh"-: 7
+ , "eighth"-: 8
+ , "ninth"-: 9
+ ]
 
 -- Keypress [Meta] CKey
 --  OR

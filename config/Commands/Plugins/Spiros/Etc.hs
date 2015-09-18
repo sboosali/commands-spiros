@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Etc where
 
@@ -11,6 +11,39 @@ import qualified System.FilePath.Posix as FilePath
 import Data.Foldable
 import qualified Data.List as List
 
+
+{- | returns the digits that make up a number in some base, most-significant digit first. 
+
+>>> toDigits 10 9
+[9]
+
+>>> toDigits 10 1234
+[1,2,3,4]
+
+assumes nonnegative input, but still is total. 
+
+prop> \(Positive k) n -> ('fromDigits' k . toDigits k) n == n
+
+-}
+toDigits :: (Integral a) => a -> a -> [a]
+toDigits base = reverse . List.unfoldr go
+ where
+ go n = if n < 1 then Nothing else Just ((n `mod` base), (n `div` base))
+
+{- | returns the digits that make up a number in some base, most-significant digit first. 
+
+>>> fromDigits 10 [1,2,3,4]
+1234
+
+>>> fromDigits 10 [9]
+9
+
+>>> fromDigits 10 []
+0
+
+-}
+fromDigits :: forall a. (Integral a) => a -> [a] -> a
+fromDigits base = foldr (+) 0 . zipWith (\i n -> (base^i) * n) [(0::a)..] . reverse
 
 type Number = Int
 

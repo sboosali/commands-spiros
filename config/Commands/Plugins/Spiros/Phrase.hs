@@ -56,7 +56,7 @@ data Phrase_
  | Dictated_ Dictation -- ^ list-like.
  deriving (Show,Eq,Ord)
 
-data Casing = Upper | Lower | Capper deriving (Show,Eq,Ord,Enum,Typeable)
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Typeable)
 data Joiner = Joiner String | CamelJoiner | ClassJoiner deriving (Show,Eq,Ord)
 data Brackets = Brackets String String deriving (Show,Eq,Ord)
 newtype Separator = Separator String  deriving (Show,Eq,Ord)
@@ -209,7 +209,10 @@ separator = 'separator <=> empty
  <|> Separator " " <#> "space"
  <|> Separator "," <#> "comma"
 
-casing = enumGrammar
+casing = 'casing
+ <=> LowerCase <$ token "lower"
+ <|> UpperCase <$ token "upper"
+ <|> CapCase   <$ token "copper"              -- "capper" 
 
 joiner = 'joiner
  <=> (\c -> Joiner [c]) <#> "join" # character
@@ -578,9 +581,9 @@ caseWith c = mapPAtom (fromCasing c)
 
 fromCasing :: Casing -> (String -> String)
 fromCasing = \case
- Upper  -> upper
- Lower  -> lower
- Capper -> capitalize
+ UpperCase  -> upper
+ LowerCase  -> lower
+ CapCase    -> capitalize
 
 mapPAtom :: (String -> String) -> (PAtom -> PAtom)
 mapPAtom f = \case
