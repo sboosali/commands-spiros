@@ -155,7 +155,7 @@ class NarcissisticGrammar(GrammarBase):
             self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting") else (True if should_change_mode == "normal" else self.should_request)
             self.current_mode   = should_change_mode or self.current_mode
 
-            self.previous_results_object = resultsObject if should_change_mode == "normal" else self.previous_results_object
+            self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
 
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
@@ -310,6 +310,12 @@ def handle_correcting(grammar,datum):
 
     if   datum == "zero":
         grammar.activateSet(active_exports,exclusive=1)
+        recognition = first_result(grammar.previous_results_object)
+        print     "original_recognition   =", recognition 
+        if recognition is not None:
+            did_correction_succeed = grammar.previous_results_object.correction(recognition)
+            print "corrected_recognition  =", recognition 
+            print "did_correction_succeed =", did_correction_succeed
         return "normal"      # change state 
 
     else:
