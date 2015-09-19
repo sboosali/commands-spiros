@@ -157,6 +157,9 @@ class NarcissisticGrammar(GrammarBase):
 
             self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
 
+            # the microphone may have been toggled manually by the GUI
+            self.current_mode = "normal" if (self.current_mode.startswith("microphone") and natlink.getMicState() == "on") else self.current_mode
+
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
             if should_send_request and self.should_request:
@@ -262,17 +265,17 @@ def handle_abrogation(data):
 def handle_microphone(grammar,datum):
 
     if  datum == "wake up" or datum == "mike on":
-        # grammar.setMicState("on") 
+        natlink.setMicState("on") 
         grammar.activateSet([microphone_export, H_EXPORT], exclusive=1)
         return "normal"
 
     elif datum == "mike off":
-        # grammar.setMicState("sleeping")
+        natlink.setMicState("sleeping")
         grammar.activateSet([microphone_export],exclusive=1)
         return "microphone/sleeping"       # change state
 
     elif datum == "mike dead":
-        # the natlink.setMicState("off") # can't even be manually turned back on via the GUI
+        natlink.setMicState("off")
         return "microphone/off"       # change state
 
     else:
