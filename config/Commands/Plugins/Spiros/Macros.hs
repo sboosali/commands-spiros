@@ -73,6 +73,10 @@ runApply = \case
 
 -- ================================================================ --
 
+alt_tab = do
+ press M tab
+ press ret
+
 move_window_down = press S down
 
 move_window_up = press S up
@@ -141,7 +145,11 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
 
- , "make"-: do
+ , "serve"-: do                   -- short for "commands server"
+   openApplication "Terminal"   -- TODO make less stringly-typed
+   press del
+
+ , "build serve"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
    emacs_reach_shell
@@ -153,10 +161,6 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    press C 'l'
    press C 'l'
    press ret
-
- , "serve"-: do                   -- short for "commands server"
-   openApplication "Terminal"   -- TODO make less stringly-typed
-   press del
 
  , "macro"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -196,8 +200,8 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "play"-: do
    youtube_toggle_sound
 
- , ""-: do
-   nothing
+ , "fun"-: do
+   alt_tab
 
  , ""-: do
    nothing
@@ -296,7 +300,8 @@ myMacrosRHS = empty
  <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
  <|> A1 switch_tab <$ "tab" <*> (phrase-?-"")
- <|> A1 new_tab <$ "new tab" <*> (phrase-?-"")
+ <|> A1 visit_site <$ "visit" <*> (phrase-?-"")
+ <|> A1 google_click_link <$ "link" <*> phrase
 -- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
@@ -364,9 +369,17 @@ switch_tab p = do
  delay chromeDelay 
  slotP p
 
-new_tab p = do
+visit_site p = do
  openApplication "Google Chrome"   -- TODO make variable 
  press M 't'
  delay chromeDelay 
  slotP p
+
+-- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
+google_click_link p = do
+ press M 'f'
+ delay chromeDelay 
+ slotP p
+ delay chromeDelay 
+ press C ret
 

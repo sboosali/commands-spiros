@@ -135,8 +135,6 @@ class NarcissisticGrammar(GrammarBase):
         print "recognitionType =", recognitionType
         if not recognitionType: return
 
-        self.previous_results_object = resultsObject
-
         words = next(get_results(resultsObject), [])
         data  = munge_recognition(words)
         url   = "%s/recognition/" % (server_address,)        # TODO parameterize "recognition" API
@@ -156,6 +154,8 @@ class NarcissisticGrammar(GrammarBase):
             (should_send_request, should_change_mode) = try_magic_handlers(self,data)
             self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting") else (True if should_change_mode == "normal" else self.should_request)
             self.current_mode   = should_change_mode or self.current_mode
+
+            self.previous_results_object = resultsObject if should_change_mode == "normal" else self.previous_results_object
 
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
