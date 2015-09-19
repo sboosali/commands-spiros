@@ -71,7 +71,7 @@ root = 'root <=> empty
  <|> Macro_     <$> (number-?-1) <*> myMacros
  <|> Shell_     <$>                  shell
  <|> Dictation_ <$  (token"say") <*> dictation
- <|> Phrase_    <$> phrase_  -- must be last, phrase falls back to wildcard.
+ <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
 
 data Acts
  = ActsRW Int Act   -- ^ read/write actions
@@ -215,7 +215,7 @@ attemptMunge s = do
  putStrLn ""
  putStrLn ""
  print s
- attempt $ parseBest bestPhrase phrase_ ((T.words . T.pack) s) & \case
+ attempt $ parseBest bestPhrase phrase ((T.words . T.pack) s) & \case
   Left e -> print e
   Right raw_p -> do
    let pasted_p   = pPhrase raw_p
@@ -233,7 +233,7 @@ attemptMungeAll s = do
  putStrLn ""
  putStrLn ""
  print s
- attempt $ parseThrow phrase_ ((T.words . T.pack) s) >>= \case
+ attempt $ parseThrow phrase ((T.words . T.pack) s) >>= \case
   (raw_p :| raw_ps) -> do
    let pasted_p   = pPhrase raw_p
    let splatted_p = splatPasted pasted_p ("clipboard contents")

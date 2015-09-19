@@ -28,7 +28,7 @@ emacs = 'emacs <=> empty
  <|> EmacsFunction   (Just [Pasted_]) <#> ("run paste") 
  <|> EmacsExpression (Just [Pasted_]) <#> ("eval paste") -- TODO shouldn't be necessary 
  <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
- <|> EmacsExpression    <#> "eval" <*> (phrase_-?)
+ <|> EmacsExpression    <#> "eval" <*> (phrase-?)
 
  -- <|> EmacsFunction   (Just [Pasted_]) <$ (t"run paste") 
  -- <|> EmacsExpression (Just [Pasted_]) <$ (t"eval paste") -- TODO shouldn't be necessary 
@@ -36,7 +36,7 @@ emacs = 'emacs <=> empty
  -- <|> EmacsExpression    <$ "eval" <*> (phrase_-?)
  where
  -- interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
- interactive_ = phrase_ -- TODO takes fifteen seconds to load a vocabulary of five thousand 
+ interactive_ = phrase -- TODO takes fifteen seconds to load a vocabulary of five thousand 
 
 
 -- ================================================================ --

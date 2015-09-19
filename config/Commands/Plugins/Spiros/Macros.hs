@@ -283,20 +283,20 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
- <|> A1 align_regexp  <$ "align"    <*> phrase_
- <|> A1 switch_buffer <$ "buffer"   <*> phrase_
- <|> A1 multi_occur   <$ "occur"    <*> phrase_
- <|> A2 replace_with  <$"replace"   <*> phrase_ <*"with" <*> phrase_
- <|> A1 google_for    <$ "goo" <*> (phrase_-?-blankPhrase)
- <|> A1 search_regexp <$ "search"   <*> (phrase_-?)
- <|> A1 find_text     <$ "find"     <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
+ <|> A1 align_regexp  <$ "align"    <*> phrase
+ <|> A1 switch_buffer <$ "buffer"   <*> phrase
+ <|> A1 multi_occur   <$ "occur"    <*> phrase
+ <|> A2 replace_with  <$"replace"   <*> phrase <*"with" <*> phrase
+ <|> A1 google_for    <$ "goo" <*> (phrase-?-blankPhrase)
+ <|> A1 search_regexp <$ "search"   <*> (phrase-?)
+ <|> A1 find_text     <$ "find"     <*> (phrase-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
- <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
- <|> A1 write_to_pad  <$ "scribble"  <*> (phrase_-?)
- <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase_-?))
- <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase_-?)
- <|> A1 switch_tab <$ "tab" <*> (phrase_-?-blankPhrase)
- <|> A1 new_tab <$ "new tab" <*> (phrase_-?-blankPhrase)
+ <|> A1 comment_with  <$ "comment"  <*> (phrase-?)
+ <|> A1 write_to_pad  <$ "scribble"  <*> (phrase-?)
+ <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase-?))
+ <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
+ <|> A1 switch_tab <$ "tab" <*> (phrase-?-blankPhrase)
+ <|> A1 new_tab <$ "new tab" <*> (phrase-?-blankPhrase)
 -- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution

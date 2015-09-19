@@ -27,17 +27,17 @@ import           Prelude                          hiding (foldr1, mapM)
 
 
 phraseCommand :: DNSEarleyCommand z [Phrase_]
-phraseCommand = Command phrase_ bestPhrase $ \_ p -> do
+phraseCommand = Command phrase bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)
 
 -- ================================================================ --
 
--- -- | transforms "token"s from 'phrase_' into an "s-expression" with 'pPhrase'.
--- phrase = pPhrase <$> phrase_
+-- -- | transforms "token"s from 'phrase' into an "s-expression" with 'pPhrase'.
+-- phrase = pPhrase <$> phrase
 
-phrase_ :: DNSEarleyRHS z Phrase'
-phrase_ = complexGrammar 'phrase_
+phrase :: DNSEarleyRHS z Phrase'
+phrase = complexGrammar 'phrase
  -- (conssnoc <$> (phraseA) <*> ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
  -- (conssnoc <$> (phraseA) <*> ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD))
  -- where
@@ -78,7 +78,7 @@ phraseB = 'phraseB <=> empty
 phraseC :: DNSEarleyRHS z Phrase_
 phraseC = 'phraseC <=> Dictated_ <#> "say" # dictation
 
--- | injects word_ into phrase_
+-- | injects word_ into phrase
 phraseW :: DNSEarleyRHS z Phrase_
 phraseW = 'phraseW <=> word2phrase_ <#> word_
 

@@ -19,7 +19,7 @@ data Shell
 
 shell = 'shell <=> foldMap go (filterBlanks shellCommands)
  where
- go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase_-?-blankPhrase)
+ go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase-?-blankPhrase)
 
 shellCommands =
  [ "list"-: "ls"
