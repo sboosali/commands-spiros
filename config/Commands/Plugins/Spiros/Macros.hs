@@ -365,6 +365,7 @@ switch_tab p = do
  slotP p
 
 new_tab p = do
+ openApplication "Google Chrome"   -- TODO make variable 
  press M 't'
  delay chromeDelay 
  slotP p

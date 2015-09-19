@@ -100,7 +100,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
 
  -- Chrome
  , "close tab"-: "M-w"
- , "new tab"-: "M-t"
  , "last"-: "M-9"
  , "left tab"-: "C-S-<tab>"
  , "right tab"-: "C-<tab>"
