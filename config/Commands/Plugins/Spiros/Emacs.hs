@@ -17,16 +17,16 @@ import           Data.Foldable                         (traverse_)
 type ElispSexp = String
 -- -- type ElispSexp = Sexp String String
 data Emacs
- = EmacsFunction (Maybe Phrase')
- | EmacsExpression (Maybe Phrase')
+ = EmacsFunction (Maybe Phrase)
+ | EmacsExpression (Maybe Phrase)
  deriving (Show,Eq)
 
 
 -- ================================================================ --
 
 emacs = 'emacs <=> empty
- <|> EmacsFunction   (Just [Pasted_]) <#> ("run paste") 
- <|> EmacsExpression (Just [Pasted_]) <#> ("eval paste") -- TODO shouldn't be necessary 
+ <|> EmacsFunction   (Just (Phrase [Pasted_]) ) <#> ("run paste") 
+ <|> EmacsExpression (Just (Phrase [Pasted_]) ) <#> ("eval paste") -- TODO shouldn't be necessary 
  <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
  <|> EmacsExpression    <#> "eval" <*> (phrase-?)
 
@@ -112,7 +112,7 @@ runEmacsWithA f as = do
 -- | like 'runEmacsWith', but takes phrases as arguments.
 --
 -- e.g. @runEmacsWithP "regexp-search" ['PAtom' 'Pasted']@
-runEmacsWithP :: String -> [Phrase'] -> Actions ()
+runEmacsWithP :: String -> [Phrase] -> Actions ()
 runEmacsWithP f ps = do
  xs <- traverse munge ps
  runEmacsWith f xs
@@ -123,3 +123,4 @@ rankEmacs = \case
  EmacsFunction   (Just p) -> rankPhrase p
  EmacsExpression Nothing  -> 0
  EmacsExpression (Just p) -> rankPhrase p
+

@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE LambdaCase, FlexibleInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans #-} -- TODO orphans? 
 module Commands.Plugins.Spiros.Phrase.Run where
 import Commands.Plugins.Spiros.Phrase.Types
@@ -16,24 +16,25 @@ import           Data.List.NonEmpty               (NonEmpty (..))
 import           Control.Monad ((>=>)) 
 
 
-runPhrase_ :: Spacing -> OSX.ClipboardText -> [Phrase_] -> String
+runPhrase_ :: Spacing -> OSX.ClipboardText -> Phrase -> String
 runPhrase_ spacing clipboard
  = flip(mungePhrase) spacing
  . flip(splatPasted) clipboard
  . pPhrase
+ . unPhrase
 
-bestPhrase :: NonEmpty [Phrase_] -> [Phrase_]
+bestPhrase :: NonEmpty Phrase -> Phrase
 bestPhrase = argmax rankPhrase
 
 -- no list-generic instance, provides flexibility without OverlappingInstances  
-instance Rankable Phrase' where rank = rankPhrase
-instance Rankable (Maybe Phrase') where rank = maybe defaultRank rankPhrase
+instance Rankable Phrase where rank = rankPhrase
+instance Rankable (Maybe Phrase) where rank = maybe defaultRank rankPhrase
 
 instance Rankable Phrase_ where rank = rankPhrase_ 
 instance Rankable Dictation where rank = rankDictation 
 
-rankPhrase :: Phrase' -> Int
-rankPhrase = sum . fmap rankPhrase_
+rankPhrase :: Phrase -> Int
+rankPhrase = sum . fmap rankPhrase_ . unPhrase
 
 -- the specificity ("probability") of the phrase parts. bigger is better.
 rankPhrase_ :: Phrase_ -> Int
@@ -63,17 +64,17 @@ rankDictation (Dictation ws) = length ws - 1
 --  . NonEmpty.fromList --  TODO
 --  . parseList phrase_
 
-slotP :: Phrase' -> OSX.Actions_
-slotP p' = do
+slotP :: Phrase -> OSX.Actions_
+slotP p = do
  OSX.delay 10
- insertP p'
+ insertP p
  press ret
 
-insertP :: Phrase' -> OSX.Actions_
+insertP :: Phrase -> OSX.Actions_
 insertP = munge >=> OSX.insert
 
-munge :: Phrase' -> OSX.Actions String
-munge p1 = do
+munge :: Phrase -> OSX.Actions String
+munge (Phrase p1) = do
  p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
  return$ mungePhrase p2 defSpacing
 

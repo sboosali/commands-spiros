@@ -84,13 +84,13 @@ open_pad = do
    delay 100
    move_window_down
    delay 100
-   switch_buffer (word2phrase' "*pad*") -- TODO make variable 
+   switch_buffer (word2phrase "*pad*") -- TODO make variable 
    delay 100
 
 emacs_reach_shell = do
    move_window_down 
    delay 25
-   switch_buffer (word2phrase' "*shell*")
+   switch_buffer (word2phrase "*shell*")
    delay 25
    window_bottom                -- TODO make typed/generic like runEdit
    runMove (MoveTo Beginning Line)
@@ -98,7 +98,7 @@ emacs_reach_shell = do
 
 reach_youtube = do
    openApplication "Google Chrome" -- TODO make variable 
-   switch_tab (word2phrase' "YouTube.com")
+   switch_tab (word2phrase "YouTube.com")
 
 youtube_toggle_fullscreen = press shift 'f'
 
@@ -163,7 +163,7 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    delay 100
    move_window_up
    delay 100
-   switch_buffer (word2phrase' "Macro.hs") -- TODO make variable 
+   switch_buffer (word2phrase "Macro.hs") -- TODO make variable 
    delay 100
 
  , "shortcut"-: do
@@ -171,7 +171,7 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    delay 100
    move_window_up
    delay 100
-   switch_buffer (word2phrase' "Shortcut.hs") -- TODO make variable 
+   switch_buffer (word2phrase "Shortcut.hs") -- TODO make variable 
    delay 100
 
  -- TODO make "C-x C-y" the commands key prefix
@@ -287,16 +287,16 @@ myMacrosRHS = empty
  <|> A1 switch_buffer <$ "buffer"   <*> phrase
  <|> A1 multi_occur   <$ "occur"    <*> phrase
  <|> A2 replace_with  <$"replace"   <*> phrase <*"with" <*> phrase
- <|> A1 google_for    <$ "goo" <*> (phrase-?-blankPhrase)
+ <|> A1 google_for    <$ "goo" <*> (phrase-?-"")
  <|> A1 search_regexp <$ "search"   <*> (phrase-?)
- <|> A1 find_text     <$ "find"     <*> (phrase-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
+ <|> A1 find_text     <$ "find"     <*> (phrase-?-"") -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
  <|> A1 comment_with  <$ "comment"  <*> (phrase-?)
  <|> A1 write_to_pad  <$ "scribble"  <*> (phrase-?)
  <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
- <|> A1 switch_tab <$ "tab" <*> (phrase-?-blankPhrase)
- <|> A1 new_tab <$ "new tab" <*> (phrase-?-blankPhrase)
+ <|> A1 switch_tab <$ "tab" <*> (phrase-?-"")
+ <|> A1 new_tab <$ "new tab" <*> (phrase-?-"")
 -- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
@@ -337,7 +337,7 @@ goto_line n = do
  -- press (n::Int) 
  slot (show n)
 
-comment_with :: Maybe Phrase' -> Actions_
+comment_with :: Maybe Phrase -> Actions_
 comment_with p = do
  press M ';'
  maybe nothing insertP p

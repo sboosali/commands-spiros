@@ -26,7 +26,7 @@ import           Data.Foldable                    (Foldable (..))
 import           Prelude                          hiding (foldr1, mapM)
 
 
-phraseCommand :: DNSEarleyCommand z [Phrase_]
+phraseCommand :: DNSEarleyCommand z Phrase
 phraseCommand = Command phrase bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)
@@ -36,8 +36,12 @@ phraseCommand = Command phrase bestPhrase $ \_ p -> do
 -- -- | transforms "token"s from 'phrase' into an "s-expression" with 'pPhrase'.
 -- phrase = pPhrase <$> phrase
 
-phrase :: DNSEarleyRHS z Phrase'
-phrase = complexGrammar 'phrase
+phrase :: DNSEarleyRHS z Phrase
+phrase = Phrase <$> complexGrammar 'phrase
+ -- NOTE phrase is still a NonTerminal, given instance Applicative RHS, because:
+ -- either: (f <$> NonTerminal ...) is (fmap f (NonTerminal ...)) is (NonTerminal ... ) 
+ -- or:     (f <$> NonTerminal ...) is (Pure f <*> NonTerminal ...) is (NonTerminal ... ) 
+
  -- (conssnoc <$> (phraseA) <*> ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
  -- (conssnoc <$> (phraseA) <*> ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD))
  -- where
@@ -413,4 +417,48 @@ letters = simpleGrammar 'letters
 -- newtype Letters = Letters [Char] deriving (Show,Eq,Ord)
 -- letters = (set dnsInline True defaultDNSInfo) $ 'letters <=>
 --  Letters <#> (letter-+)
+
+
+
+
+
+
+
+-- ================================================================ --
+
+-- attemptMunge :: String -> IO ()
+-- attemptMunge s = do
+--  putStrLn ""
+--  putStrLn ""
+--  putStrLn ""
+--  print s
+--  attempt $ parseBest bestPhrase phrase ((T.words . T.pack) s) & \case
+--   Left e -> print e
+--   Right (Phrase raw_p)  -> do
+--    let pasted_p   = pPhrase raw_p
+--    let splatted_p = splatPasted pasted_p ("clipboard contents")
+--    let munged_p   = mungePhrase splatted_p defSpacing
+--    ol [ show raw_p
+--       , show pasted_p
+--       , show splatted_p
+--       , munged_p
+--       ]
+
+-- attemptMungeAll :: String -> IO ()
+-- attemptMungeAll s = do
+--  putStrLn ""
+--  putStrLn ""
+--  putStrLn ""
+--  print s
+--  attempt $ parseThrow phrase ((T.words . T.pack) s) >>= \case
+--   (Phrase raw_p :| raw_ps) -> do
+--    let pasted_p   = pPhrase raw_p
+--    let splatted_p = splatPasted pasted_p ("clipboard contents")
+--    let munged_p   = mungePhrase splatted_p defSpacing
+--    ol [ show raw_p
+--       , List.intercalate "\n , " $ map show $ raw_ps -- generate lazily
+--       , show pasted_p
+--       , show splatted_p
+--       , show munged_p
+--       ]
 

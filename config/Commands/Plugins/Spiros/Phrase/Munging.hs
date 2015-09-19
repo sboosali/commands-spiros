@@ -17,7 +17,7 @@ import           Data.Foldable                    (Foldable (..))
 
 
 -- | splats the Pasted into PAtom's, after splitting the clipboard into words
-splatPasted :: Phrase -> OSX.ClipboardText -> MPhrase
+splatPasted :: UPhrase -> OSX.ClipboardText -> MPhrase
 splatPasted p clipboard = either (substPasted clipboard) (:[]) <$> p
  where
  substPasted pasted Pasted = fmap PWord (words pasted)
@@ -97,7 +97,7 @@ joinSpelled = foldr' go []
  go p ps = p:ps
 
 -- | parses "tokens" into an "s-expression". a total function.
-pPhrase :: [Phrase_] -> Phrase
+pPhrase :: [Phrase_] -> UPhrase
 pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
  -- (PSexp (PList [PAtom (PWord "")]))
  where
@@ -127,11 +127,11 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
  push :: PStack -> PFunc -> PStack
  push (p:|ps) f = (Just f, []) :| (p:ps)
 
- update :: PStack -> Phrase -> PStack
+ update :: PStack -> UPhrase -> PStack
  update ((f,ps):|qs) p = (f, ps <> [p]) :| qs
 
  -- right-associate the PFunc's.
- fromStack :: PStack -> Phrase
+ fromStack :: PStack -> UPhrase
  fromStack = fromItem . foldr1 associateItem . NonEmpty.reverse
 
  associateItem :: PItem -> PItem -> PItem
@@ -139,13 +139,13 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   (Nothing,qs) -> (f, ps <> [List   qs])
   (Just g ,qs) -> (f, ps <> [Sexp g qs])
 
- fromItem :: PItem -> Phrase
+ fromItem :: PItem -> UPhrase
  fromItem (Nothing, ps) = List   ps
  fromItem (Just f,  ps) = Sexp f ps
 
- fromPasted :: Phrase
- fromPasted = Atom . Left $ Pasted
+ fromPasted :: UPhrase
+ fromPasted = (Atom . Left) Pasted
 
- fromPAtom :: PAtom -> Phrase
+ fromPAtom :: PAtom -> UPhrase
  fromPAtom = Atom . Right
 

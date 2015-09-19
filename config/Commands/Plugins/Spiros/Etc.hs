@@ -12,6 +12,65 @@ import Data.Foldable
 import qualified Data.List as List
 
 
+
+-- ================================================================ --
+-- debugging 
+
+-- import           Commands.Frontends.Dragon13
+-- import           Commands.Plugins.Example.Spacing
+
+-- import           Control.Lens hiding (from, ( # ))
+-- import           Data.List.NonEmpty (NonEmpty (..))
+-- import           Data.List.NonEmpty (NonEmpty (..))
+-- import qualified Data.Text.Lazy as T
+-- import qualified Data.Text.Lazy.IO as T
+
+-- import           Control.Concurrent.Async
+-- import           System.Timeout (timeout)
+
+-- -- it seems to be synchronous, even with threaded I guess?
+-- attemptAsynchronously :: Int -> IO () -> IO ()
+-- attemptAsynchronously seconds action = do
+--  (timeout (seconds * round (1e6::Double)) action) `withAsync` (waitCatch >=> \case
+--    Left error     -> print error
+--    Right Nothing  -> putStrLn "..."
+--    Right (Just _) -> return ()
+--   )
+
+-- attempt = attemptAsynchronously 1
+
+-- -- pseudo HTML ordered list
+-- ol xs = ifor_ xs $ \i x -> do
+--  putStrLn ""
+--  putStrLn $ fold [show i, ". ", x]
+
+-- attemptParse :: (Show a) => (forall  z. DNSEarleyRHS z a) -> String -> IO ()
+-- attemptParse rule s = do
+--  putStrLn ""
+--  attempt $ parseThrow rule ((T.words . T.pack) s) >>= \case
+--   x :| _ -> print x
+
+-- attemptSerialize rhs = attemptAsynchronously 3 $ do
+--  serialized <- formatRHS rhs
+--  either print printSerializedGrammar serialized
+
+-- printSerializedGrammar SerializedGrammar{..} = do
+--  replicateM_ 3 $ putStrLn ""
+--  T.putStrLn $ displayDoc serializedRules
+--  putStrLn ""
+--  T.putStrLn $ displayDoc serializedLists
+
+-- main = do
+--  putStrLn ""
+--  let rootG = root
+--  attemptSerialize rootG
+--  attemptMunge "par round grave camel lit with async break break action"
+
+
+
+
+-- ================================================================ --
+
 {- | returns the digits that make up a number in some base, most-significant digit first. 
 
 >>> toDigits 10 9

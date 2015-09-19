@@ -8,18 +8,17 @@ import           Commands.Plugins.Spiros.Etc
 import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
 
-import           GHC.Exts                          (IsString (..))
 import Data.Monoid                           ((<>))
 -- import           Control.Applicative
 
 
 data Shell
- = Shell String Phrase'
+ = Shell String Phrase
  deriving (Show,Eq,Ord)
 
 shell = 'shell <=> foldMap go (filterBlanks shellCommands)
  where
- go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase-?-blankPhrase)
+ go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase-?-"")
 
 shellCommands =
  [ "list"-: "ls"
@@ -82,5 +81,5 @@ rankShell = \case
 runShell :: Desugaring Shell
 runShell = \case
  Shell cmd args -> do
-  insertP$ [fromString cmd] <> args
+  insertP$ word2phrase cmd <> args
 

@@ -18,27 +18,16 @@ import Commands.Plugins.Spiros.Keys
 
 import           Commands.Backends.OSX
 import           Commands.Etc
-import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
--- import           Commands.Munging
-import           Commands.Plugins.Example.Spacing
 
-import           Control.Concurrent.Async
-import           Control.Lens hiding (from, ( # ))
-import           Data.List.NonEmpty (NonEmpty (..))
-import qualified Data.Text.Lazy as T
-import qualified Data.Text.Lazy.IO as T
 import           Data.Typeable
 import           Numeric.Natural ()
 
 import           Control.Applicative hiding (many, optional)
-import           Control.Monad (replicateM_, (>=>))
 -- import           Control.Parallel
-import           Data.Foldable                         (Foldable (..), traverse_)
+import           Data.Foldable                         (traverse_)
 import qualified Data.List as List
--- import           Data.Monoid
 import           Prelude hiding (foldl, foldr1)
-import           System.Timeout (timeout)
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 
@@ -60,7 +49,7 @@ data Root
  | Shell_              Shell  -- ^
  | Emacs_      Number  Emacs  -- ^ repeated 
  | Dictation_  Dictation      -- ^ 
- | Phrase_     Phrase'        -- ^ 
+ | Phrase_     Phrase        -- ^ 
  deriving (Show,Eq)
 
 root :: R z Root
@@ -195,87 +184,4 @@ runPhraseByClipboard _context p = do
 
 runDictation = \case
  Dictation ws -> insert (List.intercalate " " ws)
-
--- ================================================================ --
-
--- it seems to be synchronous, even with threaded I guess?
-attemptAsynchronously :: Int -> IO () -> IO ()
-attemptAsynchronously seconds action = do
- (timeout (seconds * round (1e6::Double)) action) `withAsync` (waitCatch >=> \case
-   Left error     -> print error
-   Right Nothing  -> putStrLn "..."
-   Right (Just _) -> return ()
-  )
-
-attempt = attemptAsynchronously 1
-
-attemptMunge :: String -> IO ()
-attemptMunge s = do
- putStrLn ""
- putStrLn ""
- putStrLn ""
- print s
- attempt $ parseBest bestPhrase phrase ((T.words . T.pack) s) & \case
-  Left e -> print e
-  Right raw_p -> do
-   let pasted_p   = pPhrase raw_p
-   let splatted_p = splatPasted pasted_p ("clipboard contents")
-   let munged_p   = mungePhrase splatted_p defSpacing
-   ol [ show raw_p
-      , show pasted_p
-      , show splatted_p
-      , munged_p
-      ]
-
-attemptMungeAll :: String -> IO ()
-attemptMungeAll s = do
- putStrLn ""
- putStrLn ""
- putStrLn ""
- print s
- attempt $ parseThrow phrase ((T.words . T.pack) s) >>= \case
-  (raw_p :| raw_ps) -> do
-   let pasted_p   = pPhrase raw_p
-   let splatted_p = splatPasted pasted_p ("clipboard contents")
-   let munged_p   = mungePhrase splatted_p defSpacing
-   ol [ show raw_p
-      , List.intercalate "\n , " $ map show $ raw_ps -- generate lazily
-      , show pasted_p
-      , show splatted_p
-      , show munged_p
-      ]
-
--- pseudo HTML ordered list
-ol xs = ifor_ xs $ \i x -> do
- putStrLn ""
- putStrLn $ fold [show i, ". ", x]
-
-attemptParse :: (Show a) => (forall  z. DNSEarleyRHS z a) -> String -> IO ()
-attemptParse rule s = do
- putStrLn ""
- attempt $ parseThrow rule ((T.words . T.pack) s) >>= \case
-  x :| _ -> print x
-
-attemptSerialize rhs = attemptAsynchronously 3 $ do
- serialized <- formatRHS rhs
- either print printSerializedGrammar serialized
-
-printSerializedGrammar SerializedGrammar{..} = do
- replicateM_ 3 $ putStrLn ""
- T.putStrLn $ displayDoc serializedRules
- putStrLn ""
- T.putStrLn $ displayDoc serializedLists
-
-
-
-realMain = do
-
- putStrLn ""
- let rootG = root
- attemptSerialize rootG
-
- attemptMunge "par round grave camel lit with async break break action"
-
-main = do
- realMain
 
