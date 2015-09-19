@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFunctor, LambdaCase, TypeFamilies, FlexibleInstances         #-}
+{-# LANGUAGE AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, LambdaCase, TypeFamilies, FlexibleInstances         #-}
 {-# LANGUAGE PostfixOperators, ScopedTypeVariables, TemplateHaskell, TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
@@ -26,7 +26,6 @@ import           Control.Applicative
 import           Data.Char
 import           Data.Foldable                    (Foldable (..))
 import qualified Data.List                        as List
-import           Data.Typeable                    (Typeable)
 import           GHC.Exts                         (IsString (..),IsList (..))
 import           Prelude                          hiding (foldr1, mapM)
 import           Control.Monad ((>=>)) 
@@ -54,14 +53,14 @@ data Phrase_
  | Capped_   [Char] -- ^ atom-like.
  | Spelled_  [Char] -- ^ list-like.
  | Dictated_ Dictation -- ^ list-like.
- deriving (Show,Eq,Ord)
+ deriving (Show,Eq,Ord,Data)
 
-data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Typeable)
-data Joiner = Joiner String | CamelJoiner | ClassJoiner deriving (Show,Eq,Ord)
-data Brackets = Brackets String String deriving (Show,Eq,Ord)
-newtype Separator = Separator String  deriving (Show,Eq,Ord)
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Bounded,Data)
+data Joiner = Joiner String | CamelJoiner | ClassJoiner deriving (Show,Eq,Ord,Data)
+data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
+newtype Separator = Separator String  deriving (Show,Eq,Ord,Data)
 type Keyword = String -- TODO
-newtype Dictation = Dictation [String] deriving (Show,Eq,Ord)
+newtype Dictation = Dictation [String] deriving (Show,Eq,Ord,Data)
 
 instance IsString Dictation where
  fromString = Dictation . words
@@ -118,7 +117,7 @@ data PFunc
 -- a 'PAcronym' should hold only uppercase letters.
 data PAtom
  = PWord String
- | PAcronym [Char]
+ | PAcronym Bool [Char]         -- ^ whether the acronym is uppercased
  deriving (Show,Eq,Ord)
 
 -- | for doctest
@@ -171,11 +170,8 @@ phraseA = 'phraseA <=> empty
  <|> Quoted_     <#> "quote" # dictation # "unquote"
  <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
- -- <|> (Spelled_ . (:[])) <$> char --TODO
- -- <|> (Spelled_) <#> letter_
- -- <|> (Spelled_ . (:[])) <#> character
- <|> Spelled_    <#> "spell" # (character-++)
- <|> Spelled_    <#> "lets" # letters -- (letter-++)
+ -- <|> Spelled_    <#> "spell" # (character-++)
+ -- <|> Spelled_    <#> "lets" # letters -- (letter-++)
  <|> Separated_  <#> separator
  <|> Cased_      <#> casing
  <|> Joined_     <#> joiner
@@ -184,13 +180,13 @@ phraseA = 'phraseA <=> empty
 -- | a sub-phrase where a phrase to the right is possible.
 phraseB :: DNSEarleyRHS z Phrase_
 phraseB = 'phraseB <=> empty
- <|> Spelled_  <#> "spell" # (character-++)
- <|> Capped_   <#> "caps" # (character-++)
- -- <$> alphabetRHS
- -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
- -- <|> Spelled_  <#> "spell" # letters -- only, not characters
+ <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
+ <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
+ -- <|> Spelled_ <$> (phoneticAlphabetRHS-++)  
  <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
+ -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
+ -- <|> Spelled_  <#> "spell" # letters -- only, not characters
 
 -- | a sub-phrase where a phrase to the right is impossible.
 phraseC :: DNSEarleyRHS z Phrase_
@@ -568,7 +564,8 @@ concatPAtoms xs e = (flip spaceOut) e . fmap mungePAtom $ xs
 mungePAtom :: PAtom -> String
 mungePAtom = \case
  PWord    x  -> x
- PAcronym cs -> upper cs
+ PAcronym False cs -> lower cs
+ PAcronym True  cs -> upper cs
 
 applyPFunc :: [PAtom] -> PFunc -> Spaced [PAtom]
 applyPFunc as = \case
@@ -588,7 +585,7 @@ fromCasing = \case
 mapPAtom :: (String -> String) -> (PAtom -> PAtom)
 mapPAtom f = \case
  PWord    x  -> PWord    $ f x
- PAcronym cs -> PAcronym $ f cs
+ PAcronym b cs -> PAcronym b $ f cs
  -- PWord . f . mungePAtom
 
 joinWith :: Joiner -> ([PAtom] -> PAtom)
@@ -605,7 +602,7 @@ camelAtoms (x:xs) = lower (mungePAtom x) <> (classAtoms xs)
 classAtoms :: [PAtom] -> String
 classAtoms = squeezeCase . (fmap $ \case
  PWord w     -> capitalize w
- PAcronym cs -> upper cs)
+ PAcronym _ cs -> upper cs)
 -- TODO distinguish Capped from Acronym to preserve capitalization?
 
 surroundWith :: Brackets -> ([PAtom] -> Spaced [PAtom])
@@ -632,8 +629,8 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   (Escaped_  (x))            -> update ps $ fromPAtom (PWord x)
   (Quoted_   (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
   (Dictated_ (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
-  (Capped_   cs)             -> update ps $ fromPAtom (PAcronym cs)
-  (Spelled_  cs)             -> update ps $ fromPAtom (PAcronym cs)
+  (Capped_   cs)             -> update ps $ fromPAtom (PAcronym True cs)
+  (Spelled_  cs)             -> update ps $ fromPAtom (PAcronym False cs)
   Pasted_                    -> update ps $ fromPasted
   Blank_                     -> update ps $ fromPAtom (PWord "")
   Separated_ (Separator x) -> update (pop ps) $ fromPAtom (PWord x)
@@ -725,16 +722,18 @@ rankPhrase = sum . fmap rankPhrase_
 rankPhrase_ :: Phrase_ -> Int
 rankPhrase_ = \case
  Escaped_ _    -> highRank
- Quoted_ _     -> defaultRank
+ Quoted_ _     -> highRank
  Pasted_       -> defaultRank
  Blank_        -> defaultRank
- Spelled_ _    -> defaultRank
- Capped_ _     -> defaultRank
+ Spelled_ cs    -> highRank + defaultRank * rankChars cs
+ Capped_ cs     -> highRank + defaultRank * rankChars cs
  Separated_ _  -> defaultRank
  Cased_ _      -> defaultRank
  Joined_ _     -> defaultRank
  Surrounded_ _ -> defaultRank
- Dictated_ d   -> rankDictation d 
+ Dictated_ d   -> rankDictation d
+
+rankChars cs = length cs - 1
 
 rankDictation (Dictation ws) = length ws - 1
 -- [Dictated_ ["some","words"]] =1 is better than [Dictated_ ["some"], Dictated_ ["words"]] =0
