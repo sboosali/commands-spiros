@@ -163,7 +163,7 @@ runRoots context = \case
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
 
 runRoot context = \case
- Acts_ ass     -> onlyWhen isEmacs context $ traverse_ runActs ass      -- no delay 
+ Acts_ ass     -> traverse_ (runActs context) ass      -- no delay 
  Macro_ n f    -> runRepeat (contextualDelay context) n (runMacro f)
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
  Shell_ s      -> runShell s
@@ -176,14 +176,14 @@ contextualDelay = \case
  (isBrowser -> Just{}) -> browserDelay
  _                     -> defaultDelay
 
-runActs = \case
- ActsRW n a -> runRepeat emacsDelay n (runAct a)
+runActs context = \case
+ ActsRW n a -> runRepeat emacsDelay n (runAct context a)
 
-runAct = \case
+runAct context = \case
  KeyRiff_ kr -> runKeyRiff kr
- Click_ _c    -> nothing
- Edit_ a     -> editEmacs a
- Move_ a     -> moveEmacs a
+ Click_ _c   -> nothing
+ Edit_ a     -> onlyWhen isEmacs context $ editEmacs a
+ Move_ a     -> onlyWhen isEmacs context $ moveEmacs a
 
 runPhrase _context p = do
  insert =<< munge p

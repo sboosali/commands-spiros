@@ -96,6 +96,24 @@ emacs_reach_shell = do
    runMove (MoveTo Beginning Line)
    runEdit (Edit Delete Forwards Line)
 
+reach_youtube = do
+   openApplication "Google Chrome" -- TODO make variable 
+   switch_tab (word2phrase' "YouTube.com")
+
+youtube_toggle_fullscreen = press shift 'f'
+
+youtube_toggle_sound = do
+   app <- currentApplication
+   reach_youtube
+   press M up
+   delay chromeDelay 
+   youtube_toggle_fullscreen 
+   delay chromeDelay
+   press 'k'      -- pauses the video, somehow  
+   delay chromeDelay 
+   youtube_toggle_fullscreen 
+   delay 1000
+   openApplication app
 
 
 -- ================================================================ --
@@ -169,8 +187,14 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "magic"-: do
    runEmacs "magit-status"
 
- , ""-: do
-   nothing
+ , "music"-: do
+   reach_youtube
+
+ , "pause"-: do
+   youtube_toggle_sound
+
+ , "play"-: do
+   youtube_toggle_sound
 
  , ""-: do
    nothing
@@ -260,7 +284,7 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
  <|> A1 align_regexp  <$ "align"    <*> phrase_
- <|> A1 switch_buffer <$ "buff"     <*> phrase_
+ <|> A1 switch_buffer <$ "buffer"   <*> phrase_
  <|> A1 multi_occur   <$ "occur"    <*> phrase_
  <|> A2 replace_with  <$"replace"   <*> phrase_ <*"with" <*> phrase_
  <|> A1 google_for    <$ "goo" <*> (phrase_-?-blankPhrase)
@@ -268,9 +292,10 @@ myMacrosRHS = empty
  <|> A1 find_text     <$ "find"     <*> (phrase_-?-blankPhrase) -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
  <|> A1 comment_with  <$ "comment"  <*> (phrase_-?)
- <|> A1 write_to_pad  <$ "pad"  <*> (phrase_-?)
+ <|> A1 write_to_pad  <$ "scribble"  <*> (phrase_-?)
  <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase_-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase_-?)
+ <|> A1 switch_tab <$ "tab" <*> phrase_
 -- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
@@ -332,4 +357,9 @@ query_clipboard_history p = do
  toggle_clipboard_history
  delay 500
  maybe nothing insertP p
+
+switch_tab p = do
+ press O 't'                    -- needs Tab Ahead chrome extension 
+ delay 500
+ slotP p
 

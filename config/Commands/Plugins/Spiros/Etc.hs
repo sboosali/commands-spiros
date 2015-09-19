@@ -96,8 +96,10 @@ isBrowser x = if FilePath.takeBaseName x `elem` ["Firefox", "Chrome"]
 
 defaultDelay = 100 :: Int
 
-browserDelay = 250 :: Int                 -- milliseconds
+chromeDelay = 250 :: Int                 -- milliseconds
  -- in chrome, keypresses are lost when the delay isnt long enough 
+
+browserDelay = chromeDelay
 
 runRepeat :: (MonadAction m) => Int -> Number -> (m () -> m ())
 runRepeat delay_ times_
