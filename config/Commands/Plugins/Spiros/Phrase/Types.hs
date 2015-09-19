@@ -1,0 +1,141 @@
+{-# LANGUAGE AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, TypeFamilies         #-}
+module Commands.Plugins.Spiros.Phrase.Types where
+
+import           Data.Sexp
+import           Commands.Etc
+
+import           Data.List.NonEmpty               (NonEmpty)
+
+import           GHC.Exts                         (IsString (..),IsList (..))
+
+
+-- ================================================================ --
+-- "static" phrase
+
+type Phrase' = [Phrase_]
+
+{- | 'Phrase_' versus 'Phrase':
+
+@Phrase_@ is the unassociated concrete syntax list (e.g. tokens, parentheses),
+while @Phrase@ is the associated abstract syntax tree (e.g. s-expressions).
+
+-}
+data Phrase_
+ = Escaped_  Keyword -- ^ atom-like (wrt 'Sexp').
+ | Quoted_   Dictation -- ^ list-like.
+ | Pasted_ -- ^ atom-like.
+ | Blank_ -- ^ atom-like.
+ | Separated_ Separator -- ^ like a "close paren".
+ | Cased_      Casing -- ^ function-like (/ "open paren").
+ | Joined_     Joiner -- ^ function-like (/ "open paren").
+ | Surrounded_ Brackets -- ^ function-like (/ "open paren").
+ | Capped_   [Char] -- ^ atom-like.
+ | Spelled_  [Char] -- ^ list-like.
+ | Dictated_ Dictation -- ^ list-like.
+ deriving (Show,Eq,Ord,Data)
+
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Bounded,Data)
+
+data Joiner = Joiner String | CamelJoiner | ClassJoiner deriving (Show,Eq,Ord,Data)
+
+data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
+
+newtype Separator = Separator String  deriving (Show,Eq,Ord,Data)
+
+type Keyword = String -- TODO
+
+newtype Dictation = Dictation [String] deriving (Show,Eq,Ord,Data)
+
+instance IsString Dictation where
+ fromString = Dictation . words
+ -- safe: words "" == []
+
+instance IsList Dictation where
+ type Item Dictation = String
+ fromList = Dictation
+ toList (Dictation ws) = ws
+
+instance IsString Phrase_ where
+ fromString = word2phrase_
+
+-- no {JoinerFunction ([String] -> String)} to keep the {Eq} instance for caching
+-- fake equality? {JoinerFunction Name ([String] -> String)} so {JoinerFunction 'camelCase camelCase}
+-- maybe some type from data.split package, that both supports decidable equality and that can build functions
+
+
+
+
+-- ================================================================ --
+-- "dynamic" phrase
+
+-- | "User-Facing Phrase". exists after (DSL-)parse-time.
+type Phrase  = Sexp PFunc (Either Pasted PAtom)
+-- | "Mungeable Phrase". exists only at (DSL-)run-time.
+-- the atom is really a list of atoms, but not a full Sexp. this supports "splatting". We interpret a list of atoms as string of words with white space between, more or less.
+type MPhrase = Sexp PFunc [PAtom]
+
+-- | a "Phrase Function".
+data PFunc
+ = Cased      Casing
+ | Joined     Joiner
+ | Surrounded Brackets
+ deriving (Show,Eq,Ord)
+
+-- | "Phrase Atom".
+--
+-- 'PAcronym's behave differently from 'PWord's under some 'Joiner's (e.g. class case).
+-- a 'PAcronym' should hold only uppercase letters.
+data PAtom
+ = PWord String
+ | PAcronym Bool [Char]         -- ^ whether the acronym is uppercased
+ deriving (Show,Eq,Ord)
+
+-- | for doctest
+instance IsString PAtom where fromString = PWord
+
+{- | a Pasted is like a 'Dictation'/'Quoted_' i.e. a list of words, not a single word.
+
+we know (what words are in) the Dictation at (DSL-)"parse-time" i.e. 'phrase',
+but we only know (what words are in) the Pasted at (DSL-)"runtime"
+(i.e. wrt the DSL, not Haskell). Thus, it's a placeholder.
+
+-}
+data Pasted = Pasted  deriving (Show,Eq,Ord)
+
+-- | used by 'pPhrase'.
+type PStack = NonEmpty PItem
+-- -- the Left represents 'List', the Right represents 'Sexp', 'Atom' is not represented.
+-- type PStack = NonEmpty (Either [Phrase] (PFunc, [Phrase]))
+
+-- | an inlined subset of 'Sexp'.
+--
+-- Nothing represents 'List', Just represents 'Sexp', 'Atom' is not represented.
+type PItem = (Maybe PFunc, [Phrase])
+
+
+
+
+-- ================================================================ --
+-- helpers
+
+asPhrase :: String -> Phrase
+asPhrase = Atom . Right . PWord
+
+bracket :: Char -> Brackets
+bracket c = Brackets [c] [c]
+
+word2phrase_ :: String -> Phrase_
+word2phrase_ = Dictated_ . Dictation . (:[])
+
+word2phrase' :: String -> Phrase'
+word2phrase' = (:[]) . Dictated_ . Dictation . (:[])
+
+blankPhrase :: Phrase'
+blankPhrase = [Blank_]
+
+snocPhrase :: Phrase' -> String -> Phrase'
+snocPhrase p s = p ++ [fromString s]
+
+mergeAdjacentDictated :: Phrase' -> Phrase'
+mergeAdjacentDictated = id -- TODO
+

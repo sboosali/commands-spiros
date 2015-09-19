@@ -295,7 +295,8 @@ myMacrosRHS = empty
  <|> A1 write_to_pad  <$ "scribble"  <*> (phrase_-?)
  <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase_-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase_-?)
- <|> A1 switch_tab <$ "tab" <*> phrase_
+ <|> A1 switch_tab <$ "tab" <*> (phrase_-?-blankPhrase)
+ <|> A1 new_tab <$ "new tab" <*> (phrase_-?-blankPhrase)
 -- TODO keep a elisp expression that aligns the block of code
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
@@ -360,6 +361,11 @@ query_clipboard_history p = do
 
 switch_tab p = do
  press O 't'                    -- needs Tab Ahead chrome extension 
- delay 500
+ delay chromeDelay 
+ slotP p
+
+new_tab p = do
+ press M 't'
+ delay chromeDelay 
  slotP p
 

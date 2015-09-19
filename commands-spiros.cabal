@@ -36,11 +36,15 @@ library
         Commands.Plugins.Spiros.Root
         Commands.Plugins.Spiros.Shortcut
         Commands.Plugins.Spiros.Shim
-        Commands.Plugins.Spiros.Phrase
         Commands.Plugins.Spiros.Macros
         Commands.Plugins.Spiros.Edit
         Commands.Plugins.Spiros.Shell
         Commands.Plugins.Spiros.Keys
+        Commands.Plugins.Spiros.Phrase
+        Commands.Plugins.Spiros.Phrase.Types
+        Commands.Plugins.Spiros.Phrase.Munging
+        Commands.Plugins.Spiros.Phrase.Run
+
     build-depends:
         base ==4.8.*,
         commands-core -any,
