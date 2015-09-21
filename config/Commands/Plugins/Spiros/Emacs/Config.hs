@@ -44,3 +44,7 @@ eval_expression = press M ':'
 
 window_bottom :: Actions_
 window_bottom = press M down
+
+-- my_keymap_prefix = (kbd"M-q")
+my_keymap_prefix = "M-q"
+

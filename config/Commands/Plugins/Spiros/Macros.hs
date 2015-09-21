@@ -82,6 +82,7 @@ move_window_down = press S down
 move_window_up = press S up
 
 toggle_clipboard_history = press alt spc               -- Alfred
+toggle_alfred = press M spc               -- Alfred
 
 open_pad = do
    openApplication "Commands"   -- TODO make variable 
@@ -149,7 +150,7 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    openApplication "Terminal"   -- TODO make less stringly-typed
    press del
 
- , "build serve"-: do
+ , "serve build"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
    emacs_reach_shell
@@ -203,11 +204,15 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "fun"-: do
    alt_tab
 
- , ""-: do
-   nothing
+ , "check"-: do
+   -- runEmacs "compile"
+   press_ my_keymap_prefix >> press 'c'
 
- , ""-: do
-   nothing
+ , "exec again"-: do
+   press S down 
+   press M down 
+   press C up 
+   press ret
 
  , ""-: do
    nothing
@@ -241,6 +246,7 @@ myAliases = vocab$ fmap (second sendText)
  [ ""-: ""
  , "arrow"-: "->"
  , "to do"-: "TODO"
+ , "I owe unit"-: "IO ()"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -291,7 +297,7 @@ myMacrosRHS = empty
  <|> A1 switch_buffer <$ "buffer"   <*> phrase
  <|> A1 multi_occur   <$ "occur"    <*> phrase
  <|> A2 replace_with  <$"replace"   <*> phrase <*"with" <*> phrase
- <|> A1 google_for    <$ "goo" <*> (phrase-?-"")
+ <|> A1 google_for    <$ "google" <*> (phrase-?-"")
  <|> A1 search_regexp <$ "search"   <*> (phrase-?)
  <|> A1 find_text     <$ "find"     <*> (phrase-?-"") -- TODO  No instance for (Data.String.IsString Phrase')
  <|> A1 goto_line     <$ "go"       <*> number
@@ -299,6 +305,7 @@ myMacrosRHS = empty
  <|> A1 write_to_pad  <$ "scribble"  <*> (phrase-?)
  <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
+ <|> A1 query_alfred <$ "Alfred" <*> (phrase-?)
  <|> A1 switch_tab <$ "tab" <*> (phrase-?-"")
  <|> A1 visit_site <$ "visit" <*> (phrase-?-"")
  <|> A1 google_click_link <$ "link" <*> phrase
@@ -361,6 +368,11 @@ run_shell (Right p) = do
 
 query_clipboard_history p = do
  toggle_clipboard_history
+ delay 500
+ maybe nothing insertP p
+
+query_alfred p = do
+ toggle_alfred 
  delay 500
  maybe nothing insertP p
 

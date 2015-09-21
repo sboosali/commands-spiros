@@ -66,10 +66,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
+ , ""-: ""
+ , ""-: ""
 
  -- Emacs
  , "stop"-: "C-g"
- , "check"-: "M-u"
+ -- , "check"-: "M-u"
  -- , "comment"-: "M-;"
  , "new file"-: "C-\\"
  , "replace"-: "M-r"
@@ -80,6 +82,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "full-screen"-: "C-x 1"
  , "split screen"-: "C-x 2"
  , "other buffer"-: "C-x o"
+ , "undo"-: "C-/"
+ , "redo"-: "C-?"               -- NOTE undo-tree-mode
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -92,7 +100,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "unstage"-: "u"
  , "commit"-: "c c"
  , "amend"-: "c a"
- , ""-: ""
+ , "difference"-: "d <ret>"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -107,6 +115,11 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "left page"-: "M-<left>"
  , "right page"-: "M-<right>"
  , "reload"-: "M-r"
+ , "zoom in"-: "M-+"
+ , "zoom out"-: "M--"
+ , "reopen tab"-: "M-S-t"
+ , ""-: ""
+ , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -114,7 +127,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  -- etc.
  , "scroll"-: "<spc>"
  , "scroll up"-: "S-<spc>"
- , "div"-: "M--"                -- (it parses) 
+ , "divider"-: "M--"                -- (it parses) 
  , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "bookmark"-: "M-d"
  , ""-: ""

@@ -8,6 +8,7 @@ import           Commands.Plugins.Spiros.Phrase (character)
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
+import Commands.Sugar.Keys
 
 import           Control.Applicative
 import           Data.Foldable                   (traverse_)
@@ -137,4 +138,8 @@ ordinalDigit = 'ordinalDigit <=> vocab
 
 runKeyRiff :: KeyRiff -> Actions_
 runKeyRiff = traverse_ (\(KeyPress mods k) -> sendKeyPress mods k)
+
+-- | warning: partial function 
+press_ :: String -> Actions_
+press_ = runKeyRiff . kbd
 

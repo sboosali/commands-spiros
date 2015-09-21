@@ -104,7 +104,7 @@ joiner = 'joiner
  <=> (\c -> Joiner [c]) <#> "join" # character
  <|> Joiner "_" <#> "snake"
  <|> Joiner "-" <#> "dash"
- <|> Joiner "/" <#> "file"
+ -- <|> Joiner "/" <#> "file"
  <|> Joiner ""  <#> "squeeze"
  <|> CamelJoiner <#> "camel"    -- "cam"
  <|> ClassJoiner <#> "class"

@@ -52,7 +52,7 @@ server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 # see handle_microphone(...)
 # "wake up" is somewhat redundant with "mike on", but necessary because when the Dragon microphone puts itself to sleep, only "wake up" will wake it back up, and we handle that recognition to enable any disabled grammars in handle_microphone().
 microphone_export = "microphone"
-microphone_rule = '''<microphone> exported = wake up | mike on | mike off | mike dead ;'''
+microphone_rule = '''<microphone> exported = wake up | mike on | mike off | go to sleep | mike dead ;'''
 
 # see handle_dnsmode(...)
 dnsmode_export = "dnsmode"
@@ -158,7 +158,15 @@ class NarcissisticGrammar(GrammarBase):
             self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
 
             # the microphone may have been toggled manually by the GUI
-            self.current_mode = "normal" if (self.current_mode.startswith("microphone") and natlink.getMicState() == "on") else self.current_mode
+            if self.current_mode.startswith("microphone"):
+                if natlink.getMicState() == "on":
+                    should_change_microphone_mode = handle_microphone(self,"mike on")
+                    if should_change_microphone_mode:
+                        self.current_mode = should_change_microphone_mode
+                if natlink.getMicState() == "sleeping":
+                    should_change_microphone_mode = handle_microphone(self,"mike off")
+                    if should_change_microphone_mode:
+                        self.current_mode = should_change_microphone_mode
 
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
@@ -269,7 +277,7 @@ def handle_microphone(grammar,datum):
         grammar.activateSet([microphone_export, H_EXPORT], exclusive=1)
         return "normal"
 
-    elif datum == "mike off":
+    elif datum == "go to sleep" or datum == "mike off":
         natlink.setMicState("sleeping")
         grammar.activateSet([microphone_export],exclusive=1)
         return "microphone/sleeping"       # change state

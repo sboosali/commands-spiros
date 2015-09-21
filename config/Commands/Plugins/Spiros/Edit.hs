@@ -68,7 +68,7 @@ data Action
 
 action = 'action <=> empty
  <|> Select      <#> "sell"
- <|> Copy        <#> "cop"
+ <|> Copy        <#> "copy"      -- "cop" 
  <|> Cut         <#> "kill"      -- "cut" 
  <|> Delete      <#> "del"
  <|> Transpose   <#> "trans"
