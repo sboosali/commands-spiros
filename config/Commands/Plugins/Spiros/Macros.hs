@@ -11,14 +11,12 @@ import           Commands.Plugins.Spiros.Shell
 import Commands.Plugins.Spiros.Keys
 
 import Commands.Sugar.Keys
-import Commands.Sugar.Press 
-import Commands.Sugar.Alias
 import           Commands.Etc
 import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 
 import           Control.Applicative
--- import Data.List (intercalate)
+import qualified Data.List as List
 import Data.Function (on)
 import Control.Arrow (second) 
 
@@ -74,15 +72,15 @@ runApply = \case
 -- ================================================================ --
 
 alt_tab = do
- press M tab
- press ret
+ press_ "M-<tab>"
+ press_ "<ret>" 
 
-move_window_down = press S down
+move_window_down = press_ "S-<down>"
 
-move_window_up = press S up
+move_window_up = press_ "S-<up>"
 
-toggle_clipboard_history = press alt spc               -- Alfred
-toggle_alfred = press M spc               -- Alfred
+toggle_clipboard_history = press_ "A-<spc>"               -- NOTE Alfred
+toggle_alfred = press_ "M-<spc>"               -- NOTE Alfred
 
 open_pad = do
    openApplication "Commands"   -- TODO make variable 
@@ -105,16 +103,16 @@ reach_youtube = do
    openApplication "Google Chrome" -- TODO make variable 
    switch_tab (word2phrase "YouTube.com")
 
-youtube_toggle_fullscreen = press shift 'f'
+youtube_toggle_fullscreen = press_ "S-f"
 
 youtube_toggle_sound = do
    app <- currentApplication
    reach_youtube
-   press M up
+   press_ "M-<up>"
    delay chromeDelay 
    youtube_toggle_fullscreen 
    delay chromeDelay
-   press 'k'      -- pauses the video, somehow  
+   press_ "k"      -- pauses the video, somehow  
    delay chromeDelay 
    youtube_toggle_fullscreen 
    delay 1000
@@ -135,20 +133,20 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
 
  , "run again"-: do
    execute_extended_command
-   press up
-   press ret
+   press_ "<up>"
+   press_ "<ret>"
 
  , "eval again"-: do
    eval_expression
-   press up
-   press ret
+   press_ "<up>"
+   press_ "<ret>"
 
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
 
  , "serve"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
-   press del
+   press_ "<del>" 
 
  , "serve build"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -159,9 +157,9 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "next error"-: do
    move_window_down
    runEmacs "compilation-next-error"
-   press C 'l'
-   press C 'l'
-   press ret
+   press_ "C-l"
+   press_ "C-l"
+   press_ "<ret>" 
 
  , "macro"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -181,13 +179,13 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
 
  -- TODO make "C-x C-y" the commands key prefix
  , "copy register"-: do
-   runKeyRiff (kbd"C-x C-y r c") -- nonstandard: my-register 
+   press_ "C-x C-y r c" -- nonstandard: my-register 
 
  , "paste register"-: do
-   runKeyRiff (kbd"C-x C-y r v") -- nonstandard: my-register 
+   press_ "C-x C-y r v" -- nonstandard: my-register 
 
  , "clear register"-: do
-   runKeyRiff (kbd"C-x C-y r d") -- nonstandard: my-register 
+   press_ "C-x C-y r d" -- nonstandard: my-register 
 
  , "magic"-: do
    runEmacs "magit-status"
@@ -206,16 +204,16 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
 
  , "check"-: do
    -- runEmacs "compile"
-   press_ my_keymap_prefix >> press 'c'
+   press_ keymap >> press_ "c"
 
  , "exec again"-: do
-   press S down 
-   press M down 
-   press C up 
-   press ret
+   press_ "S-<down>"
+   press_ "M-<down>"
+   press_ "C-<up>"
+   press_ "<ret>"
 
- , ""-: do
-   nothing
+ , "phonetic alphabet"-: do
+   insertByClipboard$ (List.intercalate "\n" . map fst) phoneticAlphabet 
 
  , ""-: do
    nothing
@@ -241,13 +239,13 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  ]
 
 -- | macros without arguments
-myAliases :: R z Actions_             -- String
-myAliases = vocab$ fmap (second sendText)
+myAliases :: R z Actions_             -- TODO String
+myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
  [ ""-: ""
  , "arrow"-: "->"
  , "to do"-: "TODO"
  , "I owe unit"-: "IO ()"
- , ""-: ""
+ , "ret"-: "\n"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -319,7 +317,7 @@ align_regexp p = do
 
 -- needs (setq confirm-nonexistent-file-or-buffer 'after-completion), which only switches to a buffer without prompt when that buffer already exists
 switch_buffer p = do
- press C 'x' >> press 'b'
+ press_ "C-x b"
  slotP p
 
 multi_occur p = do
@@ -335,28 +333,28 @@ google_for p = do
  google q
 
 search_regexp p = do
-  press C 's'
+  press_ "C-s"
   maybe nothing insertP p
 
 find_text p = do
- press M 'f'
+ press_ "M-f"
  delay browserDelay
  insertP p
 
 goto_line :: Int -> Actions_
 goto_line n = do
- press M 'g'    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
+ press_ "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 
 comment_with :: Maybe Phrase -> Actions_
 comment_with p = do
- press M ';'
+ press_ "M-;"
  maybe nothing insertP p
 
 write_to_pad p = do
  open_pad
- press ret
+ press_ "<ret>" 
  maybe nothing insertP p
 
 run_shell (Left s) = do
@@ -377,21 +375,21 @@ query_alfred p = do
  maybe nothing insertP p
 
 switch_tab p = do
- press O 't'                    -- needs Tab Ahead chrome extension 
+ press_ "A-t"                    -- needs Tab Ahead chrome extension 
  delay chromeDelay 
  slotP p
 
 visit_site p = do
  openApplication "Google Chrome"   -- TODO make variable 
- press M 't'
+ press_ "M-t"
  delay chromeDelay 
  slotP p
 
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
 google_click_link p = do
- press M 'f'
+ press_ "M-f"
  delay chromeDelay 
  slotP p
  delay chromeDelay 
- press C ret
+ press_ "C-<ret>"
 

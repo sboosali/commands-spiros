@@ -347,7 +347,10 @@ shortAlphabetRHS = vocab
  ]
 
 phoneticAlphabetRHS :: DNSEarleyRHS z Char
-phoneticAlphabetRHS = vocab
+phoneticAlphabetRHS = vocab phoneticAlphabet
+
+phoneticAlphabet :: [(String, Char)] 
+phoneticAlphabet =
  [ "alpha"-: 'a'
  , "bravo"-: 'b'
  , "charlie"-: 'c'

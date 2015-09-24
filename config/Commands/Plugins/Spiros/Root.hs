@@ -19,13 +19,13 @@ import Commands.Plugins.Spiros.Keys
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
+import Commands.Sugar.Keys
 
 import           Data.Typeable
 import           Numeric.Natural ()
 
 import           Control.Applicative hiding (many, optional)
 -- import           Control.Parallel
-import           Data.Foldable                         (traverse_)
 import qualified Data.List as List
 import           Prelude hiding (foldl, foldr1)
 import           Control.Monad.ST.Unsafe

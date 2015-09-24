@@ -8,10 +8,8 @@ import           Commands.Plugins.Spiros.Phrase (character)
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
-import Commands.Sugar.Keys
 
 import           Control.Applicative
-import           Data.Foldable                   (traverse_)
 
 
 -- | a riff is some chords?
@@ -80,7 +78,7 @@ key = 'key
  <|> "F20" $> KeyPress [] F20Key
 
 -- -- functionKey = empty
---  <|> "eff one" $> KeyPress [] F1Key  -- can DNS vocabularies handle strings with multiple tokens?
+--  <|> "eff one" $> KeyPress [] F1Key  -- TODO can DNS vocabularies handle strings with multiple tokens? YES 
 --  <|> "eff two" $> KeyPress [] F2Key
 --  <|> "eff three" $> KeyPress [] F3Key
 --  <|> "eff four" $> KeyPress [] F4Key
@@ -134,12 +132,5 @@ ordinalDigit = 'ordinalDigit <=> vocab
 
 -- Keypress [Meta] CKey
 --  OR
--- keys M c
-
-runKeyRiff :: KeyRiff -> Actions_
-runKeyRiff = traverse_ (\(KeyPress mods k) -> sendKeyPress mods k)
-
--- | warning: partial function 
-press_ :: String -> Actions_
-press_ = runKeyRiff . kbd
+-- kbd "M-c"
 

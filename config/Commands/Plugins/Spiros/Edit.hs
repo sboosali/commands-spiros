@@ -9,8 +9,7 @@ import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Backends.OSX
 import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
-import           Commands.Sugar.Alias
-import           Commands.Sugar.Press
+import           Commands.Sugar.Keys 
 
 import           Control.Applicative
 
@@ -179,32 +178,32 @@ runMove = moveEmacs
 moveEmacs :: Move -> Actions ()
 moveEmacs = \case
 
- Move Left_ Character  -> press C 'b'
- Move Right_ Character -> press C 'f'
+ Move Left_ Character  -> press_ "C-b"
+ Move Right_ Character -> press_ "C-f"
 
- Move Left_ Word_      -> press M 'b'
- Move Right_ Word_     -> press M 'f'
+ Move Left_ Word_      -> press_ "M-b"
+ Move Right_ Word_     -> press_ "M-f"
 
- Move Left_ Group      -> press C M 'b'
- Move Right_ Group     -> press C M 'f'
+ Move Left_ Group      -> press_ "C-M-b"
+ Move Right_ Group     -> press_ "C-M-f"
 
- Move Up_ Line         -> press C 'p'
- Move Down_ Line       -> press C 'n'
+ Move Up_ Line         -> press_ "C-p"
+ Move Down_ Line       -> press_ "C-n"
 
- Move Up_ Block        -> press C up
- Move Down_ Block      -> press C down
+ Move Up_ Block        -> press_ "C-<up>"
+ Move Down_ Block      -> press_ "C-<down>"
 
  Move Up_ Screen       -> runEmacs "scroll-up-command"
- Move Down_ Screen     -> press C 'v'
+ Move Down_ Screen     -> press_ "C-v"
 
  Move Up_ Page         -> runEmacs "backward-page"
  Move Down_ Page       -> runEmacs "forward-page"
 
- MoveTo Beginning Line       -> press C 'a'
- MoveTo Ending    Line       -> press C 'e'
+ MoveTo Beginning Line       -> press_ "C-a"
+ MoveTo Ending    Line       -> press_ "C-e"
 
- MoveTo Beginning Everything -> press M up
- MoveTo Ending    Everything -> press M down
+ MoveTo Beginning Everything -> press_ "M-<up>"
+ MoveTo Ending    Everything -> press_ "M-<down>"
 
  -- Move -> press
  -- MoveTo -> press
@@ -247,7 +246,7 @@ beg_of = \case
  Character  -> nothing
  Word_      -> evalEmacs "(beginning-of-thing 'word)"
  Group      -> evalEmacs "(beginning-of-thing 'list)"
- Line       -> press C 'a'
+ Line       -> press_ "C-a"
  Block      -> evalEmacs "(beginning-of-thing 'block)"
  Page       -> evalEmacs "(beginning-of-thing 'page)"
  Screen     -> evalEmacs "(goto-char (window-start))"
@@ -262,7 +261,7 @@ end_of = \case
  Character  -> nothing          -- [press C f] is not idempotent, but [nothing] fails on [beg_of r >> mark >> end_of r]
  Word_      -> evalEmacs "(end-of-thing 'word)"
  Group      -> evalEmacs "(end-of-thing 'list)"
- Line       -> press C 'e'
+ Line       -> press_ "C-e"
  Block      -> evalEmacs "(end-of-thing 'block)" -- non-standard: expects forward-block
  Page       -> evalEmacs "(end-of-thing 'page)"
  Screen     -> evalEmacs "(goto-char (window-end))"
@@ -278,10 +277,10 @@ editEmacs = \case
 
  Edit Select Whole Line -> do -- special behavior
   select Line Whole
-  press right
+  press_ "<right>"
  Edit Select _ Character -> do -- special behavior
   mark
-  press right
+  press_ "<right>" 
  Edit Select s r -> do
   select r s  -- generic behavior
   activate_mark
@@ -292,20 +291,20 @@ editEmacs = \case
 
  Edit Delete s r -> do
   select r s
-  press del
+  press_ "<del>" 
 
  Edit Copy s r -> do
   select r s
-  press M 'c'                     -- like Cua-mode for Mac
+  press_ "M-c"                     -- like Cua-mode for Mac
 
  Edit Cut s r -> do
   select r s
-  press M 'x'                     -- like Cua-mode for Mac
+  press_ "M-x"                     -- like Cua-mode for Mac
 
- Edit Transpose _ Character -> press C 't'
- Edit Transpose _ Word_     -> press M 't'
- Edit Transpose _ Group     -> press C M 't'
- Edit Transpose _ Line      -> press C 'x' 't'
+ Edit Transpose _ Character -> press_ "C-t"
+ Edit Transpose _ Word_     -> press_ "M-t"
+ Edit Transpose _ Group     -> press_ "C-M-t"
+ Edit Transpose _ Line      -> press_ "C-x-t"
  Edit Transpose _ Block     -> runEmacs "transpose-block" -- nonstandard
  -- Edit Transpose _ ->
 

@@ -188,8 +188,8 @@ class NarcissisticGrammar(GrammarBase):
             print
             print "status  =", response.getcode()
             print "body    =", list(response)
-            for (index, hypothesis) in enumerate(get_results(resultsObject)):
-                print "hypothesis %d = %s" % (index, munge_recognition(hypothesis))
+#             for (index, hypothesis) in enumerate(get_results(resultsObject)):
+#                 print "hypothesis %d = %s" % (index, munge_recognition(hypothesis))
 
         except NameError:
             print
@@ -260,6 +260,7 @@ def try_magic_handlers(grammar,data):
 def handle_abrogation(data):
 
     # TODO the first predicate is a hack to let you say the magic word
+    # helps with development 
     if data[0] != "say" and "abrogate" in data:
         return "normal"
 

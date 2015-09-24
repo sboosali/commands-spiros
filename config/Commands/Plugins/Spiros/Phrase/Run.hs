@@ -8,8 +8,7 @@ import           Commands.Plugins.Spiros.Etc
 import qualified Commands.Backends.OSX            as OSX
 import           Commands.Etc
 import           Commands.Plugins.Example.Spacing
-import Commands.Sugar.Press
-import Commands.Sugar.Alias
+import Commands.Sugar.Keys
 
 import           Data.List.NonEmpty               (NonEmpty (..))
 
@@ -68,7 +67,7 @@ slotP :: Phrase -> OSX.Actions_
 slotP p = do
  OSX.delay 10
  insertP p
- press ret
+ press_ "<ret>"
 
 insertP :: Phrase -> OSX.Actions_
 insertP = munge >=> OSX.insert

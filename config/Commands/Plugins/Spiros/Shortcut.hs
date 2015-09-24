@@ -101,7 +101,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "commit"-: "c c"
  , "amend"-: "c a"
  , "difference"-: "d <ret>"
- , ""-: ""
+ , "push"-: "P P"
  , ""-: ""
  , ""-: ""
  , ""-: ""

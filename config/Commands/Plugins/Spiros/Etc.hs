@@ -4,13 +4,12 @@ module Commands.Plugins.Spiros.Etc where
 
 -- import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
-import           Commands.Sugar.Press
+import           Commands.Sugar.Keys 
 
 import qualified System.FilePath.Posix as FilePath
 
 import Data.Foldable
 import qualified Data.List as List
-
 
 
 -- ================================================================ --
@@ -117,11 +116,11 @@ nothing = return ()
 onlyWhen :: (Monad m) => (b -> Maybe b) -> b -> (m () -> m ())
 onlyWhen predicate_ question_ action_ = maybe nothing (const action_) (predicate_ question_)
 
-slot :: String -> AMonadAction_
+slot :: String -> Actions_
 slot s = do
  delay 10
  sendText s
- sendKeyPress [] ReturnKey
+ press_ "<ret>" 
 
 isDefaultBrowser :: AMonadAction (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
@@ -170,12 +169,12 @@ runRepeat delay_ times_
 -- used when sendText is too slow/laggy
 -- insertByClipboard :: String -> AMonadAction_
 insertByClipboard :: String -> Actions_
-insertByClipboard s = restoringClipboard $ do
+insertByClipboard s = do
  setClipboard s
  press_paste
 
 press_paste :: Actions_
-press_paste = press M 'v'
+press_paste = press_ "M-v"
 
 -- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  
 -- benign race condition, as no lock is kept on the system clipboard
