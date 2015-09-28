@@ -18,7 +18,9 @@ newtype Phrase = Phrase { unPhrase :: [Phrase_] }
 instance IsString Phrase where
  fromString = word2phrase
 
-{- | 'Phrase' versus 'UPhrase':
+{- | 
+
+'Phrase' versus 'UPhrase':
 
 @Phrase_@ is the unassociated concrete syntax list (e.g. tokens, parentheses),
 while @Phrase@ is the associated abstract syntax tree (e.g. s-expressions).
@@ -30,6 +32,7 @@ data Phrase_
  | Pasted_ -- ^ atom-like.
  | Blank_ -- ^ atom-like.
  | Separated_ Separator -- ^ like a "close paren".
+ | Bonked_              -- ^ like a "close paren". 
  | Cased_      Casing -- ^ function-like (/ "open paren").
  | Joined_     Joiner -- ^ function-like (/ "open paren").
  | Surrounded_ Brackets -- ^ function-like (/ "open paren").

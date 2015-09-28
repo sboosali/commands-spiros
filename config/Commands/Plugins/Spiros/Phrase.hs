@@ -62,6 +62,7 @@ phraseA = 'phraseA <=> empty
  <|> Blank_      <#> "blank"
  -- <|> Spelled_    <#> "spell" # (character-++)
  -- <|> Spelled_    <#> "lets" # letters -- (letter-++)
+ <|> Bonked_     <#>  "smack"   -- (like saying "break" enough times) 
  <|> Separated_  <#> separator
  <|> Cased_      <#> casing
  <|> Joined_     <#> joiner

@@ -110,19 +110,27 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   (Spelled_  cs)             -> update ps $ fromPAtom (PAcronym False cs)
   Pasted_                    -> update ps $ fromPasted
   Blank_                     -> update ps $ fromPAtom (PWord "")
-  Separated_ (Separator x) -> update (pop ps) $ fromPAtom (PWord x)
+  Bonked_                    -> update (popall ps) $ fromPAtom (PWord " ")
+  Separated_ (Separator x)   -> update (pop ps) $ fromPAtom (PWord x)
   -- Separated_ Broken -> update (pop ps)
   (Cased_     f)  -> push ps (Cased f)
   (Joined_    f)  -> push ps (Joined f)
   (Surrounded_ f) -> push ps (Surrounded f)
 
+ popall :: PStack -> PStack
+ -- breaks out of every func to the left (like having enough Separated_'s) 
+ -- i.e. close the S expression with as many right parenthesis as it takes "...)))"
+ popall (p:|(q:qs)) = popall (update (q:|qs) (fromItem p))
+ -- can't pop any more
+ popall stack = stack
+
  pop :: PStack -> PStack
  -- break from the innermost PFunc, it becomes an argument to the outer PFunc
  -- i.e. close the S expression with a right parenthesis "...)"
- pop ((Nothing,ps):|(q:qs)) = update (q:|qs) (List ps)
- pop ((Just f ,ps):|(q:qs)) = update (q:|qs) (Sexp f ps)
+ pop (p:|(q:qs)) = update (q:|qs) (fromItem p)
  -- if too many breaks, just ignore
  pop stack = stack
+
  -- i.e. open a left parenthesis with some function "(f ..."
  push :: PStack -> PFunc -> PStack
  push (p:|ps) f = (Just f, []) :| (p:ps)
@@ -135,9 +143,7 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
  fromStack = fromItem . foldr1 associateItem . NonEmpty.reverse
 
  associateItem :: PItem -> PItem -> PItem
- associateItem (f,ps) = \case
-  (Nothing,qs) -> (f, ps <> [List   qs])
-  (Just g ,qs) -> (f, ps <> [Sexp g qs])
+ associateItem (f,ps) gqs = (f, ps <> [fromItem gqs])
 
  fromItem :: PItem -> UPhrase
  fromItem (Nothing, ps) = List   ps
