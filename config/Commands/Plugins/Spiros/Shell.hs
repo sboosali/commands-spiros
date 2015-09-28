@@ -11,20 +11,27 @@ import           Commands.Mixins.DNS13OSX9
 import Data.Monoid                           ((<>))
 -- import           Control.Applicative
 
+data Safety
+ = Safe     -- ^ shell commands that have no side effects, e.g. "ls"
+            -- (it writes to the history, but that's a benign side effect). 
+            --   or can be easily undone, e.g. "git stash". 
+ | Unsafe   -- ^ e.g. "rm"  
+ deriving (Show,Eq,Ord,Bounded,Enum)
 
-data Shell
- = Shell String Phrase
+data Shell                     
+ = Shell Safety String Phrase -- TODO "safety" depends on options/subcommands, not just the command itself 
  deriving (Show,Eq,Ord)
 
-shell = 'shell <=> foldMap go (filterBlanks shellCommands)
+shell = 'shell <=> foldMap go shellCommands
  where
- go (spoken,written) = Shell <$> (written <$ token spoken) <*> (phrase-?-"")
+ shellCommands =  fmap (leftAppend Safe)   (filterBlanks safeShellCommands)
+               ++ fmap (leftAppend Unsafe) (filterBlanks unsafeShellCommands)
+ go (safety,spoken,written) = Shell safety <$> (written <$ token spoken) <*> (phrase-?-"")
+ leftAppend a (b,c) = (a,b,c) 
 
-shellCommands =
+safeShellCommands = 
  [ "list"-: "ls"
- , "remove"-: "rm"
  , "make dear"-: "mkdir"
- , "remove dear"-: "rmdir"
  , "get"-: "git"
  , "CD"-: "cd"
  , ""-: ""
@@ -69,6 +76,49 @@ shellCommands =
 
  ] 
 
+unsafeShellCommands =
+ [ "remove"-: "rm"
+ , "remove dear"-: "rmdir"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+ , both ""
+
+ ]
+
 
 -- ================================================================ --
 
@@ -76,10 +126,15 @@ instance (Rankable Shell) where rank = rankShell
 
 rankShell :: Ranking Shell
 rankShell = \case
- Shell _cmd args -> rankPhrase args
+ Shell Safe _cmd args -> rankPhrase args
+ Shell Unsafe _cmd args -> rankPhrase args
 
 runShell :: Desugaring Shell
 runShell = \case
- Shell cmd args -> do
-  insertP$ word2phrase cmd <> args
+
+ Shell Safe cmd args -> do
+  slotP$ word2phrase cmd <> " " <> args
+
+ Shell Unsafe cmd args -> do
+  insertP$ word2phrase cmd <> " " <> args
 
