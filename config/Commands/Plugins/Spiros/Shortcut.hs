@@ -1,8 +1,7 @@
-{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase       #-}
+{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts       #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
-import Commands.Plugins.Spiros.Keys
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
@@ -37,6 +36,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "tab"-: "<tab>"
  , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
  , "del"-: "<del>"
+ , "return"-: "<ret>"
+ , "delete"-: "<del>"
  , "up"-: "<up>"
  , "down"-: "<down>"
  , "left"-: "<left>"
@@ -61,6 +62,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "show apps"-: "M-<tab>"
  , "twist"-: "M-<tab> <ret>"
  , "switch"-: "M-`"
+ , "abdicate"-: "M-q"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -92,7 +94,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
- , ""-: ""
 
  -- Emacs magit-status
  , "stage"-: "s"
@@ -101,7 +102,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "commit"-: "c c"
  , "amend"-: "c a"
  , "difference"-: "d <ret>"
- , "push"-: "P P"
+ , "push"-: "S-p S-p"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -129,7 +130,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "scroll up"-: "S-<spc>"
  , "divider"-: "M--"                -- (it parses) 
  , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
- , "bookmark"-: "M-d"
  , ""-: ""
  , ""-: ""
  , ""-: ""

@@ -45,5 +45,5 @@ window_bottom :: Actions_
 window_bottom = press_ "M-<down>"
 
 -- my_keymap_prefix = (kbd"M-q")
-keymap = "M-q"                  -- NOTE nonstandard  
-
+-- keymap = "M-q"                  -- NOTE nonstandard  
+keymap = "C-x C-y"

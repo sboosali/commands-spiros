@@ -34,12 +34,14 @@ import           System.IO.Unsafe
 
 data Roots
  = Frozen Root
+ | Ambiguous Root
  | Root_ Root
  deriving (Show,Eq)
 
 roots :: R z Roots
 roots = 'roots
  <=> Frozen <$ (token"freeze") <*> root --TODO recursion
+ <|> Ambiguous <$ (token"explicate") <*> root --TODO recursion
  <|> Root_ <$> root
 
 data Root
@@ -59,7 +61,8 @@ root = 'root <=> empty
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
  <|> Macro_     <$> (number-?-1) <*> myMacros
  <|> Shell_     <$>                  shell
- <|> Dictation_ <$  (token"say") <*> dictation
+ <|> Dictation_ <$  (token"say")  <*> dictation
+ --TODO <|> Phrase_    <$  (token"pray") <*> phrase
  <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
 
 data Acts
@@ -71,14 +74,14 @@ acts = 'acts
 
 data Act
  = KeyRiff_ KeyRiff
- | Click_ Click
+ --TODO | Click_ Click
  | Edit_ Edit
  | Move_ Move
  deriving (Show,Eq)
 
 act = 'act <=> empty     -- boilerplate (mostly)
  <|> KeyRiff_ <$> keyriff
- <|> Click_   <$> click
+ --TODO <|> Click_   <$> click
  <|> Edit_    <$> edit
  <|> Move_    <$> move
 
@@ -121,6 +124,7 @@ bestRoots = argmax rankRoots
 
 rankRoots = \case                --TODO fold over every field of every case, normalizing each case
  Frozen r -> highRank + rankRoot r
+ Ambiguous r -> highRank + rankRoot r
  Root_ r   -> rankRoot r
 
 rankRoot = \case
@@ -137,7 +141,7 @@ rankActs = \case
 
 rankAct = \case
  KeyRiff_ _kr -> highRank
- Click_ _c    -> defaultRank
+ -- TODOClick_ _c    -> defaultRank
  Edit_ e      -> defaultRank + rankEdit e
  Move_ m     -> defaultRank + rankMove m
 
@@ -147,6 +151,7 @@ rankAct = \case
 
 runRoots context = \case
  Frozen r -> insert (show r)
+ Ambiguous _r -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 
  Root_ r  -> runRoot context r
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
@@ -170,7 +175,7 @@ runActs context = \case
 
 runAct context = \case
  KeyRiff_ kr -> runKeyRiff kr
- Click_ _c   -> nothing
+ --TODO Click_ _c   -> nothing
  Edit_ a     -> onlyWhen isEmacs context $ editEmacs a
  Move_ a     -> onlyWhen isEmacs context $ moveEmacs a
 

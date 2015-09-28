@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, FlexibleInstances #-}
+{-# LANGUAGE LambdaCase, FlexibleInstances, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans #-} -- TODO orphans? 
 module Commands.Plugins.Spiros.Phrase.Run where
 import Commands.Plugins.Spiros.Phrase.Types
@@ -63,16 +63,18 @@ rankDictation (Dictation ws) = length ws - 1
 --  . NonEmpty.fromList --  TODO
 --  . parseList phrase_
 
-slotP :: Phrase -> OSX.Actions_
+-- slotP :: Phrase -> OSX.Actions_
+-- slotP :: Phrase -> OSX.Actions_
+slotP :: (OSX.MonadAction m) => Phrase -> m ()
 slotP p = do
  OSX.delay 10
  insertP p
  press_ "<ret>"
 
-insertP :: Phrase -> OSX.Actions_
+insertP :: (OSX.MonadAction m) => Phrase -> m () 
 insertP = munge >=> OSX.insert
 
-munge :: Phrase -> OSX.Actions String
+munge :: (OSX.MonadAction m) => Phrase -> m String
 munge (Phrase p1) = do
  p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
  return$ mungePhrase p2 defSpacing

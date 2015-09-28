@@ -12,6 +12,7 @@ import Commands.Plugins.Spiros.Keys
 
 import Commands.Sugar.Keys
 import           Commands.Etc
+import Commands.RHS.Types 
 import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 
@@ -19,6 +20,9 @@ import           Control.Applicative
 import qualified Data.List as List
 import Data.Function (on)
 import Control.Arrow (second) 
+import Control.Monad (replicateM_) 
+
+-- default (Actions ())            -- ExtendedDefaultRules 
 
 
 newtype Macro = Macro (Apply Rankable Actions_)
@@ -115,7 +119,7 @@ youtube_toggle_sound = do
    press_ "k"      -- pauses the video, somehow  
    delay chromeDelay 
    youtube_toggle_fullscreen 
-   delay 1000
+   delay 2000
    openApplication app
 
 
@@ -128,7 +132,7 @@ myMacros = 'myMacros
 
 -- | macros without arguments
 myMacrosRHS0 :: R z Actions_
-myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
+myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  [ ""-: nothing
 
  , "run again"-: do
@@ -152,7 +156,7 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    openApplication "Commands"   -- TODO make variable 
    delay 100
    emacs_reach_shell
-   slot "make build"
+   slot "cabal build server"
 
  , "next error"-: do
    move_window_down
@@ -161,13 +165,18 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    press_ "C-l"
    press_ "<ret>" 
 
- , "macro"-: do
+ , "macro"-: do   -- TODO LOL 
    openApplication "Commands"   -- TODO make variable 
    delay 100
    move_window_up
    delay 100
    switch_buffer (word2phrase "Macro.hs") -- TODO make variable 
    delay 100
+
+   press_ "M-<up>"
+   press_ "C-s" >> slot " , \"\"-: do" >> replicateM_ 6 (press_ "<left>") 
+   -- press_ "C-s" >> slot " , \"\"-: do" >> press_ "<left><right>"
+   -- press_ "C-s" >> slot "\""           >> press_ "<left><right>"
 
  , "shortcut"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -203,8 +212,8 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
    alt_tab
 
  , "check"-: do
-   -- runEmacs "compile"
-   press_ keymap >> press_ "c"
+   runEmacs "compile"
+   -- press_ keymap >> press_ "c"
 
  , "exec again"-: do
    press_ "S-<down>"
@@ -215,8 +224,13 @@ myMacrosRHS0 = myAliases <|> myOrdinals <|> myApps <|> vocab
  , "phonetic alphabet"-: do
    insertByClipboard$ (List.intercalate "\n" . map fst) phoneticAlphabet 
 
- , ""-: do
-   nothing
+ , "bookmark"-: do
+   press_ "M-d"
+   delay 1000
+   press_ "<tab>"
+   delay chromeDelay 
+   press_ "<up>"
+   -- then say "two ret" or click away 
 
  , ""-: do
    nothing
@@ -261,13 +275,14 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  ]
 
 myOrdinals :: R z Actions_
-myOrdinals = (uncurry sendKeyPress . addMod CommandMod . (either __BUG__ id) . digit2keypress) <$> (__inlineRHS__(ordinalDigit))
+myOrdinals = 'myOrdinals <=>
+ (uncurry sendKeyPress . addMod CommandMod . (either __BUG__ id) . digit2keypress) <$> (__inlineRHS__(ordinalDigit))
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive 
 
 myApps :: R z Actions_
 myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
- [ "max"      -: "Emacs"
+ [ ""      -: ""
  , "man"      -: "Commands"
  , "work"     -: "Work"
  , "notes"    -: "Notes"
@@ -291,23 +306,24 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 -- | macros with arguments
 myMacrosRHS :: R z (Apply Rankable Actions_)
 myMacrosRHS = empty
- <|> A1 align_regexp  <$ "align"    <*> phrase
- <|> A1 switch_buffer <$ "buffer"   <*> phrase
- <|> A1 multi_occur   <$ "occur"    <*> phrase
- <|> A2 replace_with  <$"replace"   <*> phrase <*"with" <*> phrase
- <|> A1 google_for    <$ "google" <*> (phrase-?-"")
- <|> A1 search_regexp <$ "search"   <*> (phrase-?)
- <|> A1 find_text     <$ "find"     <*> (phrase-?-"") -- TODO  No instance for (Data.String.IsString Phrase')
- <|> A1 goto_line     <$ "go"       <*> number
- <|> A1 comment_with  <$ "comment"  <*> (phrase-?)
- <|> A1 write_to_pad  <$ "scribble"  <*> (phrase-?)
- <|> A1 run_shell     <$ "shell" <*> (shell-|-(phrase-?))
+ <|> A1 align_regexp            <$ "align"     <*> phrase
+ <|> A1 switch_buffer           <$ "buffer"    <*> phrase
+ <|> A1 multi_occur             <$ "occur"     <*> phrase
+ <|> A2 replace_with            <$ "replace"   <*> phrase <*"with" <*> phrase
+ <|> A1 google_for              <$ "google"    <*> (phrase-?-"")
+ <|> A1 search_regexp           <$ "search"    <*> (phrase-?)
+ <|> A1 find_text               <$ "find"      <*> (phrase-?-"")
+ <|> A1 goto_line               <$ "go"        <*> number
+ <|> A1 comment_with            <$ "comment"   <*> (phrase-?)
+ <|> A1 write_to_pad            <$ "scribble"  <*> (phrase-?)
+ <|> A1 run_shell               <$ "shell"     <*> (shell-|-(phrase-?))
  <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
- <|> A1 query_alfred <$ "Alfred" <*> (phrase-?)
- <|> A1 switch_tab <$ "tab" <*> (phrase-?-"")
- <|> A1 visit_site <$ "visit" <*> (phrase-?-"")
- <|> A1 google_click_link <$ "link" <*> phrase
--- TODO keep a elisp expression that aligns the block of code
+ <|> A1 query_alfred            <$ "Alfred"    <*> (phrase-?)
+ <|> A1 switch_tab              <$ "tab"       <*> (phrase-?-"")
+ <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
+ <|> A1 google_click_link       <$ "link"      <*> phrase
+-- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
+-- TODO <\$ <\*>
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
@@ -388,7 +404,7 @@ visit_site p = do
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
 google_click_link p = do
  press_ "M-f"
- delay chromeDelay 
+ delay chromeDelay              -- TODO ReaderMonad delay time  
  slotP p
  delay chromeDelay 
  press_ "C-<ret>"

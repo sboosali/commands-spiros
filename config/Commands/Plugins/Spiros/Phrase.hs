@@ -146,7 +146,7 @@ punctuationRHS = vocab
  , "roar"-: ')'
  , "hit"-: '-'                  -- during a Phrase,Dragon recognizes "dash" literally as "-" 
  , "score"-: '_'
- , "eek"-: '='
+ , "equal"-: '='
  , "plus"-: '+'
  , "lack"-: '['
  , "lace"-: '{'
@@ -408,10 +408,9 @@ word_ = dragonGrammar 'word_
  (T.unpack <$> anyWord)
  (DGNWords)
 
-keyword = dragonGrammar 'keyword
- (T.unpack <$> anyWord)
- (DGNWords)
- -- <=> Keyword <$> word_
+keyword :: R z String 
+keyword = 'keyword
+ <=> T.unpack <$> terminals
 
 letters = simpleGrammar 'letters
  ((T.unpack . fold) <$> some anyWord)

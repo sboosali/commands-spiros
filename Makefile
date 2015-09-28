@@ -4,6 +4,7 @@ VERSION = 0.0.0
 HC = cabal exec -- ghc
 
 CODE = config # tests
+EXECUTABLE = server
 
 
 # # # # # # # # # # # # # # # # # # 
@@ -16,7 +17,7 @@ configure:
 	cabal configure --enable-tests
 
 build: configure
-	cabal build
+	cabal build $(EXECUTABLE) 
 
 run:
 	cabal run server

@@ -152,7 +152,7 @@ class NarcissisticGrammar(GrammarBase):
 #                self.activateSet([microphone_export, H_EXPORT], exclusive=1)
 
             (should_send_request, should_change_mode) = try_magic_handlers(self,data)
-            self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting") else (True if should_change_mode == "normal" else self.should_request)
+            self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting" or should_change_mode == "microphone/sleeping") else (True if should_change_mode == "normal" else self.should_request)
             self.current_mode   = should_change_mode or self.current_mode
 
             self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
