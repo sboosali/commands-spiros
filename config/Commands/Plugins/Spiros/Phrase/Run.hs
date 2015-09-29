@@ -27,7 +27,7 @@ bestPhrase = argmax rankPhrase
 
 -- no list-generic instance, provides flexibility without OverlappingInstances  
 instance Rankable Phrase where rank = rankPhrase
-instance Rankable (Maybe Phrase) where rank = maybe defaultRank rankPhrase
+-- instance Rankable (Maybe Phrase) where rank = maybe defaultRank rankPhrase
 
 instance Rankable Phrase_ where rank = rankPhrase_ 
 instance Rankable Dictation where rank = rankDictation 

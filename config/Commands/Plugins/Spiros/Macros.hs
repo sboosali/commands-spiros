@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
+import Commands.Plugins.Spiros.Types
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
@@ -275,10 +276,23 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  ]
 
 myOrdinals :: R z Actions_
-myOrdinals = 'myOrdinals <=>
- (uncurry sendKeyPress . addMod CommandMod . (either __BUG__ id) . digit2keypress) <$> (__inlineRHS__(ordinalDigit))
+myOrdinals = 'myOrdinals <=> runOrdinalKeypress <$> (__inlineRHS__(ordinalDigit))
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
- -- the cast is safe because: ordinalDigit is between zero and nine, inclusive 
+ -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
+
+-- | run an ordinal as a keypress.
+-- @runOrdinalKeypress (Ordinal 3)@ is like @press "M-3"@. 
+runOrdinalKeypress :: Ordinal -> Actions_
+runOrdinalKeypress
+ = uncurry sendKeyPress
+ . ordinal2keypress
+
+ordinal2keypress :: Ordinal -> KeyPress
+ordinal2keypress 
+ = addMod CommandMod
+ . (either __BUG__ id)
+ . digit2keypress
+ . unOrdinal
 
 myApps :: R z Actions_
 myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
@@ -312,12 +326,12 @@ myMacrosRHS = empty
  <|> A2 replace_with            <$ "replace"   <*> phrase <*"with" <*> phrase
  <|> A1 google_for              <$ "google"    <*> (phrase-?-"")
  <|> A1 search_regexp           <$ "search"    <*> (phrase-?)
- <|> A1 find_text               <$ "discover"      <*> (phrase-?-"")
+ <|> A1 find_text               <$ "discover"  <*> (phrase-?-"")
  <|> A1 goto_line               <$ "go"        <*> number
  <|> A1 comment_with            <$ "comment"   <*> (phrase-?)
  <|> A1 write_to_pad            <$ "scribble"  <*> (phrase-?)
  <|> A1 run_shell               <$ "shell"     <*> (shell-|-(phrase-?))
- <|> A1 query_clipboard_history <$ "clipboard" <*> (phrase-?)
+ <|> A1 query_clipboard_history <$ "clipboard" <*> ((ordinalDigit-|-phrase)-?)
  <|> A1 query_alfred            <$ "Alfred"    <*> (phrase-?)
  <|> A1 switch_tab              <$ "tab"       <*> (phrase-?-"")
  <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
@@ -380,10 +394,18 @@ run_shell (Right p) = do
  emacs_reach_shell
  maybe nothing insertP p
 
-query_clipboard_history p = do
+
+query_clipboard_history :: Maybe (Either Ordinal Phrase) -> Actions_
+query_clipboard_history Nothing = do
+ toggle_clipboard_history
+query_clipboard_history (Just (Left n)) = do 
  toggle_clipboard_history
  delay 500
- maybe nothing insertP p
+ runOrdinalKeypress n
+query_clipboard_history (Just (Right p)) = do
+ toggle_clipboard_history
+ delay 500
+ insertP p
 
 query_alfred p = do
  toggle_alfred 

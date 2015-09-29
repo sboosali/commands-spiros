@@ -3,6 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Keys where
+import Commands.Plugins.Spiros.Types
 import           Commands.Plugins.Spiros.Phrase (character)
 
 import           Commands.Backends.OSX
@@ -12,7 +13,6 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 
 
--- | a riff is some chords?
 keyriff :: R z KeyRiff
 keyriff = 'keyriff
  <=> (keychord-++)
@@ -100,24 +100,26 @@ key = 'key
 --  <|> "eff twenty" $> KeyPress [] F20Key
 
 -- | an ordinal numeral
-ordinal :: (Num a) => R z a
-ordinal = 'ordinal <=> (__inlineRHS__(ordinalDigit)) <|> vocab
- [ "tenth"-: 10
- , "eleven"-: 11
- , "twelve"-: 12
- , "thirteen"-: 13
- , "fourteen"-: 14
- , "fifteen"-: 15
- , "sixteen"-: 16
- , "seventeen"-: 17
- , "eighteen"-: 18
- , "nineteenth"-: 19
- , "twentieth"-: 20
- ]
+ordinal :: R z Integer
+ordinal = 'ordinal
+ <=> unOrdinal <$> (__inlineRHS__(ordinalDigit))
+ <|> vocab
+  [ "tenth"-: 10
+  , "eleven"-: 11
+  , "twelve"-: 12
+  , "thirteen"-: 13
+  , "fourteen"-: 14
+  , "fifteen"-: 15
+  , "sixteen"-: 16
+  , "seventeen"-: 17
+  , "eighteen"-: 18
+  , "nineteenth"-: 19
+  , "twentieth"-: 20
+  ]
 
 -- | an ordinal numeral, between 0 (zeroth) and 9 (ninth) inclusive
-ordinalDigit :: (Num a) => R z a
-ordinalDigit = 'ordinalDigit <=> vocab
+ordinalDigit :: R z Ordinal
+ordinalDigit = 'ordinalDigit <=> Ordinal <$> vocab
  [ "zeroth"-: 0
  , "first"-: 1
  , "second"-: 2

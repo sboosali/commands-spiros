@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Etc where
+import Commands.Plugins.Spiros.Types
 
 -- import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
@@ -144,9 +145,24 @@ defaultRank = 100
 highRank :: Int
 highRank = 1000
 
-instance Rankable Int where rank = id
+defaultRankMultiplier :: Int
+defaultRankMultiplier = 1000
+
+instance Rankable Int where rank = const defaultRank
+instance Rankable Ordinal where rank = const defaultRank 
 instance Rankable Actions_         -- TODO
-instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = either rank rank
+instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
+instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = rankLeftBiased
+
+-- instance Rankable (Either Shell Phrase) where rank = rankLeftBiased
+-- instance Rankable (Either Ordinal Phrase) where rank = rankLeftBiased
+
+rankMaybe :: (Rankable a) => Ranking (Maybe a)
+rankMaybe = maybe defaultRank rank
+
+rankLeftBiased :: (Rankable a, Rankable b) => Ranking (Either a b)
+rankLeftBiased = either ((*defaultRankMultiplier) . rank) rank -- watch out, the multiplied rank pollutes any parents above it 
+-- rankLeftBiased = either rank ((`div` defaultRankMultiplier) . rank)
 
 isBrowser x = if FilePath.takeBaseName x `elem` ["Firefox", "Chrome"]
  then Just x
