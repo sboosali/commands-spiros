@@ -44,6 +44,7 @@ library
         Commands.Plugins.Spiros.Phrase.Types
         Commands.Plugins.Spiros.Phrase.Munging
         Commands.Plugins.Spiros.Phrase.Run
+        Commands.Plugins.Spiros.Spacing
 
     build-depends:
         base ==4.8.*,

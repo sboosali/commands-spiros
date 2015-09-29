@@ -11,12 +11,12 @@ import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase.Types
 import           Commands.Plugins.Spiros.Phrase.Run
 import           Commands.Plugins.Spiros.Phrase.Munging
+import           Commands.Plugins.Spiros.Spacing
 
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import qualified Commands.Backends.OSX            as OSX
-import           Commands.Plugins.Example.Spacing
 
 import qualified Data.Text.Lazy                   as T
 

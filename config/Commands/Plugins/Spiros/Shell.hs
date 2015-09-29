@@ -53,7 +53,7 @@ safeShellCommands =
 
  , both "cabal"
  , both "git"
- , both ""
+ , both "find"
  , both ""
  , both ""
  , both ""

@@ -1,9 +1,9 @@
 {-# LANGUAGE LambdaCase #-}
 module Commands.Plugins.Spiros.Phrase.Munging where
 import           Commands.Plugins.Spiros.Phrase.Types
+import           Commands.Plugins.Spiros.Spacing
 
 import qualified Commands.Backends.OSX            as OSX
-import           Commands.Plugins.Example.Spacing
 import           Commands.Munging
 
 import           Data.Sexp

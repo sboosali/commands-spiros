@@ -148,11 +148,11 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
 
- , "serve"-: do                   -- short for "commands server"
+ , "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
    press_ "<del>" 
 
- , "serve build"-: do
+ , "voice build"-: do
    openApplication "Commands"   -- TODO make variable 
    delay 100
    emacs_reach_shell
@@ -312,7 +312,7 @@ myMacrosRHS = empty
  <|> A2 replace_with            <$ "replace"   <*> phrase <*"with" <*> phrase
  <|> A1 google_for              <$ "google"    <*> (phrase-?-"")
  <|> A1 search_regexp           <$ "search"    <*> (phrase-?)
- <|> A1 find_text               <$ "find"      <*> (phrase-?-"")
+ <|> A1 find_text               <$ "discover"      <*> (phrase-?-"")
  <|> A1 goto_line               <$ "go"        <*> number
  <|> A1 comment_with            <$ "comment"   <*> (phrase-?)
  <|> A1 write_to_pad            <$ "scribble"  <*> (phrase-?)
