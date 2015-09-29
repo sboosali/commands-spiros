@@ -28,9 +28,6 @@ shortcuts
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
 myShortcuts = 'myShortcuts <=> shortcuts
- -- <|> "copy" $> kbd"M-c"
- -- <|> "copy" $> [KeyPress [CommandMod] CKey]
-
  -- keys
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"

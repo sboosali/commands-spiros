@@ -23,7 +23,7 @@ keychord = 'keychord
  <=> moveShift <$ "press" <*> (modifier-*)  <*> key      -- zero or more modifiers (prefixed) 
  <|> moveShift <$>            (modifier-++) <*> key      -- one or more modifiers (not prefixed) 
  where
- moveShift ms (ms', k) = KeyPress (ms ++ ms') k
+ moveShift ms (ms', k) = KeyChord (ms ++ ms') k
 
 modifier = 'modifier
  <=> "met"   $> CommandMod
@@ -42,62 +42,62 @@ modifier = 'modifier
 so we can't embed the one into the other, but we'll just keep things simple with duplication.
 
 -}
-key :: R z KeyPress
+key :: R z KeyChord
 key = 'key
  <=> ((either __BUG__ id) . char2keypress) <$> (__inlineRHS__(character))
   -- inlined to trigger vocabulary optimization, the right-hand side which must have only tokens
 
- <|> "up" $> KeyPress [] UpArrowKey
- <|> "down" $> KeyPress [] DownArrowKey
- <|> "left" $> KeyPress [] LeftArrowKey
- <|> "right" $> KeyPress [] RightArrowKey
+ <|> "up" $> KeyChord [] UpArrowKey
+ <|> "down" $> KeyChord [] DownArrowKey
+ <|> "left" $> KeyChord [] LeftArrowKey
+ <|> "right" $> KeyChord [] RightArrowKey
 
- <|> "del" $> KeyPress [] DeleteKey
- <|> "cape" $> KeyPress [] EscapeKey
+ <|> "del" $> KeyChord [] DeleteKey
+ <|> "cape" $> KeyChord [] EscapeKey
 --  <|> functionKey
 -- functionKey = empty
- <|> "F1" $> KeyPress [] F1Key
- <|> "F2" $> KeyPress [] F2Key
- <|> "F3" $> KeyPress [] F3Key
- <|> "F4" $> KeyPress [] F4Key
- <|> "F5" $> KeyPress [] F5Key
- <|> "F6" $> KeyPress [] F6Key
- <|> "F7" $> KeyPress [] F7Key
- <|> "F8" $> KeyPress [] F8Key
- <|> "F9" $> KeyPress [] F9Key
- <|> "F10" $> KeyPress [] F10Key
- <|> "F11" $> KeyPress [] F11Key
- <|> "F12" $> KeyPress [] F12Key
- <|> "F13" $> KeyPress [] F13Key
- <|> "F14" $> KeyPress [] F14Key
- <|> "F15" $> KeyPress [] F15Key
- <|> "F16" $> KeyPress [] F16Key
- <|> "F17" $> KeyPress [] F17Key
- <|> "F18" $> KeyPress [] F18Key
- <|> "F19" $> KeyPress [] F19Key
- <|> "F20" $> KeyPress [] F20Key
+ <|> "F1" $> KeyChord [] F1Key
+ <|> "F2" $> KeyChord [] F2Key
+ <|> "F3" $> KeyChord [] F3Key
+ <|> "F4" $> KeyChord [] F4Key
+ <|> "F5" $> KeyChord [] F5Key
+ <|> "F6" $> KeyChord [] F6Key
+ <|> "F7" $> KeyChord [] F7Key
+ <|> "F8" $> KeyChord [] F8Key
+ <|> "F9" $> KeyChord [] F9Key
+ <|> "F10" $> KeyChord [] F10Key
+ <|> "F11" $> KeyChord [] F11Key
+ <|> "F12" $> KeyChord [] F12Key
+ <|> "F13" $> KeyChord [] F13Key
+ <|> "F14" $> KeyChord [] F14Key
+ <|> "F15" $> KeyChord [] F15Key
+ <|> "F16" $> KeyChord [] F16Key
+ <|> "F17" $> KeyChord [] F17Key
+ <|> "F18" $> KeyChord [] F18Key
+ <|> "F19" $> KeyChord [] F19Key
+ <|> "F20" $> KeyChord [] F20Key
 
 -- -- functionKey = empty
---  <|> "eff one" $> KeyPress [] F1Key  -- TODO can DNS vocabularies handle strings with multiple tokens? YES 
---  <|> "eff two" $> KeyPress [] F2Key
---  <|> "eff three" $> KeyPress [] F3Key
---  <|> "eff four" $> KeyPress [] F4Key
---  <|> "eff five" $> KeyPress [] F5Key
---  <|> "eff six" $> KeyPress [] F6Key
---  <|> "eff seven" $> KeyPress [] F7Key
---  <|> "eff eight" $> KeyPress [] F8Key
---  <|> "eff nine" $> KeyPress [] F9Key
---  <|> "eff ten" $> KeyPress [] F10Key
---  <|> "eff eleven" $> KeyPress [] F11Key
---  <|> "eff twelve" $> KeyPress [] F12Key
---  <|> "eff thirteen" $> KeyPress [] F13Key
---  <|> "eff fourteen" $> KeyPress [] F14Key
---  <|> "eff fifteen" $> KeyPress [] F15Key
---  <|> "eff sixteen" $> KeyPress [] F16Key
---  <|> "eff seventeen" $> KeyPress [] F17Key
---  <|> "eff eighteen" $> KeyPress [] F18Key
---  <|> "eff nineteen" $> KeyPress [] F19Key
---  <|> "eff twenty" $> KeyPress [] F20Key
+--  <|> "eff one" $> KeyChord [] F1Key  -- TODO can DNS vocabularies handle strings with multiple tokens? YES 
+--  <|> "eff two" $> KeyChord [] F2Key
+--  <|> "eff three" $> KeyChord [] F3Key
+--  <|> "eff four" $> KeyChord [] F4Key
+--  <|> "eff five" $> KeyChord [] F5Key
+--  <|> "eff six" $> KeyChord [] F6Key
+--  <|> "eff seven" $> KeyChord [] F7Key
+--  <|> "eff eight" $> KeyChord [] F8Key
+--  <|> "eff nine" $> KeyChord [] F9Key
+--  <|> "eff ten" $> KeyChord [] F10Key
+--  <|> "eff eleven" $> KeyChord [] F11Key
+--  <|> "eff twelve" $> KeyChord [] F12Key
+--  <|> "eff thirteen" $> KeyChord [] F13Key
+--  <|> "eff fourteen" $> KeyChord [] F14Key
+--  <|> "eff fifteen" $> KeyChord [] F15Key
+--  <|> "eff sixteen" $> KeyChord [] F16Key
+--  <|> "eff seventeen" $> KeyChord [] F17Key
+--  <|> "eff eighteen" $> KeyChord [] F18Key
+--  <|> "eff nineteen" $> KeyChord [] F19Key
+--  <|> "eff twenty" $> KeyChord [] F20Key
 
 -- | an ordinal numeral
 ordinal :: R z Integer

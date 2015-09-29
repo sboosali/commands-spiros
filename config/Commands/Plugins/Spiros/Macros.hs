@@ -276,18 +276,18 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  ]
 
 myOrdinals :: R z Actions_
-myOrdinals = 'myOrdinals <=> runOrdinalKeypress <$> (__inlineRHS__(ordinalDigit))
+myOrdinals = 'myOrdinals <=> runOrdinalKeyChord <$> (__inlineRHS__(ordinalDigit))
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
 -- | run an ordinal as a keypress.
--- @runOrdinalKeypress (Ordinal 3)@ is like @press "M-3"@. 
-runOrdinalKeypress :: Ordinal -> Actions_
-runOrdinalKeypress
- = uncurry sendKeyPress
+-- @runOrdinalKeyChord (Ordinal 3)@ is like @press "M-3"@. 
+runOrdinalKeyChord :: Ordinal -> Actions_
+runOrdinalKeyChord
+ = uncurry sendKeyChord
  . ordinal2keypress
 
-ordinal2keypress :: Ordinal -> KeyPress
+ordinal2keypress :: Ordinal -> KeyChord
 ordinal2keypress 
  = addMod CommandMod
  . (either __BUG__ id)
@@ -401,7 +401,7 @@ query_clipboard_history Nothing = do
 query_clipboard_history (Just (Left n)) = do 
  toggle_clipboard_history
  delay 500
- runOrdinalKeypress n
+ runOrdinalKeyChord n
 query_clipboard_history (Just (Right p)) = do
  toggle_clipboard_history
  delay 500
