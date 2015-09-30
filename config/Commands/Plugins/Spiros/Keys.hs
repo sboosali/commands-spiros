@@ -26,11 +26,11 @@ keychord = 'keychord
  moveShift ms (ms', k) = KeyChord (ms ++ ms') k
 
 modifier = 'modifier
- <=> "met"   $> CommandMod
- <|> "con"   $> Control
- <|> "shift" $> Shift
- <|> "alt"   $> Option
- <|> "fun"   $> Function
+ <=> "met"   $> CommandModifier
+ <|> "con"   $> ControlModifier
+ <|> "shift" $> ShiftModifier
+ <|> "alt"   $> OptionModifier
+ <|> "fun"   $> FunctionModifier
 
 {- | a non-modifier key
 

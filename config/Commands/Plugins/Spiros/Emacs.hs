@@ -52,7 +52,7 @@ runEmacs_ = \case
 since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffers t)@ to work when the current buffer is already a minibuffer.
 
 -}
-evalEmacs :: ElispSexp -> Actions ()
+evalEmacs :: ElispSexp -> Workflow ()
 evalEmacs sexp = do
  eval_expression
  slot sexp
@@ -79,7 +79,7 @@ since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffe
 runEmacsWith
  :: String                      --  ^ the name of the interactive command
  -> [String]                    --  ^ the arguments that would be manually entered, one at a time, in a minibuffer
- -> Actions ()
+ -> Workflow ()
 runEmacsWith f xs = do
  execute_extended_command -- TODO non-standard: make this configurable? ImplicitParams?
  slot f
@@ -92,11 +92,11 @@ runEmacsWith f xs = do
 -- http://stackoverflow.com/questions/29953266/emacs-list-the-names-of-every-interactive-command
 
 -- | like 'runEmacsWith', but takes no arguments.
-runEmacs :: String -> Actions ()
+runEmacs :: String -> Workflow ()
 runEmacs f = runEmacsWith f []
 
 -- | like 'runEmacs', but doesn't press enter. 
-runEmacsWait :: String -> Actions ()
+runEmacsWait :: String -> Workflow ()
 runEmacsWait f = do
  execute_extended_command
  insert f
@@ -104,7 +104,7 @@ runEmacsWait f = do
 -- | like 'runEmacsWith', but takes string-returning-actions as arguments.
 --
 -- e.g. @runEmacsWithA "regexp-search" ['getClipboard']@
-runEmacsWithA :: String -> [Actions String] -> Actions ()
+runEmacsWithA :: String -> [Workflow String] -> Workflow ()
 runEmacsWithA f as = do
  xs <- traverse id as
  runEmacsWith f xs
@@ -112,7 +112,7 @@ runEmacsWithA f as = do
 -- | like 'runEmacsWith', but takes phrases as arguments.
 --
 -- e.g. @runEmacsWithP "regexp-search" ['PAtom' 'Pasted']@
-runEmacsWithP :: String -> [Phrase] -> Actions ()
+runEmacsWithP :: String -> [Phrase] -> Workflow ()
 runEmacsWithP f ps = do
  xs <- traverse munge ps
  runEmacsWith f xs

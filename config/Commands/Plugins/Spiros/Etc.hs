@@ -117,18 +117,18 @@ nothing = return ()
 onlyWhen :: (Monad m) => (b -> Maybe b) -> b -> (m () -> m ())
 onlyWhen predicate_ question_ action_ = maybe nothing (const action_) (predicate_ question_)
 
-slot :: String -> Actions_
+slot :: String -> Workflow_
 slot s = do
  delay 10
  sendText s
  press_ "<ret>" 
 
-isDefaultBrowser :: AMonadAction (Maybe String)
+isDefaultBrowser :: MonadWorkflow m => m (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
  x@"Google Chrome" -> return$ Just x
  _                 -> return$ Nothing
 
-type Desugaring a = a -> Actions_
+type Desugaring a = a -> Workflow_
 
 type Ranking a = a -> Int
 
@@ -150,7 +150,7 @@ defaultRankMultiplier = 1000
 
 instance Rankable Int where rank = const defaultRank
 instance Rankable Ordinal where rank = const defaultRank 
-instance Rankable Actions_         -- TODO
+instance Rankable Workflow_         -- TODO
 instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
 instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = rankLeftBiased
 
@@ -175,7 +175,7 @@ chromeDelay = 250 :: Int                 -- milliseconds
 
 browserDelay = chromeDelay
 
-runRepeat :: (MonadAction m) => Int -> Number -> (m () -> m ())
+runRepeat :: (MonadWorkflow m) => Int -> Number -> (m () -> m ())
 runRepeat delay_ times_
  = traverse_ id
  . List.intersperse (delay delay_)
@@ -184,17 +184,17 @@ runRepeat delay_ times_
 
 -- used when sendText is too slow/laggy
 -- insertByClipboard :: String -> AMonadAction_
-insertByClipboard :: String -> Actions_
+insertByClipboard :: String -> Workflow_
 insertByClipboard s = do
  setClipboard s
  press_paste
 
-press_paste :: Actions_
+press_paste :: Workflow_
 press_paste = press_ "M-v"
 
 -- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  
 -- benign race condition, as no lock is kept on the system clipboard
-restoringClipboard :: Actions a -> Actions a
+restoringClipboard :: Workflow a -> Workflow a
 restoringClipboard m = do
  contents <- getClipboard
  x <- m

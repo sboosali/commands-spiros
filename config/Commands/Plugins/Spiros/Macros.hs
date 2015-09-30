@@ -23,10 +23,10 @@ import Data.Function (on)
 import Control.Arrow (second) 
 import Control.Monad (replicateM_) 
 
--- default (Actions ())            -- ExtendedDefaultRules 
+-- default (Workflow ())            -- ExtendedDefaultRules 
 
 
-newtype Macro = Macro (Apply Rankable Actions_)
+newtype Macro = Macro (Apply Rankable Workflow_)
 -- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
 
 instance Show Macro where show (Macro _x) = "_"       -- TODO  showApply x
@@ -34,8 +34,8 @@ instance Show Macro where show (Macro _x) = "_"       -- TODO  showApply x
 -- showApply = show . runApply       -- TODO 
 
 instance Eq Macro where (==) (Macro x) (Macro y) = eqApply x y
-eqApply = eqActions `on` runApply    -- TODO also distinguish the constructors 
-eqActions _a1 _a2 = False         -- TODO
+eqApply = eqWorkflow `on` runApply    -- TODO also distinguish the constructors 
+eqWorkflow _a1 _a2 = False         -- TODO
 
 runMacro (Macro f) = runApply f
 
@@ -132,7 +132,7 @@ myMacros = 'myMacros
  <|> Macro        <$> myMacrosRHS
 
 -- | macros without arguments
-myMacrosRHS0 :: R z Actions_
+myMacrosRHS0 :: R z Workflow_
 myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  [ ""-: nothing
 
@@ -233,8 +233,10 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    press_ "<up>"
    -- then say "two ret" or click away 
 
- , ""-: do
-   nothing
+ , "replace again"-: do
+   press_ "M-r"
+   press_ "<ret>"
+   press_ "!"
 
  , ""-: do
    nothing
@@ -254,7 +256,7 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  ]
 
 -- | macros without arguments
-myAliases :: R z Actions_             -- TODO String
+myAliases :: R z Workflow_             -- TODO String
 myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
  [ ""-: ""
  , "arrow"-: "->"
@@ -275,26 +277,26 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  , ""-: ""
  ]
 
-myOrdinals :: R z Actions_
+myOrdinals :: R z Workflow_
 myOrdinals = 'myOrdinals <=> runOrdinalKeyChord <$> (__inlineRHS__(ordinalDigit))
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
 -- | run an ordinal as a keypress.
 -- @runOrdinalKeyChord (Ordinal 3)@ is like @press "M-3"@. 
-runOrdinalKeyChord :: Ordinal -> Actions_
+runOrdinalKeyChord :: Ordinal -> Workflow_
 runOrdinalKeyChord
  = uncurry sendKeyChord
  . ordinal2keypress
 
 ordinal2keypress :: Ordinal -> KeyChord
 ordinal2keypress 
- = addMod CommandMod
+ = addMod CommandModifier
  . (either __BUG__ id)
  . digit2keypress
  . unOrdinal
 
-myApps :: R z Actions_
+myApps :: R z Workflow_
 myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
  [ ""      -: ""
  , "man"      -: "Commands"
@@ -318,7 +320,7 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 -- ================================================================ --
 
 -- | macros with arguments
-myMacrosRHS :: R z (Apply Rankable Actions_)
+myMacrosRHS :: R z (Apply Rankable Workflow_)
 myMacrosRHS = empty
  <|> A1 align_regexp            <$ "align"     <*> phrase
  <|> A1 switch_buffer           <$ "buffer"    <*> phrase
@@ -371,13 +373,13 @@ find_text p = do
  delay browserDelay
  insertP p
 
-goto_line :: Int -> Actions_
+goto_line :: Int -> Workflow_
 goto_line n = do
  press_ "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 
-comment_with :: Maybe Phrase -> Actions_
+comment_with :: Maybe Phrase -> Workflow_
 comment_with p = do
  press_ "M-;"
  maybe nothing insertP p
@@ -395,7 +397,7 @@ run_shell (Right p) = do
  maybe nothing insertP p
 
 
-query_clipboard_history :: Maybe (Either Ordinal Phrase) -> Actions_
+query_clipboard_history :: Maybe (Either Ordinal Phrase) -> Workflow_
 query_clipboard_history Nothing = do
  toggle_clipboard_history
 query_clipboard_history (Just (Left n)) = do 

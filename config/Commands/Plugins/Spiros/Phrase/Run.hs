@@ -64,18 +64,16 @@ rankDictation (Dictation ws) = length ws - 1
 --  . NonEmpty.fromList --  TODO
 --  . parseList phrase_
 
--- slotP :: Phrase -> OSX.Actions_
--- slotP :: Phrase -> OSX.Actions_
-slotP :: (OSX.MonadAction m) => Phrase -> m ()
+slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
 slotP p = do
  OSX.delay 10
  insertP p
  press_ "<ret>"
 
-insertP :: (OSX.MonadAction m) => Phrase -> m () 
+insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
 insertP = munge >=> OSX.insert
 
-munge :: (OSX.MonadAction m) => Phrase -> m String
+munge :: (OSX.MonadWorkflow m) => Phrase -> m String
 munge (Phrase p1) = do
  p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
  return$ mungePhrase p2 defSpacing

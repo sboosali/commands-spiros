@@ -50,13 +50,13 @@ spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings command = VSettings 8888 spirosSetup spirosInterpret (spirosUpdateConfig command)
 
 -- spirosSettings :: forall r a. VPlugin_ r a -> (VSettings_ r a)
--- spirosSettings plugin = (defSettings runActions spirosUpdateConfig plugin)
+-- spirosSettings plugin = (defSettings runWorkflow spirosUpdateConfig plugin)
 --   { vSetup = spirosSetup
 --   }
 
 -- spirosSettings :: forall r. VPlugin (E.Rule r Root) Root -> IO (VSettings (E.Rule r Root) Root)
 -- spirosSettings plugin = do
---  settings :: (VSettings (E.Rule r Root) Root) <- (defSettings runActions spirosUpdateConfig plugin)
+--  settings :: (VSettings (E.Rule r Root) Root) <- (defSettings runWorkflow spirosUpdateConfig plugin)
 --  return$ settings
 --   { vSetup = setupCopyGrammar :: (VSettings (E.Rule r Root) Root -> IO (Either VError ()))
 --   }
@@ -90,7 +90,7 @@ spirosSetup settings = do
    -- putStrLn$ T.unpack shim  -- too long (5k lines)
    putStrLn ""
 
-   OSX.runActions$ OSX.setClipboard (T.unpack (T.filter isAscii shim))
+   OSX.runWorkflow$ OSX.setClipboard (T.unpack (T.filter isAscii shim))
 
    T.putStrLn$ displayAddress address
    putStrLn ""
@@ -122,10 +122,10 @@ spirosInterpret vSettings = \ws -> do
 
  t1<- liftIO$ getCurrentTime
 
- context <- liftIO$ OSX.runActions OSX.currentApplication
+ context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
- let actions = (vSettings&vConfig&vDesugar) context value
- liftIO$ OSX.runActionsWithDelay 5 actions
+ let workflow = (vSettings&vConfig&vDesugar) context value
+ liftIO$ OSX.runWorkflowWithDelay 5 workflow
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
  t2<- liftIO$ getCurrentTime
@@ -135,8 +135,8 @@ spirosInterpret vSettings = \ws -> do
 
  liftIO$ do
   putStrLn""
-  putStrLn$ "ACTIONS:"
-  putStr  $ OSX.showActions actions
+  putStrLn$ "WORKFLOW:"
+  putStr  $ OSX.showWorkflow workflow
   putStrLn ""
   putStrLn$ "TIMES:"
   putStrLn$ show d1

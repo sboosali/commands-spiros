@@ -175,7 +175,7 @@ rankEdit (Edit a s r) = (sum . fmap fromEnum) [a /= defaultAction, s /= defaultS
 runMove = moveEmacs
 
 -- the indirection (i.e. @data 'Move'@, not just a @String@) makes it easy to reinterpret in many ways (e.g. moveEmacs, moveIntelliJ, moveChromd , etc).
-moveEmacs :: Move -> Actions ()
+moveEmacs :: Move -> Workflow ()
 moveEmacs = \case
 
  Move Left_ Character  -> press_ "C-b"
@@ -210,13 +210,13 @@ moveEmacs = \case
  _ -> nothing
 
 -- gets the given region of text from Emacs
-selected :: Slice -> Region -> Actions String
+selected :: Slice -> Region -> Workflow String
 selected s r = do
  -- editEmacs (Edit Select s r)
  select r s
  copy
 
-select :: Region -> Slice -> Actions ()
+select :: Region -> Slice -> Workflow ()
 select That = \case
  _ -> nothing     -- (should be) already selected
 -- select Character = \case
@@ -239,7 +239,7 @@ In Emacs, this preserves the mark.
 
 -}
 -- | should be idempotent (in Emacs, not Haskell).
-beg_of :: Region -> Actions ()
+beg_of :: Region -> Workflow ()
 beg_of = \case
  -- runEmacs
  That       -> evalEmacs "(goto-char (region-beginning))"
@@ -254,7 +254,7 @@ beg_of = \case
  _          -> nothing
 
 -- | should be idempotent (in Emacs, not Haskell).
-end_of :: Region -> Actions ()
+end_of :: Region -> Workflow ()
 end_of = \case
  -- runEmacs
  That       -> evalEmacs "(goto-char (region-end))"
@@ -272,7 +272,7 @@ runEdit = editEmacs
 
 -- | vim's composeability would keep the number of cases linear (not quadratic in 'Action's times 'Region's).
 -- in Emacs, we can use <http://www.emacswiki.org/emacs/ThingAtPoint thingatpt.el>.
-editEmacs :: Edit -> Actions ()
+editEmacs :: Edit -> Workflow ()
 editEmacs = \case
 
  Edit Select Whole Line -> do -- special behavior
