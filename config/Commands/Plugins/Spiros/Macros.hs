@@ -10,6 +10,7 @@ import           Commands.Plugins.Spiros.Edit
 import Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Shell
 import Commands.Plugins.Spiros.Keys
+import  Commands.Plugins.Spiros.Template
 
 import Commands.Sugar.Keys
 import           Commands.Etc
@@ -247,8 +248,8 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    replicateM_ 2 $ press_ "<ret>"
    alt_tab
 
- , ""-: do
-   nothing
+ , "haddock"-: do
+   insertTemplate haddockTemplate 
 
  , ""-: do
    nothing
