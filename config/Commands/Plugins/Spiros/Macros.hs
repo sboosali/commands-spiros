@@ -238,8 +238,14 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    press_ "<ret>"
    press_ "!"
 
- , ""-: do
-   nothing
+ , "transfer"-: do
+   press_ "M-c"
+   openApplication "Notes"
+   press_ "M-<down>"
+   delay 500                    -- must wait for clipboard 
+   press_ "M-v"
+   replicateM_ 2 $ press_ "<ret>"
+   alt_tab
 
  , ""-: do
    nothing

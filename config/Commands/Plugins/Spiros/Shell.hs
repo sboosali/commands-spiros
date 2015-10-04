@@ -127,8 +127,7 @@ instance (Rankable Shell) where rank = rankShell
 
 rankShell :: Ranking Shell
 rankShell = \case
- Shell Safe _cmd args -> rankPhrase args
- Shell Unsafe _cmd args -> rankPhrase args
+ Shell _ _cmd args -> rankPhrase args
 
 runShell :: Desugaring Shell
 runShell = \case

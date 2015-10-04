@@ -118,7 +118,7 @@ rootsParser :: RULED EarleyParser s Roots
 rootsParser = EarleyParser rootsProd bestRoots
 
 rootsProd :: RULED EarleyProd s Roots
-rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots
+rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots -- TODO lol 
 
 bestRoots = argmax rankRoots
 
@@ -127,8 +127,9 @@ rankRoots = \case                --TODO fold over every field of every case, nor
  Ambiguous r -> highRank + rankRoot r
  Root_ r   -> rankRoot r
 
+-- prioritize "more specific" over "less specific" matches 
 rankRoot = \case
- Acts_ ass            -> safeAverage (fmap rankActs ass) 
+ Acts_ ass            -> 2*highRank + safeAverage (fmap rankActs ass) -- "google word" matches the Action, not the Macro 
  Macro_ _i (Macro f) -> highRank + rankApply f
  Shortcut_ _i _s -> highRank
  Shell_ s           -> highRank + rankShell s
