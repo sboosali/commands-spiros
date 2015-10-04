@@ -46,7 +46,7 @@ instance IsString Phrase_ where
 
 data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Bounded,Data)
 
-data Joiner = Joiner String | CamelJoiner | ClassJoiner deriving (Show,Eq,Ord,Data)
+data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Eq,Ord,Data)
 
 data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
 
@@ -99,6 +99,7 @@ data PAtom
 
 -- | for doctest
 instance IsString PAtom where fromString = PWord
+
 
 {- | a Pasted is like a 'Dictation'/'Quoted_' i.e. a list of words, not a single word.
 

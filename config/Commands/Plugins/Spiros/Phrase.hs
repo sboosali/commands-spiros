@@ -109,6 +109,7 @@ joiner = 'joiner
  <|> Joiner ""  <#> "squeeze"
  <|> CamelJoiner <#> "camel"    -- "cam"
  <|> ClassJoiner <#> "class"
+ <|> ShrinkJoiner <#> "shrink"  -- "shrink plug-in" -> "plugin"
 
 brackets = 'brackets
  <=> bracket          <#> "round" # character

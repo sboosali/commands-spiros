@@ -14,6 +14,7 @@ import qualified Data.List.NonEmpty               as NonEmpty
 import qualified Data.List               as List
 import Data.Monoid                           ((<>))
 import           Data.Foldable                    (Foldable (..))
+import Data.Char (isAlphaNum) 
 
 
 -- | splats the Pasted into PAtom's, after splitting the clipboard into words
@@ -71,16 +72,22 @@ joinWith = \case
  Joiner s    -> PWord . List.intercalate s . fmap mungePAtom
  CamelJoiner -> PWord . camelAtoms
  ClassJoiner -> PWord . classAtoms
+ ShrinkJoiner -> PWord . shrinkAtoms
+
 
 camelAtoms :: [PAtom] -> String
 camelAtoms []     = ""
 camelAtoms (x:xs) = lower (mungePAtom x) <> (classAtoms xs)
 
 classAtoms :: [PAtom] -> String
-classAtoms = squeezeCase . (fmap $ \case
- PWord w     -> capitalize w
- PAcronym _ cs -> upper cs)
--- TODO distinguish Capped from Acronym to preserve capitalization?
+classAtoms = squeezeCase . fmap go
+ where
+ go = \case
+  PWord w       -> capitalize w
+  PAcronym _ cs -> upper cs -- TODO distinguish Capped from Acronym to preserve capitalization?
+
+shrinkAtoms :: [PAtom] -> String
+shrinkAtoms = filter isAlphaNum . concatMap mungePAtom
 
 surroundWith :: Brackets -> ([PAtom] -> Spaced [PAtom])
 surroundWith (Brackets l r) as = do
