@@ -41,7 +41,7 @@ direction = tidyGrammar
 data Edit = Edit Action Slice Region deriving (Show,Eq,Ord)
 
 edit = 'edit <=> empty 
- <|> Edit Cut Forwards Line <#> "kill" -- NOTE overrides
+ -- <|> Edit Cut Forwards Line <#> "kill" -- NOTE overrides
  --     -- i.e. "kill" -> "kill for line", not "kill whole that"
  <|> Edit <$> action              <*> (slice -?- defaultSlice) <*> (region -?- defaultRegion)
     -- e.g. "cop" or "cop that" or "cop whole" -> "cop whole that"
@@ -68,7 +68,7 @@ data Action
 action = 'action <=> empty
  <|> Select      <#> "sell"
  <|> Copy        <#> "copy"      -- "cop" 
- <|> Cut         <#> "kill"      -- "cut" 
+ <|> Cut         <#> "cut"      -- "kill" 
  <|> Delete      <#> "del"
  <|> Transpose   <#> "trans"
  <|> Google      <#> "google"

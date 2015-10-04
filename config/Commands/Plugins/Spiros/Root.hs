@@ -127,7 +127,8 @@ rankRoots = \case                --TODO fold over every field of every case, nor
  Ambiguous r -> highRank + rankRoot r
  Root_ r   -> rankRoot r
 
--- prioritize "more specific" over "less specific" matches 
+-- prioritize Action over Macro
+-- ideally, prioritize "more specific" over "less specific" matches 
 rankRoot = \case
  Acts_ ass            -> 2*highRank + safeAverage (fmap rankActs ass) -- "google word" matches the Action, not the Macro 
  Macro_ _i (Macro f) -> highRank + rankApply f
