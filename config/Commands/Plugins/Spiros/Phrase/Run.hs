@@ -69,7 +69,7 @@ slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
 slotP p = do
  OSX.delay 10
  insertP p
- press_ "<ret>"
+ press "<ret>"
 
 insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
 insertP = munge >=> OSX.insert

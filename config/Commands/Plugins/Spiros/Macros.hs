@@ -78,15 +78,15 @@ runApply = \case
 -- ================================================================ --
 
 alt_tab = do
- press_ "M-<tab>"
- press_ "<ret>" 
+ press "M-<tab>"
+ press "<ret>" 
 
-move_window_down = press_ "S-<down>"
+move_window_down = press "S-<down>"
 
-move_window_up = press_ "S-<up>"
+move_window_up = press "S-<up>"
 
-toggle_clipboard_history = press_ "A-<spc>"               -- NOTE Alfred
-toggle_alfred = press_ "M-<spc>"               -- NOTE Alfred
+toggle_clipboard_history = press "A-<spc>"               -- NOTE Alfred
+toggle_alfred = press "M-<spc>"               -- NOTE Alfred
 
 open_pad = do
    openApplication "Commands"   -- TODO make variable 
@@ -109,16 +109,16 @@ reach_youtube = do
    openApplication "Google Chrome" -- TODO make variable 
    switch_tab (word2phrase "YouTube.com")
 
-youtube_toggle_fullscreen = press_ "S-f"
+youtube_toggle_fullscreen = press "S-f"
 
 youtube_toggle_sound = do
    app <- currentApplication
    reach_youtube
-   press_ "M-<up>"
+   press "M-<up>"
    delay chromeDelay 
    youtube_toggle_fullscreen 
    delay chromeDelay
-   press_ "k"      -- pauses the video, somehow  
+   press "k"      -- pauses the video, somehow  
    delay chromeDelay 
    youtube_toggle_fullscreen 
    delay 2000
@@ -139,20 +139,20 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
 
  , "run again"-: do
    execute_extended_command
-   press_ "<up>"
-   press_ "<ret>"
+   press "<up>"
+   press "<ret>"
 
  , "eval again"-: do
    eval_expression
-   press_ "<up>"
-   press_ "<ret>"
+   press "<up>"
+   press "<ret>"
 
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
 
  , "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
-   press_ "<del>" 
+   press "<del>" 
 
  , "voice build"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -163,9 +163,9 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  , "next error"-: do
    move_window_down
    runEmacs "compilation-next-error"
-   press_ "C-l"
-   press_ "C-l"
-   press_ "<ret>" 
+   press "C-l"
+   press "C-l"
+   press "<ret>" 
 
  , "macro"-: do   -- TODO LOL 
    openApplication "Commands"   -- TODO make variable 
@@ -175,10 +175,10 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    switch_buffer (word2phrase "Macro.hs") -- TODO make variable 
    delay 100
 
-   press_ "M-<up>"
-   press_ "C-s" >> slot " , \"\"-: do" >> replicateM_ 6 (press_ "<left>") 
-   -- press_ "C-s" >> slot " , \"\"-: do" >> press_ "<left><right>"
-   -- press_ "C-s" >> slot "\""           >> press_ "<left><right>"
+   press "M-<up>"
+   press "C-s" >> slot " , \"\"-: do" >> replicateM_ 6 (press "<left>") 
+   -- press "C-s" >> slot " , \"\"-: do" >> press "<left><right>"
+   -- press "C-s" >> slot "\""           >> press "<left><right>"
 
  , "shortcut"-: do
    openApplication "Commands"   -- TODO make variable 
@@ -190,13 +190,13 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
 
  -- TODO make "C-x C-y" the commands key prefix
  , "copy register"-: do
-   press_ "C-x C-y r c" -- nonstandard: my-register 
+   press "C-x C-y r c" -- nonstandard: my-register 
 
  , "paste register"-: do
-   press_ "C-x C-y r v" -- nonstandard: my-register 
+   press "C-x C-y r v" -- nonstandard: my-register 
 
  , "clear register"-: do
-   press_ "C-x C-y r d" -- nonstandard: my-register 
+   press "C-x C-y r d" -- nonstandard: my-register 
 
  , "magic"-: do
    runEmacs "magit-status"
@@ -215,37 +215,37 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
 
  , "check"-: do
    runEmacs "compile"
-   -- press_ keymap >> press_ "c"
+   -- press keymap >> press "c"
 
  , "exec again"-: do
-   press_ "S-<down>"
-   press_ "M-<down>"
-   press_ "C-<up>"
-   press_ "<ret>"
+   press "S-<down>"
+   press "M-<down>"
+   press "C-<up>"
+   press "<ret>"
 
  , "phonetic alphabet"-: do
    insertByClipboard$ (List.intercalate "\n" . map fst) phoneticAlphabet 
 
  , "bookmark"-: do
-   press_ "M-d"
+   press "M-d"
    delay 1000
-   press_ "<tab>"
+   press "<tab>"
    delay chromeDelay 
-   press_ "<up>"
+   press "<up>"
    -- then say "two ret" or click away 
 
  , "replace again"-: do
-   press_ "M-r"
-   press_ "<ret>"
-   press_ "!"
+   press "M-r"
+   press "<ret>"
+   press "!"
 
  , "transfer"-: do
-   press_ "M-c"
+   press "M-c"
    openApplication "Notes"
-   press_ "M-<down>"
+   press "M-<down>"
    delay 500                    -- must wait for clipboard 
-   press_ "M-v"
-   replicateM_ 2 $ press_ "<ret>"
+   press "M-v"
+   replicateM_ 2 $ press "<ret>"
    alt_tab
 
  , "haddock"-: do
@@ -253,8 +253,8 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
 
  , "occur again"-: do
    multi_occur "" 
-   replicateM_ 2 $ press_ "<up>" 
-   press_ "<ret>"
+   replicateM_ 2 $ press "<up>" 
+   press "<ret>"
 
  , ""-: do
    nothing
@@ -359,7 +359,7 @@ align_regexp p = do
 
 -- needs (setq confirm-nonexistent-file-or-buffer 'after-completion), which only switches to a buffer without prompt when that buffer already exists
 switch_buffer p = do
- press_ "C-x b"
+ press "C-x b"
  slotP p
 
 multi_occur p = do
@@ -375,28 +375,28 @@ google_for p = do
  google q
 
 search_regexp p = do
-  press_ "C-s"
+  press "C-s"
   maybe nothing insertP p
 
 find_text p = do
- press_ "M-f"
+ press "M-f"
  delay browserDelay
  insertP p
 
 goto_line :: Int -> Workflow_
 goto_line n = do
- press_ "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
+ press "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 
 comment_with :: Maybe Phrase -> Workflow_
 comment_with p = do
- press_ "M-;"
+ press "M-;"
  maybe nothing insertP p
 
 write_to_pad p = do
  open_pad
- press_ "<ret>" 
+ press "<ret>" 
  maybe nothing insertP p
 
 run_shell (Left s) = do
@@ -424,23 +424,23 @@ query_alfred p = do
  maybe nothing insertP p
 
 switch_tab p = do
- press_ "A-t"                    -- needs Tab Ahead chrome extension 
+ press "A-t"                    -- needs Tab Ahead chrome extension 
  delay chromeDelay 
  slotP p
 
 visit_site p = do
  openApplication "Google Chrome"   -- TODO make variable 
- press_ "M-t"
+ press "M-t"
  delay chromeDelay 
  slotP p
 
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
 google_click_link p = do
- press_ "M-f"
+ press "M-f"
  delay chromeDelay              -- TODO ReaderMonad delay time  
  slotP p
  delay chromeDelay 
- press_ "C-<ret>"
+ press "C-<ret>"
 
 open_application d = do
  openApplication$ mungeDictation d

@@ -121,7 +121,7 @@ slot :: String -> Workflow_
 slot s = do
  delay 10
  sendText s
- press_ "<ret>" 
+ press "<ret>" 
 
 isDefaultBrowser :: MonadWorkflow m => m (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
@@ -187,10 +187,10 @@ runRepeat delay_ times_
 insertByClipboard :: String -> Workflow_
 insertByClipboard s = do
  setClipboard s
- press_paste
+ presspaste
 
-press_paste :: Workflow_
-press_paste = press_ "M-v"
+presspaste :: Workflow_
+presspaste = press "M-v"
 
 -- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  
 -- benign race condition, as no lock is kept on the system clipboard

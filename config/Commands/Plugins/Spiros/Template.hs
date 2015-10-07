@@ -85,7 +85,7 @@ insertTemplate template = do
  let (before, after) = mungeTemplate template 
  insert before 
  insert after 
- replicateM_ (length after) (press_ "<left>") 
+ replicateM_ (length after) (press "<left>") 
 
 {-| munges the template, making it 'insert'able. 
 
