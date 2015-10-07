@@ -108,7 +108,8 @@ splitWith Splitter = concatMap go
 
 splitToken :: String -> [String]
 splitToken
- = filter anyBlack
+ = fmap lower
+ . filter anyBlack
  . concatMap unAnyCase
  . filter anyBlack
  . concatMap (splitWhen isPunctuation) -- undo joining 
@@ -119,21 +120,39 @@ splitToken
 {-| 
 
 >>> unAnyCase "unCamelCase"
-["un","camel","case"]
+["un","Camel","Case"]
 
 >>> unAnyCase "ClassCase"
-["class","case"]
+["Class","Case"]
 
--- TODO preserves acronyms 
+-- preserves acronyms 
 >>> unAnyCase "MTABidOptimization"
-["mta","bid","optimization"]
+["MTA","Bid","Optimization"]
 
 >>> unAnyCase ""
 []
 
 -}
 unAnyCase :: String -> [String]
-unAnyCase = fmap lower . (split . dropInitBlank . keepDelimsL . whenElt) isUpper
+unAnyCase
+ = mergeAdjacentUpper
+ . (split . dropInitBlank . keepDelimsL . whenElt) isUpper
+
+{-| 
+
+>>> mergeAdjacentUpper ["M","T","A","Bid","Optimization"]
+["MTA","Bid","Optimization"]
+
+-}
+
+mergeAdjacentUpper :: [String] -> [String]
+mergeAdjacentUpper
+ = fmap concat
+ . List.groupBy (\x y -> isSingleUpper x && isSingleUpper y) 
+ where 
+ isSingleUpper = \case
+  [c] -> isUpper c
+  _ -> False 
 
 -- | parses "tokens" into an "s-expression". a total function.
 pPhrase :: [Phrase_] -> UPhrase
