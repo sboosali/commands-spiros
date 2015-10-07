@@ -116,8 +116,9 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   (Escaped_  (Keyword x))    -> update ps $ fromPAtom (PWord x)
   (Quoted_   (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
   (Dictated_ (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
-  (Capped_   cs)             -> update ps $ fromPAtom (PAcronym True cs)
   (Spelled_  cs)             -> update ps $ fromPAtom (PAcronym False cs)
+  (Capped_   cs)             -> update ps $ fromPAtom (PAcronym True cs)
+  (Symbol_   cs)             -> update ps $ fromPAtom (PWord cs)
   Pasted_                    -> update ps $ fromPasted
   Blank_                     -> update ps $ fromPAtom (PWord "")
   Bonked_                    -> update (popall ps) $ fromPAtom (PWord " ")

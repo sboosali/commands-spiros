@@ -38,6 +38,7 @@ data Phrase_
  | Surrounded_ Brackets -- ^ function-like (/ "open paren").
  | Spelled_  [Char] -- ^ atom-like.
  | Capped_   [Char] -- ^ atom-like.
+ | Symbol_   [Char] -- ^ atom-like.
  | Dictated_ Dictation -- ^ list-like.
  deriving (Show,Eq,Ord,Data)
 

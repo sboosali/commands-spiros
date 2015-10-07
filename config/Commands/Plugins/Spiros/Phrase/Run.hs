@@ -44,6 +44,7 @@ rankPhrase_ = \case
  Blank_        -> defaultRank
  Spelled_ cs    -> highRank + defaultRank * rankChars cs
  Capped_ cs     -> highRank + defaultRank * rankChars cs
+ Symbol_ cs     -> highRank + defaultRank * rankChars cs
  Separated_ _  -> defaultRank
  Bonked_      -> defaultRank
  Cased_ _      -> defaultRank

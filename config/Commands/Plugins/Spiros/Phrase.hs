@@ -73,6 +73,7 @@ phraseB :: DNSEarleyRHS z Phrase_
 phraseB = 'phraseB <=> empty
  <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
  <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
+ <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol"
  -- <|> Spelled_ <$> (phoneticAlphabetRHS-++)  
  <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
@@ -156,7 +157,7 @@ punctuationRHS = vocab
  , "race"-: '}'
  , "stroke"-: '\\'
  , "pipe"-: '|'
- , "sim"-: ';'
+ , "semi"-: ';'
  , "coal"-: ':'
  , "tick"-: '\''
  , "quote"-: '"'
