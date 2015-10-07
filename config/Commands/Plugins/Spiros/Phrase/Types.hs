@@ -27,19 +27,20 @@ while @Phrase@ is the associated abstract syntax tree (e.g. s-expressions).
 
 -}
 data Phrase_
- = Escaped_  Keyword -- ^ atom-like (wrt 'Sexp').
- | Quoted_   Dictation -- ^ list-like.
- | Pasted_ -- ^ atom-like.
- | Blank_ -- ^ atom-like.
+ = Escaped_  Keyword    -- ^ atom-like (wrt 'Sexp').
+ | Quoted_   Dictation  -- ^ list-like.
+ | Pasted_              -- ^ atom-like.
+ | Blank_               -- ^ atom-like.
  | Separated_ Separator -- ^ like a "close paren".
  | Bonked_              -- ^ like a "close paren". 
- | Cased_      Casing -- ^ function-like (/ "open paren").
- | Joined_     Joiner -- ^ function-like (/ "open paren").
+ | Cased_      Casing   -- ^ function-like (/ "open paren").
+ | Joined_     Joiner   -- ^ function-like (/ "open paren").
  | Surrounded_ Brackets -- ^ function-like (/ "open paren").
- | Spelled_  [Char] -- ^ atom-like.
- | Capped_   [Char] -- ^ atom-like.
- | Symbol_   [Char] -- ^ atom-like.
- | Dictated_ Dictation -- ^ list-like.
+ | Splitted_ Splitter   -- ^ function-like (/ "open paren").
+ | Spelled_  [Char]     -- ^ atom-like.
+ | Capped_   [Char]     -- ^ atom-like.
+ | Symbol_   [Char]     -- ^ atom-like.
+ | Dictated_ Dictation  -- ^ list-like.
  deriving (Show,Eq,Ord,Data)
 
 instance IsString Phrase_ where
@@ -50,6 +51,8 @@ data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Bounded
 data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Eq,Ord,Data)
 
 data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
+
+data Splitter = Splitter deriving (Show,Eq,Ord,Data)
 
 newtype Separator = Separator String  deriving (Show,Eq,Ord,Data)
 
@@ -87,6 +90,7 @@ data PFunc
  = Cased      Casing
  | Joined     Joiner
  | Surrounded Brackets
+ | Splitted   Splitter 
  deriving (Show,Eq,Ord)
 
 -- | "Phrase Atom".

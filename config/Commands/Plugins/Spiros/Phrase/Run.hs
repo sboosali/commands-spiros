@@ -50,6 +50,7 @@ rankPhrase_ = \case
  Cased_ _      -> defaultRank
  Joined_ _     -> defaultRank
  Surrounded_ _ -> defaultRank
+ Splitted_ _  -> defaultRank 
  Dictated_ d   -> rankDictation d
 
 rankChars cs = length cs - 1

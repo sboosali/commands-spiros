@@ -6,6 +6,7 @@ module Commands.Plugins.Spiros.Phrase
  , module Commands.Plugins.Spiros.Phrase.Types
  , module Commands.Plugins.Spiros.Phrase.Run
  , module Commands.Plugins.Spiros.Phrase.Munging
+ , module Commands.Plugins.Spiros.Phrase.Spacing
  ) where
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase.Types
@@ -67,6 +68,7 @@ phraseA = 'phraseA <=> empty
  <|> Cased_      <#> casing
  <|> Joined_     <#> joiner
  <|> Surrounded_ <#> brackets
+ <|> Splitted_ <#> splitter 
 
 -- | a sub-phrase where a phrase to the right is possible.
 phraseB :: DNSEarleyRHS z Phrase_
@@ -122,6 +124,10 @@ brackets = 'brackets
  <|> bracket '\''     <#> "ticked"
  <|> bracket '|'      <#> "norm"
  -- <|> Brackets "**" "**" <#> "bold"
+
+splitter = 'splitter 
+ <=> Splitter <#> "split" 
+-- e.g. "split reach_YouTube" -> "reach you tube"  
 
 -- disjoint vocabulary ("effects"), possibly overlapping parses ("results")
 character :: DNSEarleyRHS z Char

@@ -5,16 +5,16 @@ import           Commands.Plugins.Spiros.Phrase.Spacing
 
 import qualified Commands.Backends.OSX            as OSX
 import           Commands.Munging
-
 import           Data.Sexp
 
 import           Data.List.NonEmpty               (NonEmpty (..))
 import qualified Data.List.NonEmpty               as NonEmpty
+import Data.List.Split hiding (Splitter) 
 
 import qualified Data.List               as List
 import Data.Monoid                           ((<>))
 import           Data.Foldable                    (Foldable (..))
-import Data.Char (isAlphaNum) 
+import Data.Char
 
 
 -- | splats the Pasted into PAtom's, after splitting the clipboard into words
@@ -52,7 +52,8 @@ applyPFunc :: [PAtom] -> PFunc -> Spaced [PAtom]
 applyPFunc as = \case
   Cased      g -> traverse (return . caseWith g) as
   Joined     g -> return [joinWith g as]
-  Surrounded g -> surroundWith g as
+  Surrounded g -> return (surroundWith g as)
+  Splitted   g -> return (splitWith g as) 
 
 caseWith :: Casing -> (PAtom -> PAtom)
 caseWith c = mapPAtom (fromCasing c)
@@ -77,7 +78,6 @@ joinWith = \case
  ClassJoiner -> PWord . classAtoms
  ShrinkJoiner -> PWord . shrinkAtoms
 
-
 camelAtoms :: [PAtom] -> String
 camelAtoms []     = ""
 camelAtoms (x:xs) = lower (mungePAtom x) <> (classAtoms xs)
@@ -92,24 +92,58 @@ classAtoms = squeezeCase . fmap go
 shrinkAtoms :: [PAtom] -> String
 shrinkAtoms = filter isAlphaNum . concatMap mungePAtom
 
-surroundWith :: Brackets -> ([PAtom] -> Spaced [PAtom])
-surroundWith (Brackets l r) as = do
+surroundWith :: Brackets -> ([PAtom] -> [PAtom])
+surroundWith (Brackets l r) as = [PWord l] <> as <> [PWord r]
  -- xs <- traverse mungePAtom as
- return $ ([PWord l] <> as <> [PWord r])
 -- TODO generalize by renaming surround to transform: it shares the type with Interleave
 -- e.g. "par thread comma 123" -> (1,2,3)
 
-joinSpelled :: [Phrase_] -> [Phrase_]
-joinSpelled = foldr' go []
+splitWith :: Splitter -> ([PAtom] -> [PAtom])
+splitWith Splitter = concatMap go 
  where
- go :: Phrase_ -> [Phrase_] -> [Phrase_]
- go (Spelled_ xs) (Spelled_ ys : ps) = (Spelled_ $ xs <> ys) : ps
- go p ps = p:ps
+ go = \case 
+  PWord w -> PWord <$> splitToken w
+  a -> [a] 
+  -- PAcronym _ cs -> PWord [cs] 
+
+splitToken :: String -> [String]
+splitToken
+ = filter anyBlack
+ . concatMap unAnyCase
+ . filter anyBlack
+ . concatMap (splitWhen isPunctuation) -- undo joining 
+ . wordsBy isSpace 
+ where 
+ anyBlack = not . all isSpace   -- NOTE {{all _ "" == True}}
+
+{-| 
+
+>>> unAnyCase "unCamelCase"
+["un","camel","case"]
+
+>>> unAnyCase "ClassCase"
+["class","case"]
+
+-- TODO preserves acronyms 
+>>> unAnyCase "MTABidOptimization"
+["mta","bid","optimization"]
+
+>>> unAnyCase ""
+[]
+
+-}
+unAnyCase :: String -> [String]
+unAnyCase = fmap lower . (split . dropInitBlank . keepDelimsL . whenElt) isUpper
 
 -- | parses "tokens" into an "s-expression". a total function.
 pPhrase :: [Phrase_] -> UPhrase
-pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
- -- (PSexp (PList [PAtom (PWord "")]))
+pPhrase
+ = fromStack
+ . foldl' go ((Nothing, []) :| [])
+ . mergeSpelled
+
+ -- e.g. (PSexp (PList [PAtom (PWord "")]))
+
  where
  go :: PStack -> Phrase_ -> PStack
  go ps = \case
@@ -128,6 +162,7 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   (Cased_     f)             -> push ps (Cased f)
   (Joined_    f)             -> push ps (Joined f)
   (Surrounded_ f)            -> push ps (Surrounded f)
+  (Splitted_   f)            -> push ps (Splitted f) 
 
  popall :: PStack -> PStack
  -- breaks out of every func to the left (like having enough Separated_'s) 
@@ -166,4 +201,12 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
 
  fromPAtom :: PAtom -> UPhrase
  fromPAtom = Atom . Right
+
+-- | merge adjacent 'Spelled_' 
+mergeSpelled :: [Phrase_] -> [Phrase_]
+mergeSpelled = foldr' go []
+ where
+ go :: Phrase_ -> [Phrase_] -> [Phrase_]
+ go (Spelled_ xs) (Spelled_ ys : ps) = (Spelled_ $ xs <> ys) : ps
+ go p ps = p:ps
 
