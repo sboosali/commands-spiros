@@ -105,15 +105,19 @@ emacs_reach_shell = do
    runMove (MoveTo Beginning Line)
    runEdit (Edit Delete Forwards Line)
 
-reach_youtube = do
-   openApplication "Google Chrome" -- TODO make variable 
-   switch_tab (word2phrase "YouTube.com")
-
-youtube_toggle_fullscreen = press "S-f"
+emacs_reach_repl = do
+   move_window_down 
+   delay 25
+   switch_buffer (word2phrase "*commands-spiros*") -- TODO
+   delay 25
+   window_bottom                -- TODO make typed/generic like runEdit
+   runMove (MoveTo Beginning Line)
+   runEdit (Edit Delete Forwards Line)
 
 youtube_toggle_sound = do
    app <- currentApplication
-   reach_youtube
+   openApplication "Google Chrome" -- TODO make variable 
+   chrome_reach_youtube
    press "M-<up>"
    delay chromeDelay 
    youtube_toggle_fullscreen 
@@ -123,6 +127,14 @@ youtube_toggle_sound = do
    youtube_toggle_fullscreen 
    delay 2000
    openApplication app
+
+chrome_reach_youtube = do
+ switch_tab (word2phrase "YouTube.com")
+
+youtube_toggle_fullscreen = press "S-f"
+
+
+
 
 
 -- ================================================================ --
@@ -135,7 +147,21 @@ myMacros = 'myMacros
 -- | macros without arguments
 myMacrosRHS0 :: R z Workflow_
 myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
- [ ""-: nothing
+ [ "voice"-: do                   -- short for "commands server"
+   openApplication "Terminal"   -- TODO make less stringly-typed
+   press "<del>" 
+
+ , "voice build"-: do   -- for bootstrapping 
+   openApplication "Commands"
+   delay 100
+   emacs_reach_shell
+   slot "cabal build server"
+
+ , "voice rebel"-: do           -- REPL
+   openApplication "Commands"
+   delay 100
+   emacs_reach_repl 
+   slot ":r Commands.Plugins.Spiros" 
 
  , "run again"-: do
    execute_extended_command
@@ -149,16 +175,6 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
 
  , "to do"-: do
    insert "TODO "               -- TODO instance IsString Phrase' would overlap with instance IsString [a] 
-
- , "voice"-: do                   -- short for "commands server"
-   openApplication "Terminal"   -- TODO make less stringly-typed
-   press "<del>" 
-
- , "voice build"-: do
-   openApplication "Commands"   -- TODO make variable 
-   delay 100
-   emacs_reach_shell
-   slot "cabal build server"
 
  , "next error"-: do
    move_window_down
@@ -202,7 +218,7 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    runEmacs "magit-status"
 
  , "music"-: do
-   reach_youtube
+   chrome_reach_youtube
 
  , "pause"-: do
    youtube_toggle_sound
@@ -255,6 +271,33 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    multi_occur "" 
    replicateM_ 2 $ press "<up>" 
    press "<ret>"
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
 
  , ""-: do
    nothing
