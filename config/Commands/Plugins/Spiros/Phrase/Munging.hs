@@ -113,7 +113,7 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
  where
  go :: PStack -> Phrase_ -> PStack
  go ps = \case
-  (Escaped_  (x))            -> update ps $ fromPAtom (PWord x)
+  (Escaped_  (Keyword x))    -> update ps $ fromPAtom (PWord x)
   (Quoted_   (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
   (Dictated_ (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
   (Capped_   cs)             -> update ps $ fromPAtom (PAcronym True cs)

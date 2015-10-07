@@ -410,9 +410,9 @@ word_ = dragonGrammar 'word_
  (T.unpack <$> anyWord)
  (DGNWords)
 
-keyword :: R z String 
+keyword :: R z Keyword 
 keyword = 'keyword
- <=> T.unpack <$> terminals
+ <=> (Keyword . T.unpack) <$> terminals
 
 letters = simpleGrammar 'letters
  ((T.unpack . fold) <$> some anyWord)

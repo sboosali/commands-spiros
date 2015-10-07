@@ -36,8 +36,8 @@ data Phrase_
  | Cased_      Casing -- ^ function-like (/ "open paren").
  | Joined_     Joiner -- ^ function-like (/ "open paren").
  | Surrounded_ Brackets -- ^ function-like (/ "open paren").
+ | Spelled_  [Char] -- ^ atom-like.
  | Capped_   [Char] -- ^ atom-like.
- | Spelled_  [Char] -- ^ list-like.
  | Dictated_ Dictation -- ^ list-like.
  deriving (Show,Eq,Ord,Data)
 
@@ -52,7 +52,7 @@ data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
 
 newtype Separator = Separator String  deriving (Show,Eq,Ord,Data)
 
-type Keyword = String -- TODO
+newtype Keyword = Keyword String  deriving (Show,Eq,Ord,Data)
 
 newtype Dictation = Dictation [String] deriving (Show,Eq,Ord,Data)
 
@@ -91,10 +91,10 @@ data PFunc
 -- | "Phrase Atom".
 --
 -- 'PAcronym's behave differently from 'PWord's under some 'Joiner's (e.g. class case).
--- a 'PAcronym' should hold only uppercase letters.
+-- 
 data PAtom
  = PWord String
- | PAcronym Bool [Char]         -- ^ whether the acronym is uppercased
+ | PAcronym Bool [Char]         -- ^ whether the acronym will be uppercased
  deriving (Show,Eq,Ord)
 
 -- | for doctest
@@ -112,8 +112,6 @@ data Pasted = Pasted  deriving (Show,Eq,Ord)
 
 -- | used by 'pPhrase'.
 type PStack = NonEmpty PItem
--- -- the Left represents 'List', the Right represents 'Sexp', 'Atom' is not represented.
--- type PStack = NonEmpty (Either [Phrase] (PFunc, [Phrase]))
 
 -- | an inlined subset of 'Sexp'.
 --
@@ -147,6 +145,6 @@ word2phrase = Phrase . (:[]) . word2phrase_
 -- snocPhrase :: Phrase -> String -> Phrase
 -- snocPhrase p s = p ++ [fromString s]
 
-mergeAdjacentDictated :: Phrase -> Phrase
-mergeAdjacentDictated = id -- TODO
+-- mergeAdjacentDictated :: Phrase -> Phrase
+-- mergeAdjacentDictated = id -- TODO
 
