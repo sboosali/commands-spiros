@@ -53,8 +53,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "undo"-: "M-z"
  , "salt"-: "M-a"
  , "paste"-: "M-v"
- , "copy"-: "M-c"
- , "cut"-: "M-x"
+ , "copying"-: "M-c"               -- 
+ , "cutting"-: "M-x"                -- 
  , "kill"-: "C-k"
  , "show apps"-: "M-<tab>"
  , "twist"-: "M-<tab> <ret>"
@@ -83,7 +83,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "other buffer"-: "C-x o"
  , "undo"-: "C-/"
  , "redo"-: "C-?"               -- NOTE undo-tree-mode
- , ""-: ""
+ , "evil toggle"-: "C-z"
  , ""-: ""
  , ""-: ""
  , ""-: ""

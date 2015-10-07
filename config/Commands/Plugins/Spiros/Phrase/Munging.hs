@@ -26,6 +26,9 @@ splatPasted p clipboard = either (substPasted clipboard) (:[]) <$> p
 mungePhrase :: MPhrase -> Spaced String
 mungePhrase p = concatPAtoms =<< evalSplatSexp applyPFunc p
 
+mungeDictation :: Dictation -> String
+mungeDictation (Dictation ws) = unwords ws 
+
 {- |
 
 

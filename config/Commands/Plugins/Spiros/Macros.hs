@@ -345,6 +345,7 @@ myMacrosRHS = empty
  <|> A1 switch_tab              <$ "tab"       <*> (phrase-?-"")
  <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
  <|> A1 google_click_link       <$ "link"      <*> phrase
+ <|> A1 open_application        <$ "open"      <*> dictation 
 -- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
 -- TODO <\$ <\*>
 
@@ -403,7 +404,6 @@ run_shell (Right p) = do
  emacs_reach_shell
  maybe nothing insertP p
 
-
 query_clipboard_history :: Maybe (Either Ordinal Phrase) -> Workflow_
 query_clipboard_history Nothing = do
  toggle_clipboard_history
@@ -439,4 +439,7 @@ google_click_link p = do
  slotP p
  delay chromeDelay 
  press_ "C-<ret>"
+
+open_application d = do
+ openApplication$ mungeDictation d
 
