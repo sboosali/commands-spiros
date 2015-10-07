@@ -74,9 +74,9 @@ phraseB = 'phraseB <=> empty
  <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
  <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
  <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol"
- -- <|> Spelled_ <$> (phoneticAlphabetRHS-++)  
- <|> Pasted_     <#> "pasted"    -- "yank" 
- <|> Blank_      <#> "blank"
+ <|> Pasted_   <#> "pasted"    -- "yank" 
+ <|> Blank_    <#> "blank"
+ <|> Spelled_  <$> (phoneticAlphabetRHS-++)  
  -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
  -- <|> Spelled_  <#> "spell" # letters -- only, not characters
 
