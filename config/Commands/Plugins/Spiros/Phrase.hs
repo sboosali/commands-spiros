@@ -11,7 +11,7 @@ import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Phrase.Types
 import           Commands.Plugins.Spiros.Phrase.Run
 import           Commands.Plugins.Spiros.Phrase.Munging
-import           Commands.Plugins.Spiros.Spacing
+import           Commands.Plugins.Spiros.Phrase.Spacing
 
 import           Commands.Etc
 import           Commands.Frontends.Dragon13
@@ -56,7 +56,7 @@ phrase = Phrase <$> complexGrammar 'phrase
 -- escaped, e.g. "quote greater equal unquote".
 phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
- <|> Escaped_    <#> "lit" # keyword
+ <|> Escaped_    <#> "literally" # keyword -- "lit" 
  <|> Quoted_     <#> "quote" # dictation # "unquote"
  <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
@@ -73,7 +73,7 @@ phraseB :: DNSEarleyRHS z Phrase_
 phraseB = 'phraseB <=> empty
  <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
  <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
- <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol"
+ <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol", that's frequent
  <|> Pasted_   <#> "pasted"    -- "yank" 
  <|> Blank_    <#> "blank"
  <|> Spelled_  <$> (phoneticAlphabetRHS-++)  

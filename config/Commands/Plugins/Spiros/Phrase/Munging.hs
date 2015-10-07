@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 module Commands.Plugins.Spiros.Phrase.Munging where
 import           Commands.Plugins.Spiros.Phrase.Types
-import           Commands.Plugins.Spiros.Spacing
+import           Commands.Plugins.Spiros.Phrase.Spacing
 
 import qualified Commands.Backends.OSX            as OSX
 import           Commands.Munging
@@ -113,6 +113,7 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
  where
  go :: PStack -> Phrase_ -> PStack
  go ps = \case
+
   (Escaped_  (Keyword x))    -> update ps $ fromPAtom (PWord x)
   (Quoted_   (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
   (Dictated_ (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
@@ -123,10 +124,10 @@ pPhrase = fromStack . foldl' go ((Nothing, []) :| []) . joinSpelled
   Blank_                     -> update ps $ fromPAtom (PWord "")
   Bonked_                    -> update (popall ps) $ fromPAtom (PWord " ")
   Separated_ (Separator x)   -> update (pop ps) $ fromPAtom (PWord x)
-  -- Separated_ Broken -> update (pop ps)
-  (Cased_     f)  -> push ps (Cased f)
-  (Joined_    f)  -> push ps (Joined f)
-  (Surrounded_ f) -> push ps (Surrounded f)
+
+  (Cased_     f)             -> push ps (Cased f)
+  (Joined_    f)             -> push ps (Joined f)
+  (Surrounded_ f)            -> push ps (Surrounded f)
 
  popall :: PStack -> PStack
  -- breaks out of every func to the left (like having enough Separated_'s) 

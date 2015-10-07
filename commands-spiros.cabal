@@ -45,7 +45,7 @@ library
         Commands.Plugins.Spiros.Phrase.Types
         Commands.Plugins.Spiros.Phrase.Munging
         Commands.Plugins.Spiros.Phrase.Run
-        Commands.Plugins.Spiros.Spacing
+        Commands.Plugins.Spiros.Phrase.Spacing
         Commands.Plugins.Spiros.Types 
 
     build-depends:

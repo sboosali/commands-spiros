@@ -251,8 +251,10 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  , "haddock"-: do
    insertTemplate haddockTemplate 
 
- , ""-: do
-   nothing
+ , "occur again"-: do
+   multi_occur "" 
+   replicateM_ 2 $ press_ "<up>" 
+   press_ "<ret>"
 
  , ""-: do
    nothing

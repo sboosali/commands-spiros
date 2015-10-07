@@ -7,7 +7,7 @@ import           Commands.Plugins.Spiros.Etc
 
 import qualified Commands.Backends.OSX            as OSX
 import           Commands.Etc
-import           Commands.Plugins.Spiros.Spacing
+import           Commands.Plugins.Spiros.Phrase.Spacing
 import Commands.Sugar.Keys
 
 import           Data.List.NonEmpty               (NonEmpty (..))
