@@ -124,6 +124,7 @@ myShortcuts = 'myShortcuts <=> shortcuts
 
  -- etc.
  , "scroll"-: "<spc>"
+ , "scroll down"-: "<spc>"
  , "scroll up"-: "S-<spc>"
  , "divider"-: "M--"                -- (it parses) 
  , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases

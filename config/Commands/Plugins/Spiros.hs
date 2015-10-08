@@ -1,12 +1,12 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables                                          #-}
-module Commands.Plugins.Spiros where
+module Commands.Plugins.Spiros where 
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Shim (getShim)
 
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Etc
-import           Commands.Frontends.Dragon13 hiding (getShim)
+import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Servers.Servant
 
@@ -78,11 +78,16 @@ spirosSetup settings = do
 
  let address = Address (Host "192.168.56.1") (Port (settings&vPort))
 
- applyShim getShim address (settings&vConfig&vGrammar) & \case
-  Left e -> do
+ let theShim = applyShim getShim address (settings&vConfig&vGrammar)
+
+ case theShim of 
+  Left (PythonSyntaxError e s) -> do
    putStrLn ""
-   putStrLn$ (show e)
-   return$ Left(VError (show e))
+   T.putStrLn s
+   putStrLn ""
+   print e
+   putStrLn ""
+   return$ Left(VError "")
 
   Right (PythonFile shim) -> do
    putStrLn "" -- TODO logging

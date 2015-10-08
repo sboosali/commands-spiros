@@ -29,6 +29,14 @@ import traceback
 
 
 
+# helpers
+
+def merge_dicts(x, y):
+    '''Given two dicts, merge them into a new dict as a shallow copy.'''
+    z = dict()
+    z.update(x)
+    z.update(y)
+    return z
 
 
 
@@ -70,13 +78,22 @@ correcting_rule = '''
  | nil | zero | one | two | three | four | five | six | sev | seven | eight | nine;
 '''
 
-active_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   H_RULES]) 
-active_exports =           [microphone_export, dnsmode_export, correctable_export, H_EXPORT]
+readable_export = "readable"
+readable_rule = '''<readable> exported = reading ;'''
 
-all_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   H_RULES,  correcting_rule]) 
-all_exports =           [microphone_export, dnsmode_export, correctable_export, H_EXPORT, correcting_export]
+reading_export = "reading"
+reading_rule = '''<reading> exported = \{reading} | speaking ;'''
+reading_lists = dict(reading=["scroll", "scroll down", "scroll up"])
+
+active_exports =           [microphone_export, dnsmode_export, correctable_export, readable_export, H_EXPORT]
+active_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   readable_rule, H_RULES]) 
+
+all_exports =           [microphone_export, dnsmode_export, correctable_export, correcting_export, reading_export, readable_export, H_EXPORT]
+all_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   correcting_rule,   reading_rule,   readable_rule, H_RULES]) 
+all_lists   = merge_dicts(H_LISTS,reading_lists)
 
 # TODO re-factor the microphone/dnsmode/correct/correcting grammars into their own grammar objects (GrammarBase)
+
 
 
 
@@ -105,7 +122,7 @@ class NarcissisticGrammar(GrammarBase):
     def initialize(self):
         self.set_rules  (all_rules)
         self.set_exports(active_exports, exclusive=1)
-        self.set_lists  (H_LISTS)
+        self.set_lists  (all_lists)
         self.doOnlyGotResultsObject = True   # when True, aborts all processing after calling gotResultsObject
 
     # called when speech is detected before recognition begins.
@@ -250,7 +267,7 @@ def try_magic_handlers(grammar,data):
 
         # truthy if the recognition has been handled "magically"
         # by the client, and shouldn't be handled by the server TODO make this API explicit in servant
-        should_change_mode = handle_abrogation(data) or handle_correcting(grammar,datum) or handle_correctable(grammar,datum) or handle_microphone(grammar,datum) or handle_dnsmode(grammar,datum)
+        should_change_mode = handle_abrogation(data) or handle_correctable(grammar,datum) or handle_correcting(grammar,datum) or handle_microphone(grammar,datum) or handle_dnsmode(grammar,datum) or handle_readable(grammar,datum) or handle_reading(grammar,datum)
     should_send_request = is_recognition_good and not should_change_mode
 
     return (should_send_request, should_change_mode) 
@@ -334,6 +351,26 @@ def handle_correcting(grammar,datum):
         return None 
 
 
+def handle_readable(grammar,datum):
+
+    if   datum == "reading":
+        grammar.activateSet([reading_export],exclusive=1)
+        return "reading"     # change state 
+
+    else:
+        return None
+
+
+def handle_reading(grammar,datum):
+
+    if   datum == "speaking":
+        grammar.activateSet(active_exports,exclusive=1)
+        return "normal"     # change state 
+
+    else:
+        return None
+
+
 def isUnicode(data):
     try:
         for word in data:
@@ -361,7 +398,6 @@ def now():
 
 def first_result(resultsObject):
     return next(get_results(resultsObject), None)
-
 
 # returns an iterator of words (strings)
 # 

@@ -157,6 +157,12 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    emacs_reach_shell
    slot "cabal build server"
 
+ , "voice run"-: do   -- for bootstrapping 
+   openApplication "Commands"
+   delay 100
+   emacs_reach_shell
+   slot "cabal run server"
+
  , "voice rebel"-: do           -- REPL
    openApplication "Commands"
    delay 100
@@ -262,6 +268,7 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    delay 500                    -- must wait for clipboard 
    press "M-v"
    replicateM_ 2 $ press "<ret>"
+   delay 500                    -- must wait for clipboard 
    alt_tab
 
  , "haddock"-: do
