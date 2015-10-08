@@ -248,14 +248,6 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  , "phonetic alphabet"-: do
    insertByClipboard$ (List.intercalate "\n" . map fst) phoneticAlphabet 
 
- , "bookmark"-: do
-   press "M-d"
-   delay 1000
-   press "<tab>"
-   delay chromeDelay 
-   press "<up>"
-   -- then say "two ret" or click away 
-
  , "replace again"-: do
    press "M-r"
    press "<ret>"
@@ -398,6 +390,7 @@ myMacrosRHS = empty
  <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
  <|> A1 google_click_link       <$ "link"      <*> phrase
  <|> A1 open_application        <$ "open"      <*> dictation 
+ <|> A1 bookmark_it             <$ "bookmark"  <*> (dictation-?)
 -- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
 -- TODO <\$ <\*>
 
@@ -495,3 +488,11 @@ google_click_link p = do
 open_application d = do
  openApplication$ mungeDictation d
 
+bookmark_it d = do
+   press "M-d"
+   delay 1000
+   press "<tab>"
+   delay chromeDelay 
+   press "<up>"
+   maybe nothing slotD d 
+   -- then say "two ret" or click away 

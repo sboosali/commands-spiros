@@ -66,6 +66,15 @@ rankDictation (Dictation ws) = length ws - 1
 --  . NonEmpty.fromList --  TODO
 --  . parseList phrase_
 
+slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
+slotD p = do
+ OSX.delay 10
+ insertD p
+ press "<ret>"
+
+insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
+insertD = mungeDictation >>> OSX.insert
+
 slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
 slotP p = do
  OSX.delay 10
