@@ -1,33 +1,28 @@
-{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts       #-}
+{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
+import Commands.Plugins.Spiros.Shortcut.Types 
+import Commands.Plugins.Spiros.Chrome.Gmail 
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
-import Commands.Sugar.Keys
-import Commands.Backends.OSX
 
-import           Data.Text.Lazy                 (Text)
+import Control.Applicative
 
-import           GHC.Exts                        (IsString (..))
--- import Control.Applicative
-
-
-newtype Shortcut = Shortcut KeyRiff
- deriving (Show, Eq, Ord)
-
--- runShortcut :: Shortcut -> 
-runShortcut (Shortcut kr) = runKeyRiff kr
-
-shortcuts :: (Functor'RHS n Text f) => [(String,String)] -> RHS n Text f Shortcut
-shortcuts
- = fmap Shortcut
- . foldMap (\(s,k) -> kbd k <$ fromString s)
- . filterBlanks
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
-myShortcuts = 'myShortcuts <=> shortcuts
+myShortcuts :: R z Shortcut 
+myShortcuts = 'myShortcuts
+ <=> globalShortcuts
+ <|> emacsShortcuts
+ <|> magitShortcuts
+ <|> chromeShortcuts 
+ <|> gmailShortcuts
+
+
+globalShortcuts :: R z Shortcut  
+globalShortcuts = shortcuts
  -- keys
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
@@ -48,7 +43,6 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
 
- -- Global
  , "no"-: "M-z"
  , "undo"-: "M-z"
  , "salt"-: "M-a"
@@ -60,6 +54,9 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "twist"-: "M-<tab> <ret>"
  , "switch"-: "M-`"
  , "abdicate"-: "M-q"
+ , "scroll"-: "<spc>"
+ , "scroll down"-: "<spc>"
+ , "scroll up"-: "S-<spc>"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -67,9 +64,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
+ ]
 
- -- Emacs
- , "stop"-: "C-g"
+
+emacsShortcuts :: R z Shortcut 
+emacsShortcuts = shortcuts 
+ [ "stop"-: "C-g"
  -- , "check"-: "M-u"
  -- , "comment"-: "M-;"
  , "new file"-: "C-\\"
@@ -84,6 +84,8 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , "undo"-: "C-/"
  , "redo"-: "C-?"               -- NOTE undo-tree-mode
  , "evil toggle"-: "C-z"
+ , "divider"-: "M--"                -- (it parses) 
+ , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -91,9 +93,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
+ ]
 
- -- Emacs magit-status
- , "stage"-: "s"
+
+magitShortcuts :: R z Shortcut 
+magitShortcuts = shortcuts 
+ [ "stage"-: "s"
  , "stage all"-: "S-s"
  , "unstage"-: "u"
  , "commit"-: "c c"
@@ -103,9 +108,12 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
+ ]
 
- -- Chrome
- , "new tab"-: "M-t"
+
+chromeShortcuts :: R z Shortcut 
+chromeShortcuts = shortcuts
+ [ "new tab"-: "M-t"
  , "close tab"-: "M-w"
  , "last"-: "M-9"
  , "left tab"-: "C-S-<tab>"
@@ -121,20 +129,5 @@ myShortcuts = 'myShortcuts <=> shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
-
- -- etc.
- , "scroll"-: "<spc>"
- , "scroll down"-: "<spc>"
- , "scroll up"-: "S-<spc>"
- , "divider"-: "M--"                -- (it parses) 
- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
  ]
+

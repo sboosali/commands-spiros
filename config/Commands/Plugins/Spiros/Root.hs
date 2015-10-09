@@ -14,7 +14,8 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
-import Commands.Plugins.Spiros.Keys
+import           Commands.Plugins.Spiros.Keys
+import           Commands.Plugins.Spiros.Shortcut.Types 
 
 import           Commands.Backends.OSX
 import           Commands.Etc

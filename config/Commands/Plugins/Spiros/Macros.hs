@@ -439,7 +439,7 @@ comment_with p = do
 
 write_to_pad p = do
  open_pad
- press "<ret>" 
+ replicateM_ 2 $ press "<ret>" 
  maybe nothing insertP p
 
 run_shell (Left s) = do

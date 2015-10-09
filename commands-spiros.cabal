@@ -30,23 +30,30 @@ library
     exposed-modules:
         Commands.Plugins.Spiros
         Commands.Plugins.Spiros.Etc
-        Commands.Plugins.Spiros.Emacs
-        Commands.Plugins.Spiros.Emacs.Config
-        Commands.Plugins.Spiros.Emacs.InteractiveCommands
+        Commands.Plugins.Spiros.Types 
+
         Commands.Plugins.Spiros.Root
-        Commands.Plugins.Spiros.Shortcut
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Macros
         Commands.Plugins.Spiros.Template
         Commands.Plugins.Spiros.Edit
         Commands.Plugins.Spiros.Shell
         Commands.Plugins.Spiros.Keys
+        Commands.Plugins.Spiros.Shortcut
+        Commands.Plugins.Spiros.Shortcut.Types
+
         Commands.Plugins.Spiros.Phrase
         Commands.Plugins.Spiros.Phrase.Types
         Commands.Plugins.Spiros.Phrase.Munging
         Commands.Plugins.Spiros.Phrase.Run
         Commands.Plugins.Spiros.Phrase.Spacing
-        Commands.Plugins.Spiros.Types 
+
+        Commands.Plugins.Spiros.Emacs
+        Commands.Plugins.Spiros.Emacs.Config
+        Commands.Plugins.Spiros.Emacs.InteractiveCommands
+
+        Commands.Plugins.Spiros.Chrome.Gmail
+
 
     build-depends:
         base ==4.8.*,
