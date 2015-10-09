@@ -204,5 +204,5 @@ restoringClipboard m = do
  return x
 
 diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer 
-diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` 1000000
+diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
 

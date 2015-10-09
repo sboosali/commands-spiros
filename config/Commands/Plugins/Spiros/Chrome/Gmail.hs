@@ -22,6 +22,7 @@ gmailShortcuts = shortcuts
  , "italic"-: "M-i"
  , "underline"-: "M-u"
  , "send message"-: "M-<ret>"
+ , "expand mail"-: ";"
  , "blur"-: "<esc>"             -- fade out from current input field, if any  
 
  , "Gmail search"-: "/"
@@ -31,8 +32,6 @@ gmailShortcuts = shortcuts
  , "all mail"-: "g a"
  , "sent mail"-: "g t"
  , "inbox mail"-: "g i"
-
- , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""

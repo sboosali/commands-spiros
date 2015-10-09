@@ -57,7 +57,7 @@ globalShortcuts = shortcuts
  , "scroll"-: "<spc>"
  , "scroll down"-: "<spc>"
  , "scroll up"-: "S-<spc>"
- , ""-: ""
+ , "submit"-: "M-<ret>"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -101,6 +101,7 @@ magitShortcuts = shortcuts
  [ "stage"-: "s"
  , "stage all"-: "S-s"
  , "unstage"-: "u"
+ , "unstage all"-: "S-u y"
  , "commit"-: "c c"
  , "amend"-: "c a"
  , "difference"-: "d <ret>"
@@ -130,4 +131,5 @@ chromeShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
  ]
+
 

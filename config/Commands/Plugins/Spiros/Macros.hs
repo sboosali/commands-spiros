@@ -388,7 +388,7 @@ myMacrosRHS = empty
  <|> A1 query_alfred            <$ "Alfred"    <*> (phrase-?)
  <|> A1 switch_tab              <$ "tab"       <*> (phrase-?-"")
  <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
- <|> A1 google_click_link       <$ "link"      <*> phrase
+ <|> A1 chrome_click_link       <$ "link"      <*> phrase
  <|> A1 open_application        <$ "open"      <*> dictation 
  <|> A1 bookmark_it             <$ "bookmark"  <*> (dictation-?)
 -- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
@@ -478,7 +478,7 @@ visit_site p = do
  slotP p
 
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
-google_click_link p = do
+chrome_click_link p = do
  press "M-f"
  delay chromeDelay              -- TODO ReaderMonad delay time  
  slotP p
@@ -495,4 +495,6 @@ bookmark_it d = do
    delay chromeDelay 
    press "<up>"
    maybe nothing slotD d 
-   -- then say "two ret" or click away 
+   delay 1000                    -- enough time to double check 
+   replicateM_ 2 $ press "<ret>"
+

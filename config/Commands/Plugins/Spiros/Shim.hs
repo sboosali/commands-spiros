@@ -2,7 +2,7 @@
 -- | (you should read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Shim where
 
-import           Commands.Frontends.Dragon13 hiding (getShim)
+import           Commands.Frontends.Dragon13
 
 import           Text.InterpolatedString.Perl6
 
