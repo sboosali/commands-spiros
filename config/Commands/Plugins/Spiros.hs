@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables                                          #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns                       #-}
 module Commands.Plugins.Spiros where 
+import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Shim (getShim)
 
@@ -16,15 +17,16 @@ import qualified Data.ByteString.Lazy.Char8    as BSC
 import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import           Servant
-import Data.Time
-import Data.Char
+import System.Clock 
 
+import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 import System.IO
 import System.Mem
+
 
 -- ================================================================ --
 
@@ -102,18 +104,21 @@ spirosSetup settings = do
 
    return$ Right()
 
+theClock :: Clock 
+theClock = Realtime
+
 {- | this handler:
 
-* supports short-circuiting (in 'EitherT'), returning an HTTP error status.
+* supports short-circuiting (in 'EitherT') on parser error, returning an HTTP error status.
 * executes the compiled actions (in 'IO').
-
 
 -}
 spirosInterpret :: (Show a) => (forall r. RULED VSettings r a) -> [Text] -> Response ()
 spirosInterpret vSettings = \ws -> do
 
- t0<- liftIO$ getCurrentTime
- value <- e'ParseBest (vSettings&vConfig&vParser) ws & \case
+ t0<- liftIO$ getTime theClock 
+
+ !value <- case e'ParseBest (vSettings&vConfig&vParser) ws of 
   Right x -> return x
   Left e -> do
    liftIO$ do
@@ -125,18 +130,20 @@ spirosInterpret vSettings = \ws -> do
     hFlush stdout
    left$ err400{errBody = BSC.pack (show e)}
 
- t1<- liftIO$ getCurrentTime
+ t1<- liftIO$ getTime theClock 
 
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
- let workflow = (vSettings&vConfig&vDesugar) context value
+ let workflow = (vSettings&vConfig&vDesugar) context value  -- return() 
  liftIO$ OSX.runWorkflowWithDelay 5 workflow
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
- t2<- liftIO$ getCurrentTime
 
- let d1 = (1000 * (t1 `diffUTCTime` t0))
- let d2 = (1000 * (t2 `diffUTCTime` t1))
+ t2<- liftIO$ getTime theClock 
+
+ let d1 = diffTimeSpecAsMilliseconds t1 t0 
+ let d2 = diffTimeSpecAsMilliseconds t2 t1 
+ let d3 = diffTimeSpecAsMilliseconds t2 t0
 
  liftIO$ do
   putStrLn""
@@ -144,8 +151,9 @@ spirosInterpret vSettings = \ws -> do
   putStr  $ OSX.showWorkflow workflow
   putStrLn ""
   putStrLn$ "TIMES:"
-  putStrLn$ show d1
-  putStrLn$ show d2
+  putStrLn$ show d1 ++ "ms"
+  putStrLn$ show d2 ++ "ms"
+  putStrLn$ show d3 ++ "ms"
   putStrLn ""
   putStrLn$ "CONTEXT:"
   print context

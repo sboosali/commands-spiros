@@ -8,6 +8,7 @@ import           Commands.Backends.OSX
 import           Commands.Sugar.Keys 
 
 import qualified System.FilePath.Posix as FilePath
+import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec) 
 
 import Data.Foldable
 import qualified Data.List as List
@@ -201,4 +202,7 @@ restoringClipboard m = do
  delay 100 -- otherwise, e.g. the old clipboard contents are reset before the temporary clipboard contents are paste TODO call Haskell from Objective-C on callback? 
  setClipboard contents
  return x
+
+diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer 
+diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` 1000000
 
