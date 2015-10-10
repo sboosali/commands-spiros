@@ -1,5 +1,5 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, BangPatterns                       #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns                        #-}
 module Commands.Plugins.Spiros.Main where 
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Root
@@ -18,6 +18,7 @@ import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import           Servant
 import System.Clock 
+import Data.List.NonEmpty (nonEmpty) 
 
 import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
@@ -26,6 +27,12 @@ import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
 import System.IO
 import System.Mem
+import Control.Arrow ((&&&)) 
+
+
+type SpirosType = Roots
+
+type ServerMagic a = (([Text] -> (Maybe a, [a])) -> [Text] -> a -> IO (Bool)) -- TODO
 
 
 -- ================================================================ --
@@ -48,8 +55,12 @@ spirosServer = serveNatlink (spirosSettings rootsCommand)
 -- -- de'serve plugin = unsafePerformIO(de'Settings plugin) & serveNatlink
 -- spirosServe plugin = serveNatlink (spirosSettings plugin)
 
-spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
-spirosSettings command = VSettings 8888 spirosSetup spirosInterpret (spirosUpdateConfig command)
+-- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
+spirosSettings :: RULED DNSEarleyCommand r SpirosType -> RULED VSettings r SpirosType
+spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic) (spirosUpdateConfig command)
+
+-- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
+-- spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret (\_ _ _ -> return())) (spirosUpdateConfig command)
 
 -- spirosSettings :: forall r a. VPlugin_ r a -> (VSettings_ r a)
 -- spirosSettings plugin = (defSettings runWorkflow spirosUpdateConfig plugin)
@@ -104,21 +115,19 @@ spirosSetup settings = do
 
    return$ Right()
 
-theClock :: Clock 
-theClock = Realtime
-
 {- | this handler:
 
 * supports short-circuiting (in 'EitherT') on parser error, returning an HTTP error status.
 * executes the compiled actions (in 'IO').
 
 -}
-spirosInterpret :: (Show a) => (forall r. RULED VSettings r a) -> [Text] -> Response ()
-spirosInterpret vSettings = \ws -> do
+spirosInterpret :: (Show a) => ServerMagic a -> (forall r. RULED VSettings r a) -> [Text] -> Response ()
+spirosInterpret serverMagic vSettings = \ws -> do
 
  t0<- liftIO$ getTime theClock 
 
- !value <- case e'ParseBest (vSettings&vConfig&vParser) ws of 
+ !value <- case e'ParseBest (vSettings&vConfig&vParser) ws of
+  -- for thunk for accurate profiling 
   Right x -> return x
   Left e -> do
    liftIO$ do
@@ -135,9 +144,14 @@ spirosInterpret vSettings = \ws -> do
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
  let workflow = (vSettings&vConfig&vDesugar) context value  -- return() 
- liftIO$ OSX.runWorkflowWithDelay 5 workflow
+ let workflowIO = OSX.runWorkflowWithDelay 5 workflow
+ liftIO$ workflowIO 
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
+
+ -- magic actions, TODO replace with a free monad
+ let parser_ ws_ = ((fmap (vSettings&vConfig&vParser&pBest) . nonEmpty) &&& id) (e'ParseList (vSettings&vConfig&vParser&pProd) ws_)
+ shouldExecute <- liftIO$ serverMagic parser_ ws value 
 
  t2<- liftIO$ getTime theClock 
 
@@ -145,8 +159,8 @@ spirosInterpret vSettings = \ws -> do
  let d2 = diffTimeSpecAsMilliseconds t2 t1 
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
- liftIO$ do
-  putStrLn""
+ when shouldExecute $ liftIO$ do
+  replicateM_ 3 (putStrLn"")
   putStrLn$ "WORKFLOW:"
   putStr  $ OSX.showWorkflow workflow
   putStrLn ""
@@ -163,8 +177,47 @@ spirosInterpret vSettings = \ws -> do
   putStrLn ""
   putStrLn$ "WORDS:"
   T.putStrLn$ T.intercalate (T.pack " ") ws
-  replicateM_ 3 (putStrLn"")
 
   -- performMinorGC
   performMajorGC
+
+ where 
+ theClock = Realtime
+
+
+-- | on 'Ambiguous', print all parse results.  
+spirosMagic :: ServerMagic Roots 
+spirosMagic parse_ ws = \case 
+
+  Ambiguous _r -> case ws of
+   ((T.unpack -> "explicate"):ws_) -> liftIO$ do -- TODO grammatical symbol is hardcoded 
+    let (value,values) = parse_ ws_
+    replicateM_ 3 (putStrLn"")
+
+    putStrLn$ "LENGTH:" 
+    print   $ length values 
+    putStrLn$ "" 
+
+    putStrLn$ "WORDS:"
+    T.putStrLn$ T.intercalate (T.pack " ") ws
+    putStrLn$ "" 
+
+    putStrLn$ "BEST:"
+    print   $ value 
+    putStrLn$ "" 
+
+    putStrLn$ "VALUES:"
+    itraverse_ printValue values 
+
+    return False 
+
+   _ -> return True 
+
+  _ -> return True 
+
+ where 
+ printValue ((+1) -> index_) value = do 
+  putStrLn ""
+  print $ show index_ ++ "." 
+  print value
 

@@ -224,6 +224,7 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
    runEmacs "magit-status"
 
  , "music"-: do
+   openApplication "Google Chrome"  
    chrome_reach_youtube
 
  , "pause"-: do
