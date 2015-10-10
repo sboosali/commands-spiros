@@ -23,7 +23,7 @@ import           Commands.Mixins.DNS13OSX9
 import Commands.Sugar.Keys
 
 import           Data.Typeable
-import           Numeric.Natural ()
+-- import           Numeric.Natural
 
 import           Control.Applicative hiding (many, optional)
 -- import           Control.Parallel
@@ -113,7 +113,7 @@ button = qualifiedGrammar
 -- ================================================================ --
 
 rootsCommand :: C z Roots
-rootsCommand = Command roots bestRoots runRoots
+rootsCommand = Command roots bestRoots runRoots -- TODO is this the right place? 
 
 rootsParser :: RULED EarleyParser s Roots
 rootsParser = EarleyParser rootsProd bestRoots

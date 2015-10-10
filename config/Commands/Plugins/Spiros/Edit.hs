@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, RankNTypes, AutoDeriveTypeable, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections  #-}
+{-# LANGUAGE TemplateHaskell, RankNTypes, AutoDeriveTypeable, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Edit where 
@@ -172,10 +172,11 @@ rankEdit (Edit a s r) = (sum . fmap fromEnum) [a /= defaultAction, s /= defaultS
 -- defaults have lower rank
 -- disambiguates "cop fuss line" into [cop fuss line], not [cop] [fuss line] which comes first in the order 
 
+runMove :: MonadWorkflow m => Move -> m() 
 runMove = moveEmacs
 
 -- the indirection (i.e. @data 'Move'@, not just a @String@) makes it easy to reinterpret in many ways (e.g. moveEmacs, moveIntelliJ, moveChromd , etc).
-moveEmacs :: Move -> Workflow ()
+moveEmacs :: MonadWorkflow m => Move -> m ()
 moveEmacs = \case
 
  Move Left_ Character  -> press "C-b"
@@ -210,13 +211,13 @@ moveEmacs = \case
  _ -> nothing
 
 -- gets the given region of text from Emacs
-selected :: Slice -> Region -> Workflow String
+selected :: MonadWorkflow m => Slice -> Region -> m String
 selected s r = do
  -- editEmacs (Edit Select s r)
  select r s
  copy
 
-select :: Region -> Slice -> Workflow ()
+select :: MonadWorkflow m => Region -> Slice -> m ()
 select That = \case
  _ -> nothing     -- (should be) already selected
 -- select Character = \case
@@ -239,7 +240,7 @@ In Emacs, this preserves the mark.
 
 -}
 -- | should be idempotent (in Emacs, not Haskell).
-beg_of :: Region -> Workflow ()
+beg_of :: MonadWorkflow m => Region -> m ()
 beg_of = \case
  -- runEmacs
  That       -> evalEmacs "(goto-char (region-beginning))"
@@ -254,7 +255,7 @@ beg_of = \case
  _          -> nothing
 
 -- | should be idempotent (in Emacs, not Haskell).
-end_of :: Region -> Workflow ()
+end_of :: MonadWorkflow m => Region -> m ()
 end_of = \case
  -- runEmacs
  That       -> evalEmacs "(goto-char (region-end))"
@@ -268,11 +269,12 @@ end_of = \case
  Everything -> runEmacs "end-of-buffer"
  _          -> nothing
 
+runEdit :: MonadWorkflow m => Edit -> m() 
 runEdit = editEmacs
 
 -- | vim's composeability would keep the number of cases linear (not quadratic in 'Action's times 'Region's).
 -- in Emacs, we can use <http://www.emacswiki.org/emacs/ThingAtPoint thingatpt.el>.
-editEmacs :: Edit -> Workflow ()
+editEmacs :: MonadWorkflow m => Edit -> m ()
 editEmacs = \case
 
  Edit Select Whole Line -> do -- special behavior

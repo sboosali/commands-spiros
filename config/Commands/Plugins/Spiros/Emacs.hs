@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators #-}
+{-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Emacs where
@@ -41,18 +41,19 @@ emacs = 'emacs <=> empty
 
 -- ================================================================ --
 
+runEmacs_ :: MonadWorkflow m => Emacs -> m() 
 runEmacs_ = \case 
- EmacsFunction   Nothing -> execute_extended_command
- EmacsFunction   (Just p') -> runEmacs =<< munge p'
- EmacsExpression Nothing -> eval_expression
- EmacsExpression (Just p') -> evalEmacs =<< munge p'
+ EmacsFunction   Nothing  -> execute_extended_command
+ EmacsFunction   (Just p) -> runEmacs =<< munge p
+ EmacsExpression Nothing  -> eval_expression
+ EmacsExpression (Just p) -> evalEmacs =<< munge p
 
 {- | generates actions to evaluate a stringly-typed s-expression in Emacs, just like @M-:@.
 
 since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffers t)@ to work when the current buffer is already a minibuffer.
 
 -}
-evalEmacs :: ElispSexp -> Workflow ()
+evalEmacs :: MonadWorkflow m => ElispSexp -> m ()
 evalEmacs sexp = do
  eval_expression
  slot sexp
@@ -77,9 +78,10 @@ since it opens a minibuffer in Emacs, it needs @(setq enable-recursive-minibuffe
 
 -}
 runEmacsWith
- :: String                      --  ^ the name of the interactive command
+ :: MonadWorkflow m
+ =>  String                      --  ^ the name of the interactive command
  -> [String]                    --  ^ the arguments that would be manually entered, one at a time, in a minibuffer
- -> Workflow ()
+ -> m ()
 runEmacsWith f xs = do
  execute_extended_command -- TODO non-standard: make this configurable? ImplicitParams?
  slot f
@@ -92,11 +94,11 @@ runEmacsWith f xs = do
 -- http://stackoverflow.com/questions/29953266/emacs-list-the-names-of-every-interactive-command
 
 -- | like 'runEmacsWith', but takes no arguments.
-runEmacs :: String -> Workflow ()
+runEmacs :: MonadWorkflow m => String -> m ()
 runEmacs f = runEmacsWith f []
 
 -- | like 'runEmacs', but doesn't press enter. 
-runEmacsWait :: String -> Workflow ()
+runEmacsWait :: MonadWorkflow m => String -> m ()
 runEmacsWait f = do
  execute_extended_command
  insert f
@@ -104,7 +106,7 @@ runEmacsWait f = do
 -- | like 'runEmacsWith', but takes string-returning-actions as arguments.
 --
 -- e.g. @runEmacsWithA "regexp-search" ['getClipboard']@
-runEmacsWithA :: String -> [Workflow String] -> Workflow ()
+runEmacsWithA :: MonadWorkflow m => String -> [m String] -> m ()
 runEmacsWithA f as = do
  xs <- traverse id as
  runEmacsWith f xs
@@ -112,7 +114,7 @@ runEmacsWithA f as = do
 -- | like 'runEmacsWith', but takes phrases as arguments.
 --
 -- e.g. @runEmacsWithP "regexp-search" ['PAtom' 'Pasted']@
-runEmacsWithP :: String -> [Phrase] -> Workflow ()
+runEmacsWithP :: MonadWorkflow m => String -> [Phrase] -> m ()
 runEmacsWithP f ps = do
  xs <- traverse munge ps
  runEmacsWith f xs

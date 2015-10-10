@@ -118,7 +118,7 @@ nothing = return ()
 onlyWhen :: (Monad m) => (b -> Maybe b) -> b -> (m () -> m ())
 onlyWhen predicate_ question_ action_ = maybe nothing (const action_) (predicate_ question_)
 
-slot :: String -> Workflow_
+slot :: MonadWorkflow m => String -> m () 
 slot s = do
  delay 10
  sendText s
@@ -129,7 +129,7 @@ isDefaultBrowser = currentApplication >>= \case
  x@"Google Chrome" -> return$ Just x
  _                 -> return$ Nothing
 
-type Desugaring a = a -> Workflow_
+type Desugaring a = a -> CWorkflow_
 
 type Ranking a = a -> Int
 
@@ -152,6 +152,7 @@ defaultRankMultiplier = 1000
 instance Rankable Int where rank = const defaultRank
 instance Rankable Ordinal where rank = const defaultRank 
 instance Rankable Workflow_         -- TODO
+instance Rankable CWorkflow_         -- TODO
 instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
 instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = rankLeftBiased
 
@@ -185,12 +186,12 @@ runRepeat delay_ times_
 
 -- used when sendText is too slow/laggy
 -- insertByClipboard :: String -> AMonadAction_
-insertByClipboard :: String -> Workflow_
+insertByClipboard :: MonadWorkflow m => String -> m () 
 insertByClipboard s = do
  setClipboard s
  presspaste
 
-presspaste :: Workflow_
+presspaste :: MonadWorkflow m => m () 
 presspaste = press "M-v"
 
 -- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  

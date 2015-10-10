@@ -19,6 +19,7 @@ import qualified Data.Text.Lazy.IO             as T
 import           Servant
 import System.Clock 
 import Data.List.NonEmpty (nonEmpty) 
+import Control.Monad.Free.Church (fromF) 
 
 import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
@@ -56,7 +57,7 @@ spirosServer = serveNatlink (spirosSettings rootsCommand)
 -- spirosServe plugin = serveNatlink (spirosSettings plugin)
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
-spirosSettings :: RULED DNSEarleyCommand r SpirosType -> RULED VSettings r SpirosType
+spirosSettings :: RULED DNSEarleyCommand r SpirosType -> RULED (VSettings OSX.CWorkflow) r SpirosType
 spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic) (spirosUpdateConfig command)
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
@@ -75,7 +76,7 @@ spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic
 --   }
 
 -- spirosUpdateConfig :: VPlugin (E.Rule r Root) Root -> IO (VConfig (E.Rule r Root) Root)
-spirosUpdateConfig :: RULED DNSEarleyCommand r a -> RULED VConfig r a
+spirosUpdateConfig :: RULED DNSEarleyCommand r a -> RULED (VConfig OSX.CWorkflow) r a
 spirosUpdateConfig command = unsafePerformIO$ do
  vGrammar <- de'deriveGrammarObservedSharing (command&_cRHS)
  -- let eProd = runST$ de'deriveParserObservedSharing (command&_cRHS)
@@ -85,7 +86,7 @@ spirosUpdateConfig command = unsafePerformIO$ do
  return VConfig{..}
 {-# NOINLINE spirosUpdateConfig #-}
 
-spirosSetup :: RULED VSettings r a -> IO (Either VError ())
+spirosSetup :: RULED (VSettings OSX.CWorkflow) r a -> IO (Either VError ())
 spirosSetup settings = do
  hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
 
@@ -121,7 +122,7 @@ spirosSetup settings = do
 * executes the compiled actions (in 'IO').
 
 -}
-spirosInterpret :: (Show a) => ServerMagic a -> (forall r. RULED VSettings r a) -> [Text] -> Response ()
+spirosInterpret :: (Show a) => ServerMagic a -> (forall r. RULED (VSettings OSX.CWorkflow) r a) -> [Text] -> Response ()
 spirosInterpret serverMagic vSettings = \ws -> do
 
  t0<- liftIO$ getTime theClock 
@@ -143,7 +144,7 @@ spirosInterpret serverMagic vSettings = \ws -> do
 
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
- let workflow = (vSettings&vConfig&vDesugar) context value  -- return() 
+ let workflow = fromF ((vSettings&vConfig&vDesugar) context value)  -- TODO church encoding doesn't accelerate construction
  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
  liftIO$ workflowIO 
   -- delay in milliseconds

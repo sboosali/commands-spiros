@@ -27,7 +27,7 @@ import Control.Monad (replicateM_)
 -- default (Workflow ())            -- ExtendedDefaultRules 
 
 
-newtype Macro = Macro (Apply Rankable Workflow_)
+newtype Macro = Macro (Apply Rankable CWorkflow_)
 -- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
 
 instance Show Macro where show (Macro _x) = "_"       -- TODO  showApply x
@@ -145,7 +145,7 @@ myMacros = 'myMacros
  <|> Macro        <$> myMacrosRHS
 
 -- | macros without arguments
-myMacrosRHS0 :: R z Workflow_
+myMacrosRHS0 :: R z CWorkflow_
 myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  [ "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
@@ -308,7 +308,7 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  ]
 
 -- | macros without arguments
-myAliases :: R z Workflow_             -- TODO String
+myAliases :: R z CWorkflow_             -- TODO String
 myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
  [ ""-: ""
  , "arrow"-: "->"
@@ -329,14 +329,14 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  , ""-: ""
  ]
 
-myOrdinals :: R z Workflow_
+myOrdinals :: R z CWorkflow_
 myOrdinals = 'myOrdinals <=> runOrdinalKeyChord <$> (__inlineRHS__(ordinalDigit))
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
 -- | run an ordinal as a keypress.
 -- @runOrdinalKeyChord (Ordinal 3)@ is like @press "M-3"@. 
-runOrdinalKeyChord :: Ordinal -> Workflow_
+runOrdinalKeyChord :: Ordinal -> CWorkflow_
 runOrdinalKeyChord
  = uncurry sendKeyChord
  . ordinal2keypress
@@ -348,7 +348,7 @@ ordinal2keypress
  . digit2keypress
  . unOrdinal
 
-myApps :: R z Workflow_
+myApps :: R z CWorkflow_
 myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
  [ ""      -: ""
  , "man"      -: "Commands"
@@ -372,7 +372,7 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 -- ================================================================ --
 
 -- | macros with arguments
-myMacrosRHS :: R z (Apply Rankable Workflow_)
+myMacrosRHS :: R z (Apply Rankable CWorkflow_)
 myMacrosRHS = empty
  <|> A1 align_regexp            <$ "align"     <*> phrase
  <|> A1 switch_buffer           <$ "buffer"    <*> phrase
@@ -427,13 +427,13 @@ find_text p = do
  delay browserDelay
  insertP p
 
-goto_line :: Int -> Workflow_
+goto_line :: Int -> CWorkflow_
 goto_line n = do
  press "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 
-comment_with :: Maybe Phrase -> Workflow_
+comment_with :: Maybe Phrase -> CWorkflow_
 comment_with p = do
  press "M-;"
  maybe nothing insertP p
@@ -450,7 +450,7 @@ run_shell (Right p) = do
  emacs_reach_shell
  maybe nothing insertP p
 
-query_clipboard_history :: Maybe (Either Ordinal Phrase) -> Workflow_
+query_clipboard_history :: Maybe (Either Ordinal Phrase) -> CWorkflow_
 query_clipboard_history Nothing = do
  toggle_clipboard_history
 query_clipboard_history (Just (Left n)) = do 

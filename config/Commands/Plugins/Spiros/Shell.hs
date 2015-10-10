@@ -133,8 +133,8 @@ runShell :: Desugaring Shell
 runShell = \case
 
  Shell Safe cmd args -> do
-  slotP$ word2phrase cmd <> " " <> args
+  slotP$ word2phrase cmd <> " " <> args <> " " 
 
  Shell Unsafe cmd args -> do
-  insertP$ word2phrase cmd <> " " <> args
+  insertP$ word2phrase cmd <> " " <> args <> " " 
 
