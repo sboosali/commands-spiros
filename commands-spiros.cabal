@@ -28,10 +28,11 @@ library
     if !os(osx)
         buildable: False
     exposed-modules:
-        Commands.Plugins.Spiros
         Commands.Plugins.Spiros.Etc
         Commands.Plugins.Spiros.Types 
+        Commands.Plugins.Spiros.Main 
 
+        Commands.Plugins.Spiros
         Commands.Plugins.Spiros.Root
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Macros
