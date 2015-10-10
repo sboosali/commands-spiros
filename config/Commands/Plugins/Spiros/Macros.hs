@@ -23,6 +23,8 @@ import qualified Data.List as List
 import Data.Function (on)
 import Control.Arrow (second) 
 import Control.Monad (replicateM_) 
+import Language.Haskell.TH.Syntax (Name, mkName) 
+import           GHC.Exts                        (IsString)
 
 -- default (Workflow ())            -- ExtendedDefaultRules 
 
@@ -30,48 +32,76 @@ import Control.Monad (replicateM_)
 newtype Macro = Macro (Apply Rankable CWorkflow_)
 -- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
 
-instance Show Macro where show (Macro _x) = "_"       -- TODO  showApply x
--- showApply :: (Show a) => Apply Show a -> String
--- showApply = show . runApply       -- TODO 
+instance Show Macro where show = show . getMacroName -- TODO lawless 
+instance Eq Macro where (==) = (==) `on` getMacroName -- TODO lawless 
+instance Ord Macro where compare = compare `on` getMacroName -- TODO lawless 
 
-instance Eq Macro where (==) (Macro x) (Macro y) = eqApply x y
-eqApply = eqWorkflow `on` runApply    -- TODO also distinguish the constructors 
-eqWorkflow _a1 _a2 = False         -- TODO
+{-| destructor 
 
-runMacro (Macro f) = runApply f
+-}
+unMacro :: Macro -> (Apply Rankable CWorkflow_)
+unMacro (Macro f) = f
+
+{-| since macros are "function-like", we give them an "identity" for equality/debugging. 
+
+-}
+getMacroName :: Macro -> Name 
+getMacroName = getApplyName . unMacro
+
+runMacro :: Macro -> CWorkflow_
+runMacro = runApply . unMacro
+
+{-| a specialized vocabulary where the macro name comes from the dict key.  
+
+-}
+vocabMacro :: (IsString t, Show t, Functor'RHS n t f) => [(String, CWorkflow_)] -> RHS n t f Macro 
+vocabMacro = vocab . fmap (fmap Macro) . fmap go 
+ where
+ go :: (String, CWorkflow_) -> (String, Apply Rankable CWorkflow_)
+ go (name,workflow) = (name, A0 (mkName name) workflow)
 
 -- | "freeze" function application, up to some arity. 
 -- the arguments are existentially quantified, but can be constrained.
 data Apply constraint r where
  A0 :: (constraint r)                                           
-    =>                      r                       -> Apply constraint r    -- lol
+    => Name ->                      r                       -> Apply constraint r    -- lol
  A1 :: (constraint a)                                           
-    => (a ->                r) -> a                 -> Apply constraint r
+    => Name -> (a ->                r) -> a                 -> Apply constraint r
  A2 :: (constraint a, constraint b)                             
-    => (a -> b ->           r) -> a -> b            -> Apply constraint r
+    => Name -> (a -> b ->           r) -> a -> b            -> Apply constraint r
  A3 :: (constraint a, constraint b, constraint c)               
-    => (a -> b -> c ->      r) -> a -> b -> c       -> Apply constraint r
+    => Name -> (a -> b -> c ->      r) -> a -> b -> c       -> Apply constraint r
  A4 :: (constraint a, constraint b, constraint c, constraint d) 
-    => (a -> b -> c -> d -> r) -> a -> b -> c -> d  -> Apply constraint r
+    => Name -> (a -> b -> c -> d -> r) -> a -> b -> c -> d  -> Apply constraint r
 
 instance Rankable (Apply Rankable r) where rank = rankApply
 
 -- arguments are existentially quantified 
 rankApply :: Apply Rankable r -> Int
 rankApply = \case
- A0 r         -> rank r
- A1 _ a       -> rank a
- A2 _ a b     -> safeAverage [rank a, rank b]
- A3 _ a b c   -> safeAverage [rank a, rank b, rank c]
- A4 _ a b c d -> safeAverage [rank a, rank b, rank c, rank d]
+ A0 _ r         -> rank r
+ A1 _ _ a       -> rank a
+ A2 _ _ a b     -> safeAverage [rank a, rank b]
+ A3 _ _ a b c   -> safeAverage [rank a, rank b, rank c]
+ A4 _ _ a b c d -> safeAverage [rank a, rank b, rank c, rank d]
 
 runApply :: Apply constraint r -> r
 runApply = \case
- A0 f         -> f
- A1 f a       -> f a
- A2 f a b     -> f a b
- A3 f a b c   -> f a b c
- A4 f a b c d -> f a b c d
+ A0 _ f         -> f
+ A1 _ f a       -> f a
+ A2 _ f a b     -> f a b
+ A3 _ f a b c   -> f a b c
+ A4 _ f a b c d -> f a b c d
+
+getApplyName :: Apply constraint r -> Name 
+getApplyName = \case
+ A0 name _         -> name 
+ A1 name _ _       -> name 
+ A2 name _ _ _     -> name 
+ A3 name _ _ _ _   -> name 
+ A4 name _ _ _ _ _ -> name 
+
+
 
 
 
@@ -140,13 +170,16 @@ youtube_toggle_fullscreen = press "S-f"
 -- ================================================================ --
 
 myMacros :: R z Macro
-myMacros = 'myMacros
- <=> (Macro . A0) <$> myMacrosRHS0
- <|> Macro        <$> myMacrosRHS
+myMacros = 'myMacros <=> empty 
+ <|> Macro <$> myMacrosN
+ <|> myMacros0
+ <|> myAliases
+ <|> myApps
+ <|> __inlineRHS__(myOrdinals)
 
 -- | macros without arguments
-myMacrosRHS0 :: R z CWorkflow_
-myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
+myMacros0 :: R z Macro 
+myMacros0 =  vocabMacro
  [ "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
    press "<del>" 
@@ -308,8 +341,8 @@ myMacrosRHS0 = myAliases <|> __inlineRHS__(myOrdinals) <|> myApps <|> vocab
  ]
 
 -- | macros without arguments
-myAliases :: R z CWorkflow_             -- TODO String
-myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
+myAliases :: R z Macro             -- TODO String
+myAliases = vocabMacro$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
  [ ""-: ""
  , "arrow"-: "->"
  , "to do"-: "TODO"
@@ -329,8 +362,8 @@ myAliases = vocab$ fmap (second sendText) -- TODO embed into any phrase. in gram
  , ""-: ""
  ]
 
-myOrdinals :: R z CWorkflow_
-myOrdinals = 'myOrdinals <=> runOrdinalKeyChord <$> (__inlineRHS__(ordinalDigit))
+myOrdinals :: R z Macro 
+myOrdinals = (vocabMacro . fmap (fmap runOrdinalKeyChord)) dictOrdinalDigit
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
@@ -348,8 +381,8 @@ ordinal2keypress
  . digit2keypress
  . unOrdinal
 
-myApps :: R z CWorkflow_
-myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
+myApps :: R z Macro
+myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-typed
  [ ""      -: ""
  , "man"      -: "Commands"
  , "work"     -: "Work"
@@ -372,26 +405,29 @@ myApps = vocab $ fmap (second openApplication)  -- TODO make less stringly-typed
 -- ================================================================ --
 
 -- | macros with arguments
-myMacrosRHS :: R z (Apply Rankable CWorkflow_)
-myMacrosRHS = empty
- <|> A1 align_regexp            <$ "align"     <*> phrase
- <|> A1 switch_buffer           <$ "buffer"    <*> phrase
- <|> A1 multi_occur             <$ "occur"     <*> phrase
- <|> A2 replace_with            <$ "replace"   <*> phrase <*"with" <*> phrase
- <|> A1 google_for              <$ "google"    <*> (phrase-?-"")
- <|> A1 search_regexp           <$ "search"    <*> (phrase-?)
- <|> A1 find_text               <$ "discover"  <*> (phrase-?-"")
- <|> A1 goto_line               <$ "go"        <*> number
- <|> A1 comment_with            <$ "comment"   <*> (phrase-?)
- <|> A1 write_to_pad            <$ "scribble"  <*> (phrase-?)
- <|> A1 run_shell               <$ "shell"     <*> (shell-|-(phrase-?))
- <|> A1 query_clipboard_history <$ "clipboard" <*> ((ordinalDigit-|-phrase)-?)
- <|> A1 query_alfred            <$ "Alfred"    <*> (phrase-?)
- <|> A1 switch_tab              <$ "tab"       <*> (phrase-?-"")
- <|> A1 visit_site              <$ "visit"     <*> (phrase-?-"")
- <|> A1 chrome_click_link       <$ "link"      <*> phrase
- <|> A1 open_application        <$ "open"      <*> dictation 
- <|> A1 bookmark_it             <$ "bookmark"  <*> (dictation-?)
+myMacrosN :: R z (Apply Rankable CWorkflow_)
+myMacrosN = empty
+
+  <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
+  <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  phrase
+  <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  phrase
+  <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
+  <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
+  <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
+  <|>  A1  'goto_line                goto_line                  <$           "go"        <*>  number
+  <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
+  <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
+  <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
+  <|>  A1  'query_clipboard_history  query_clipboard_history    <$           "clipboard" <*>  ((ordinalDigit-|-phrase)-?)
+  <|>  A1  'query_alfred             query_alfred               <$           "Alfred"    <*>  (phrase-?)
+  <|>  A1  'switch_tab               switch_tab                 <$           "tab"       <*>  (phrase-?-"")
+  <|>  A1  'visit_site               visit_site                 <$           "visit"     <*>  (phrase-?-"")
+  <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
+  <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation  
+  <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
+
+  <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
+
 -- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
 -- TODO <\$ <\*>
 

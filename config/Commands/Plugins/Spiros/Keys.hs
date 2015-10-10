@@ -119,7 +119,10 @@ ordinal = 'ordinal
 
 -- | an ordinal numeral, between 0 (zeroth) and 9 (ninth) inclusive
 ordinalDigit :: R z Ordinal
-ordinalDigit = 'ordinalDigit <=> Ordinal <$> vocab
+ordinalDigit = 'ordinalDigit <=> vocab dictOrdinalDigit
+
+dictOrdinalDigit :: [(String, Ordinal)]
+dictOrdinalDigit = fmap (fmap Ordinal)
  [ "zeroth"-: 0
  , "first"-: 1
  , "second"-: 2
