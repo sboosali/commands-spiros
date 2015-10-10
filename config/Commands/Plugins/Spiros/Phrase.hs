@@ -48,8 +48,8 @@ phrase = Phrase <$> complexGrammar 'phrase
  -- where
  -- conssnoc x ys z = [x] <> ys <> [z]
 
- (snoc     <$>             ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD))
- (snoc     <$>             ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD))
+ (snoc     <$>             ((phraseA <|> phraseB <|> phraseW)-*) <*> (phraseB <|> phraseC <|> phraseD)) -- the parser 
+ (snoc     <$>             ((phraseA <|> phraseB <|> phraseD)-*) <*> (phraseB <|> phraseC <|> phraseD)) -- the grammar 
 
 -- | a sub-phrase where a phrase to the right is certain.
 --
@@ -57,8 +57,6 @@ phrase = Phrase <$> complexGrammar 'phrase
 -- escaped, e.g. "quote greater equal unquote".
 phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
- <|> Escaped_    <#> "literally" # keyword -- "lit" 
- <|> Quoted_     <#> "quote" # dictation # "unquote"
  <|> Pasted_     <#> "pasted"    -- "yank" 
  <|> Blank_      <#> "blank"
  -- <|> Spelled_    <#> "spell" # (character-++)
@@ -73,12 +71,18 @@ phraseA = 'phraseA <=> empty
 -- | a sub-phrase where a phrase to the right is possible.
 phraseB :: DNSEarleyRHS z Phrase_
 phraseB = 'phraseB <=> empty
+ <|> Escaped_    <#> "literal" # keyword -- "lit" 
+ <|> Quoted_     <#> "quote" # dictation # "unquote"
+
  <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
  <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
  <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol", that's frequent
+
  <|> Pasted_   <#> "pasted"    -- "yank" 
  <|> Blank_    <#> "blank"
- <|> Spelled_  <$> (phoneticAlphabetRHS-++)  
+
+ <|> Spelled_  <$> (phoneticAlphabetRHS-++)  -- last, since it's unprefixed 
+
  -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
  -- <|> Spelled_  <#> "spell" # letters -- only, not characters
 

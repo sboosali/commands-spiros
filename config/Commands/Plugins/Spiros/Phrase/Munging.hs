@@ -167,21 +167,21 @@ pPhrase
  go :: PStack -> Phrase_ -> PStack
  go ps = \case
 
-  (Escaped_  (Keyword x))    -> update ps $ fromPAtom (PWord x)
-  (Quoted_   (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
-  (Dictated_ (Dictation xs)) -> update ps $ List ((fromPAtom . PWord) <$> xs)
-  (Spelled_  cs)             -> update ps $ fromPAtom (PAcronym False cs)
-  (Capped_   cs)             -> update ps $ fromPAtom (PAcronym True cs)
-  (Symbol_   cs)             -> update ps $ fromPAtom (PWord cs)
-  Pasted_                    -> update ps $ fromPasted
-  Blank_                     -> update ps $ fromPAtom (PWord "")
-  Bonked_                    -> update (popall ps) $ fromPAtom (PWord " ")
-  Separated_ (Separator x)   -> update (pop ps) $ fromPAtom (PWord x)
+  (Escaped_  (Keyword x))    -> update ps          $ (fromPAtom . PWord) x
+  (Quoted_   (Dictation xs)) -> update ps          $ List ((fromPAtom . PWord) <$> xs) 
+  (Dictated_ (Dictation xs)) -> update ps          $ List ((fromPAtom . PWord) <$> xs) 
+  (Spelled_  cs)             -> update ps          $ (fromPAtom . PAcronym False) cs
+  (Capped_   cs)             -> update ps          $ (fromPAtom . PAcronym True)  cs
+  (Symbol_   cs)             -> update ps          $ (fromPAtom . PWord)          cs
+  Pasted_                    -> update ps          $ fromPasted                        
+  Blank_                     -> update ps          $ (fromPAtom . PWord) ""             
+  Bonked_                    -> update (popall ps) $ (fromPAtom . PWord) " "
+  Separated_ (Separator x)   -> update (pop ps)    $ (fromPAtom . PWord) x
 
-  (Cased_     f)             -> push ps (Cased f)
-  (Joined_    f)             -> push ps (Joined f)
-  (Surrounded_ f)            -> push ps (Surrounded f)
-  (Splitted_   f)            -> push ps (Splitted f) 
+  (Cased_      f)            -> push ps $ Cased f
+  (Joined_     f)            -> push ps $ Joined f
+  (Surrounded_ f)            -> push ps $ Surrounded f
+  (Splitted_   f)            -> push ps $ Splitted f
 
  popall :: PStack -> PStack
  -- breaks out of every func to the left (like having enough Separated_'s) 

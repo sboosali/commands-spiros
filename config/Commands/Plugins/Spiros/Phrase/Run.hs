@@ -38,19 +38,19 @@ rankPhrase = sum . fmap rankPhrase_ . unPhrase
 -- the specificity ("probability") of the phrase parts. bigger is better.
 rankPhrase_ :: Phrase_ -> Int
 rankPhrase_ = \case
- Escaped_ _    -> highRank
- Quoted_ _     -> highRank
+ Escaped_ _    -> 2 * highRank
+ Quoted_ _     -> 2 * highRank
  Pasted_       -> defaultRank
  Blank_        -> defaultRank
- Spelled_ cs    -> highRank + defaultRank * rankChars cs
- Capped_ cs     -> highRank + defaultRank * rankChars cs
- Symbol_ cs     -> highRank + defaultRank * rankChars cs
+ Spelled_ cs   -> highRank + defaultRank * rankChars cs
+ Capped_ cs    -> highRank + defaultRank * rankChars cs
+ Symbol_ cs    -> highRank + defaultRank * rankChars cs
  Separated_ _  -> defaultRank
- Bonked_      -> defaultRank
+ Bonked_       -> defaultRank
  Cased_ _      -> defaultRank
  Joined_ _     -> defaultRank
  Surrounded_ _ -> defaultRank
- Splitted_ _  -> defaultRank 
+ Splitted_ _   -> defaultRank 
  Dictated_ d   -> rankDictation d
 
 rankChars cs = length cs - 1
