@@ -174,7 +174,14 @@ class NarcissisticGrammar(GrammarBase):
 
             self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
 
-            # the microphone may have been toggled manually by the GUI
+            # the microphone falls asleep during silence,
+            # but doesn't wake up when a command is uttered. 
+            # we turn the microphone back on, as long as it should be on. 
+            if is_mode_awake(self):
+                natlink.setMicState("on")
+
+            # the microphone may have been toggled manually by the GUI,
+            # or fallen asleep automatically.  
             if self.current_mode.startswith("microphone"):
                 if natlink.getMicState() == "on":
                     should_change_microphone_mode = handle_microphone(self,"mike on")
@@ -457,6 +464,11 @@ from natlink.txt:
 
 '''
 class WordInfo(object): pass
+
+
+# the microphone state changes independently of the "command mode".  
+def is_mode_awake(grammar):
+    return not (grammar.current_mode in ["microphone/sleeping", "microphone/off"])
 
 
 
