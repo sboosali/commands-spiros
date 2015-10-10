@@ -488,13 +488,17 @@ chrome_click_link p = do
 open_application d = do
  openApplication$ mungeDictation d
 
-bookmark_it d = do
-   press "M-d"
-   delay 1000
-   press "<tab>"
-   delay chromeDelay 
-   press "<up>"
-   maybe nothing slotD d 
+bookmark_it d_ = do
+ press "M-d"
+ delay 1000
+ press "<tab>"
+ delay chromeDelay 
+ press "<up>"
+ maybe nothing bookmark_by_name d_
+
+ where
+ bookmark_by_name d = do 
+   slotD d 
    delay 1000                    -- enough time to double check 
    replicateM_ 2 $ press "<ret>"
 

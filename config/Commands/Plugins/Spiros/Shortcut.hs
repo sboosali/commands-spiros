@@ -58,7 +58,7 @@ globalShortcuts = shortcuts
  , "scroll down"-: "<spc>"
  , "scroll up"-: "S-<spc>"
  , "submit"-: "M-<ret>"
- , ""-: ""
+ , "preferences"-: "M-,"
  , ""-: ""
  , ""-: ""
  , ""-: ""
