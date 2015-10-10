@@ -10,6 +10,7 @@ import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Macros
+import           Commands.Plugins.Spiros.Macros.Types 
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Plugins.Spiros.Shell
