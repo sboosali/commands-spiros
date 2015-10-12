@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, RankNTypes, AutoDeriveTypeable, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts  #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, RankNTypes, AutoDeriveTypeable, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Edit where 
@@ -27,10 +27,10 @@ move = 'move
 -- | Slice and Direction both have too many values.
 data Endpoint = Beginning | Ending deriving (Show,Eq,Ord,Bounded,Enum)
 endpoint = 'endpoint
- <=> Beginning <#> "beg"
- <|> Ending    <#> "end"
+ <=> Beginning <$ "beg"
+ <|> Ending    <$ "end"
 
--- | orthogonal directions in three-dimensional space. @... <=> Up_ <#> "up" <|> ...@
+-- | orthogonal directions in three-dimensional space. @... <=> Up_ <$ "up" <|> ...@
 data Direction = Up_ | Down_ | Left_ | Right_ | In_ | Out_  deriving (Show,Eq,Ord,Bounded,Enum)
 direction = tidyGrammar
 -- direction = transformedGrammar (filter (/= '_'))
@@ -41,7 +41,7 @@ direction = tidyGrammar
 data Edit = Edit Action Slice Region deriving (Show,Eq,Ord)
 
 edit = 'edit <=> empty 
- -- <|> Edit Cut Forwards Line <#> "kill" -- NOTE overrides
+ -- <|> Edit Cut Forwards Line <$ "kill" -- NOTE overrides
  --     -- i.e. "kill" -> "kill for line", not "kill whole that"
  <|> Edit <$> action              <*> (slice -?- defaultSlice) <*> (region -?- defaultRegion)
     -- e.g. "cop" or "cop that" or "cop whole" -> "cop whole that"
@@ -66,12 +66,12 @@ data Action
  deriving (Show,Eq,Ord,Enum,Bounded)
 
 action = 'action <=> empty
- <|> Select      <#> "sell"
- <|> Copy        <#> "copy"      -- "cop" 
- <|> Cut         <#> "cut"      -- "kill" 
- <|> Delete      <#> "del"
- <|> Transpose   <#> "trans"
- <|> Google      <#> "google"
+ <|> Select      <$ "sell"
+ <|> Copy        <$ "copy"      -- "cop" 
+ <|> Cut         <$ "cut"      -- "kill" 
+ <|> Delete      <$ "del"
+ <|> Transpose   <$ "trans"
+ <|> Google      <$ "google"
 
 {- | slice the region between the cursor and the 'Slice'. induces a string.
 -}
@@ -106,21 +106,21 @@ data Region
  deriving (Show,Eq,Ord,Enum,Bounded)
 
 region = 'region
- <=> That       <#> "that"
- <|> Character  <#> "char"
- <|> Word_      <#> "word"
- <|> Token      <#> "toke"
- <|> Group      <#> "group"
- <|> Line       <#> "line"
- <|> Rectangle  <#> "wreck"
- <|> Block      <#> "block"
- <|> Page       <#> "page"
- <|> Screen     <#> "screen"
- <|> Everything <#> "all"
- <|> Definition <#> "def"
- <|> Function_  <#> "fun"
- <|> Reference  <#> "ref"
- <|> Structure  <#> "struct"
+ <=> That       <$ "that"
+ <|> Character  <$ "char"
+ <|> Word_      <$ "word"
+ <|> Token      <$ "toke"
+ <|> Group      <$ "group"
+ <|> Line       <$ "line"
+ <|> Rectangle  <$ "wreck"
+ <|> Block      <$ "block"
+ <|> Page       <$ "page"
+ <|> Screen     <$ "screen"
+ <|> Everything <$ "all"
+ <|> Definition <$ "def"
+ <|> Function_  <$ "fun"
+ <|> Reference  <$ "ref"
+ <|> Structure  <$ "struct"
 
 {-
 

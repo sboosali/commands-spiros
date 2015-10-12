@@ -46,7 +46,8 @@ globalShortcuts = shortcuts
  , "no"-: "M-z"
  , "undo"-: "M-z"
  , "salt"-: "M-a"
- , "paste"-: "M-v"
+ , "yank"-: "M-v"              --
+ , "pasting"-: "M-v"              -- "paste" is mis-recognized "eighth"
  , "copying"-: "M-c"               -- 
  , "cutting"-: "M-x"                -- 
  , "kill"-: "C-k"
@@ -85,7 +86,7 @@ emacsShortcuts = shortcuts
  , "redo"-: "C-?"               -- NOTE undo-tree-mode
  , "evil toggle"-: "C-z"
  , "divider"-: "M--"                -- (it parses) 
- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
+ -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , ""-: ""
  , ""-: ""
  , ""-: ""

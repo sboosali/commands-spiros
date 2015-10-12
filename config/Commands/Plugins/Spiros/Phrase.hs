@@ -1,4 +1,4 @@
-{-# LANGUAGE PostfixOperators, TemplateHaskell #-}
+{-# LANGUAGE PostfixOperators, TemplateHaskell, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Phrase
@@ -57,80 +57,80 @@ phrase = Phrase <$> complexGrammar 'phrase
 -- escaped, e.g. "quote greater equal unquote".
 phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
- <|> Pasted_     <#> "pasted"    -- "yank" 
- <|> Blank_      <#> "blank"
- -- <|> Spelled_    <#> "spell" # (character-++)
- -- <|> Spelled_    <#> "lets" # letters -- (letter-++)
- <|> Bonked_     <#>  "smack"   -- (like saying "break" enough times) 
- <|> Separated_  <#> separator
- <|> Cased_      <#> casing
- <|> Joined_     <#> joiner
- <|> Surrounded_ <#> brackets
- <|> Splitted_ <#> splitter 
+ <|> Pasted_     <$ "pasted"    -- "yank" 
+ <|> Blank_      <$ "blank"
+ -- <|> Spelled_    <$ "spell" # (character-++)
+ -- <|> Spelled_    <$ "lets" # letters -- (letter-++)
+ <|> Bonked_     <$  "smack"   -- (like saying "break" enough times) 
+ <|> Separated_  <$> separator
+ <|> Cased_      <$> casing
+ <|> Joined_     <$> joiner
+ <|> Surrounded_ <$> brackets
+ <|> Splitted_   <$> splitter 
 
 -- | a sub-phrase where a phrase to the right is possible.
 phraseB :: DNSEarleyRHS z Phrase_
 phraseB = 'phraseB <=> empty
- <|> Escaped_    <#> "literal" # keyword -- "lit" 
- <|> Quoted_     <#> "quote" # dictation # "unquote"
+ <|> Escaped_  <$ "litter"            <*> keyword         -- abbreviation for "literally" 
+ <|> Quoted_   <$ "quote"             <*> dictation <* "unquote"
 
- <|> Spelled_  <#> "let's" # (character-++)  -- abbreviation for "letters" 
- <|> Capped_   <#> "caps"  # (character-++)  -- abbreviation for "capital letters" 
- <|> Capped_   <#> "shrimp"  # (character-++)  -- abbreviation for "symbol", that's frequent
+ <|> Spelled_  <$ ("let's" <|> "let") <*> (character-++)  -- abbreviation for "letters" 
+ <|> Capped_   <$ "caps"              <*> (character-++)  -- abbreviation for "capital letters" 
+ <|> Capped_   <$ "shrimp"            <*> (character-++)  -- abbreviation for "symbol", that's frequent
 
- <|> Pasted_   <#> "pasted"    -- "yank" 
- <|> Blank_    <#> "blank"
+ <|> Pasted_   <$ "pasted"    -- "yank" 
+ <|> Blank_    <$ "blank"
 
  <|> Spelled_  <$> (phoneticAlphabetRHS-++)  -- last, since it's unprefixed 
 
  -- TODO letters grammar that consumes tokens with multiple capital letters, as well as tokens with single aliases
- -- <|> Spelled_  <#> "spell" # letters -- only, not characters
+ -- <|> Spelled_  <$ "spell" <*> letters -- only, not characters
 
 -- | a sub-phrase where a phrase to the right is impossible.
 phraseC :: DNSEarleyRHS z Phrase_
-phraseC = 'phraseC <=> Dictated_ <#> "say" # dictation
+phraseC = 'phraseC <=> Dictated_ <$ "say" <*> dictation
 
 -- | injects word_ into phrase
 phraseW :: DNSEarleyRHS z Phrase_
-phraseW = 'phraseW <=> word2phrase_ <#> word_
+phraseW = 'phraseW <=> word2phrase_ <$> word_
 
 -- | injects dictation into phrase_
 phraseD :: DNSEarleyRHS z Phrase_
-phraseD = 'phraseD <=> Dictated_ <#> dictation
+phraseD = 'phraseD <=> Dictated_ <$> dictation
 
 separator = 'separator <=> empty
- <|> Separator ""  <#> "break" --TODO separation should depend on context i.e. blank between symbols, a space between words, space after a comma but not before it. i.e. the choice is delayed until munging.
- <|> Separator " " <#> "space"
- <|> Separator "," <#> "comma"
+ <|> Separator ""  <$ "break" --TODO separation should depend on context i.e. blank between symbols, a space between words, space after a comma but not before it. i.e. the choice is delayed until munging.
+ <|> Separator " " <$ "space"
+ <|> Separator "," <$ "comma"
 
 casing = 'casing
- <=> LowerCase <$ token "lower"
- <|> UpperCase <$ token "upper"
- <|> CapCase   <$ token "copper"              -- "capper" 
+ <=> LowerCase <$ "lower"
+ <|> UpperCase <$ "upper"
+ <|> CapCase   <$ "copper"              -- "capper" 
 
 joiner = 'joiner
- <=> (\c -> Joiner [c]) <#> "join" # character
- <|> Joiner "_" <#> "snake"
- <|> Joiner "-" <#> "dash"
- -- <|> Joiner "/" <#> "file"
- <|> Joiner ""  <#> "squeeze"
- <|> CamelJoiner <#> "camel"    -- "cam"
- <|> ClassJoiner <#> "class"
- <|> ShrinkJoiner <#> "shrink"  -- "shrink plug-in" -> "plugin"
+ <=> (\c -> Joiner [c]) <$ "join" <*> character
+ <|> Joiner "_" <$ "snake"
+ <|> Joiner "-" <$ "dash"
+ -- <|> Joiner "/" <$ "file"
+ <|> Joiner ""  <$ "squeeze"
+ <|> CamelJoiner <$ "camel"    -- "cam"
+ <|> ClassJoiner <$ "class"
+ <|> ShrinkJoiner <$ "shrink"  -- "shrink plug-in" -> "plugin"
 
 brackets = 'brackets
- <=> bracket          <#> "round" # character
- <|> Brackets "(" ")" <#> "par"
- <|> Brackets "[" "]" <#> "square"
- <|> Brackets "{" "}" <#> "curl"
- <|> Brackets "<" ">" <#> "angle"
- <|> bracket '"'      <#> "string"
- <|> bracket '\''     <#> "ticked"
- <|> bracket '|'      <#> "norm"
- -- <|> Brackets "**" "**" <#> "bold"
+ <=> bracket          <$ "round" <*> character
+ <|> Brackets "(" ")" <$ "par"
+ <|> Brackets "[" "]" <$ "square"
+ <|> Brackets "{" "}" <$ "curl"
+ <|> Brackets "<" ">" <$ "angle"
+ <|> bracket '"'      <$ "string"
+ <|> bracket '\''     <$ "ticked"
+ <|> bracket '|'      <$ "norm"
+ -- <|> Brackets "**" "**" <$ "bold"
 
 splitter = 'splitter 
- <=> Splitter <#> "split" 
+ <=> Splitter <$ "split" 
 -- e.g. "split reach_YouTube" -> "reach you tube"  
 
 -- disjoint vocabulary ("effects"), possibly overlapping parses ("results")
@@ -395,17 +395,17 @@ phoneticAlphabet =
 {- | equivalent to:
 
 @
- <|> 'a' <#> "a"
- <|> 'b' <#> "b"
- <|> 'c' <#> "c"
+ <|> 'a' <$ "a"
+ <|> 'b' <$ "b"
+ <|> 'c' <$ "c"
  <|> ...
- <|> 'z' <#> "z"
+ <|> 'z' <$ "z"
 
- <|> 'a' <#> "A"
- <|> 'b' <#> "B"
- <|> 'c' <#> "C"
+ <|> 'a' <$ "A"
+ <|> 'b' <$ "B"
+ <|> 'c' <$ "C"
  <|> ...
- <|> 'z' <#> "Z"
+ <|> 'z' <$ "Z"
 @
 
 -}
@@ -431,7 +431,7 @@ letters = simpleGrammar 'letters
 
 -- newtype Letters = Letters [Char] deriving (Show,Eq,Ord)
 -- letters = (set dnsInline True defaultDNSInfo) $ 'letters <=>
---  Letters <#> (letter-+)
+--  Letters <$ (letter-+)
 
 
 

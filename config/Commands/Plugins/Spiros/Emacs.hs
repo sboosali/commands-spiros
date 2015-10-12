@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Emacs where
@@ -25,10 +25,10 @@ data Emacs
 -- ================================================================ --
 
 emacs = 'emacs <=> empty
- <|> EmacsFunction   (Just (Phrase [Pasted_]) ) <#> ("run paste") 
- <|> EmacsExpression (Just (Phrase [Pasted_]) ) <#> ("eval paste") -- TODO shouldn't be necessary 
- <|> EmacsFunction      <#> "run"  <*> (interactive_-?)
- <|> EmacsExpression    <#> "eval" <*> (phrase-?)
+ <|> EmacsFunction   (Just (Phrase [Pasted_]) ) <$ "run paste" 
+ <|> EmacsExpression (Just (Phrase [Pasted_]) ) <$ "eval paste" -- TODO shouldn't be necessary 
+ <|> EmacsFunction      <$ "run"  <*> (interactive_-?)
+ <|> EmacsExpression    <$ "eval" <*> (phrase-?)
 
  -- <|> EmacsFunction   (Just [Pasted_]) <$ (t"run paste") 
  -- <|> EmacsExpression (Just [Pasted_]) <$ (t"eval paste") -- TODO shouldn't be necessary 

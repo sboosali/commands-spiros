@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFunctor, ImplicitParams, LambdaCase  #-}
 {-# LANGUAGE LiberalTypeSynonyms, NamedFieldPuns, PartialTypeSignatures     #-}
 {-# LANGUAGE PatternSynonyms, PostfixOperators, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, TemplateHaskell, TupleSections            #-}
+{-# LANGUAGE ScopedTypeVariables, TemplateHaskell, OverloadedStrings, TupleSections            #-}
 {-# LANGUAGE ViewPatterns                                                   #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
@@ -102,7 +102,7 @@ act = 'act <=> empty     -- boilerplate (mostly)
 
 data Click = Click Times Button deriving (Show,Eq)
 click = 'click <=>
- Click <$> (times-?-Single) <*> (button-?-LeftButton) # "click"
+ Click <$> (times-?-Single) <*> (button-?-LeftButton) <$ "click"
 
 data Times = Single | Double | Triple deriving (Show,Eq,Enum,Typeable)
 times = enumGrammar

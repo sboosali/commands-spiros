@@ -176,7 +176,7 @@ myMacros0 =  vocabMacro
    runEmacs "magit-status"
 
  , "music"-: do
-   openApplication "Google Chrome"  
+   openApplication "Google Chrome" 
    chrome_reach_youtube
 
  , "pause"-: do
@@ -344,6 +344,7 @@ myMacrosN = empty
   <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
   <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation  
   <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
+  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
 
   <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
 
@@ -425,7 +426,9 @@ query_alfred p = do
 switch_tab p = do
  press "A-t"                    -- needs Tab Ahead chrome extension 
  delay chromeDelay 
- slotP p
+ insertP p
+ delay chromeDelay            -- NOTE {{slotP p}} doesn't work because chrome inserts text too slowly 
+ press "<ret>" 
 
 visit_site p = do
  openApplication "Google Chrome"   -- TODO make variable 
