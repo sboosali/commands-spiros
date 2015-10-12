@@ -51,13 +51,13 @@ open_pad = do
    delay 100
    move_window_down
    delay 100
-   switch_buffer (word2phrase "*pad*") -- TODO make variable 
+   switch_buffer "*pad*" -- TODO make variable 
    delay 100
 
 emacs_reach_shell = do
    move_window_down 
    delay 25
-   switch_buffer (word2phrase "*shell*")
+   switch_buffer "*shell*"
    delay 25
    window_bottom                -- TODO make typed/generic like runEdit
    runMove (MoveTo Beginning Line)
@@ -66,7 +66,7 @@ emacs_reach_shell = do
 emacs_reach_repl = do
    move_window_down 
    delay 25
-   switch_buffer (word2phrase "*commands-spiros*") -- TODO
+   switch_buffer "*commands-spiros*" -- TODO
    delay 25
    window_bottom                -- TODO make typed/generic like runEdit
    runMove (MoveTo Beginning Line)
@@ -87,10 +87,13 @@ youtube_toggle_sound = do
    openApplication app
 
 chrome_reach_youtube = do
- switch_tab (word2phrase "YouTube.com")
+ switch_tab "YouTube.com"
 
 youtube_toggle_fullscreen = press "S-f"
 
+global_reach_voice_app = do 
+ openApplication "Commands"
+ delay 100
 
 
 
@@ -104,22 +107,23 @@ myMacros0 =  vocabMacro
    press "<del>" 
 
  , "voice build"-: do   -- for bootstrapping 
-   openApplication "Commands"
-   delay 100
+   global_reach_voice_app
    emacs_reach_shell
    slot "cabal build server"
 
  , "voice run"-: do   -- for bootstrapping 
-   openApplication "Commands"
-   delay 100
+   global_reach_voice_app
    emacs_reach_shell
    slot "cabal run server"
 
  , "voice rebel"-: do           -- REPL
-   openApplication "Commands"
-   delay 100
+   global_reach_voice_app
    emacs_reach_repl 
    slot ":r Commands.Plugins.Spiros" 
+
+ , "voice notes"-: do
+   global_reach_voice_app
+   switch_buffer "notes"
 
  , "run again"-: do
    execute_extended_command
@@ -146,7 +150,7 @@ myMacros0 =  vocabMacro
    delay 100
    move_window_up
    delay 100
-   switch_buffer (word2phrase "Macro.hs") -- TODO make variable 
+   switch_buffer "Macro.hs" -- TODO make variable 
    delay 100
 
    press "M-<up>"
@@ -159,7 +163,7 @@ myMacros0 =  vocabMacro
    delay 100
    move_window_up
    delay 100
-   switch_buffer (word2phrase "Shortcut.hs") -- TODO make variable 
+   switch_buffer "Shortcut.hs" -- TODO make variable 
    delay 100
 
  -- TODO make "C-x C-y" the commands key prefix
