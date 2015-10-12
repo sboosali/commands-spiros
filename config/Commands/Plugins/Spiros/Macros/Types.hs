@@ -13,7 +13,8 @@ import           GHC.Exts                        (IsString)
 
 
 newtype Macro = Macro (Apply Rankable CWorkflow_)
--- type Grammatical a = (Rankable a, Show a) -- , Eq a  -- LiberalTypeSynonyms not enough 
+-- type Grammatical a = (Rankable a, Show a)Macro.hs
+ -- , Eq a  -- LiberalTypeSynonyms not enough 
 
 instance Show Macro where show = show . getMacroName -- TODO lawless 
 instance Eq Macro where (==) = (==) `on` getMacroName -- TODO lawless 

@@ -29,11 +29,8 @@ import Control.Monad (replicateM_)
 
 myMacros :: R z Macro
 myMacros = 'myMacros <=> empty 
- <|> Macro <$> myMacrosN
+ <|> myMacrosN
  <|> myMacros0
- <|> myAliases
- <|> myApps
- <|> __inlineRHS__(myOrdinals)
 
 alt_tab = do
  press "M-<tab>"
@@ -43,8 +40,8 @@ move_window_down = press "S-<down>"
 
 move_window_up = press "S-<up>"
 
+toggle_alfred            = press "M-<spc>"               -- NOTE Alfred
 toggle_clipboard_history = press "A-<spc>"               -- NOTE Alfred
-toggle_alfred = press "M-<spc>"               -- NOTE Alfred
 
 open_pad = do
    openApplication "Commands"   -- TODO make variable 
@@ -99,9 +96,17 @@ global_reach_voice_app = do
 
 -- ================================================================ --
 
--- | macros without arguments
+-- | all macros without arguments (should be a VocabularyList)
 myMacros0 :: R z Macro 
-myMacros0 =  vocabMacro
+myMacros0 = 'myMacros0
+ <=> myMacros0_
+ <|> myAliases
+ <|> myApps
+ <|> myOrdinals
+
+-- | macros without arguments
+myMacros0_ :: R z Macro 
+myMacros0_ =  vocabMacro
  [ "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
    press "<del>" 
@@ -285,6 +290,24 @@ myAliases = vocabMacro$ fmap (second sendText) -- TODO embed into any phrase. in
  , ""-: ""
  ]
 
+myApps :: R z Macro
+myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-typed
+ [ ""      -: ""
+ , "man"      -: "Commands"
+ , "work"     -: "Work"
+ , "notes"    -: "Notes"
+ , "jobs"     -: "Obs"
+ , "chrome"   -: "Google Chrome"
+ , "fox"      -: "Firefox"
+ , "terminal" -: "Terminal"
+ , "dragon"   -: "VirtualBoxVM"
+ , "jelly"    -: "IntelliJ"
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ ]
+
 myOrdinals :: R z Macro 
 myOrdinals = (vocabMacro . fmap (fmap runOrdinalKeyChord)) dictOrdinalDigit
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
@@ -304,56 +327,37 @@ ordinal2keypress
  . digit2keypress
  . unOrdinal
 
-myApps :: R z Macro
-myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-typed
- [ ""      -: ""
- , "man"      -: "Commands"
- , "work"     -: "Work"
- , "notes"    -: "Notes"
- , "jobs"     -: "Obs"
- , "chrome"   -: "Google Chrome"
- , "fox"      -: "Firefox"
- , "terminal" -: "Terminal"
- , "dragon"   -: "VirtualBoxVM"
- , "jelly"    -: "IntelliJ"
- , ""         -: ""
- , ""         -: ""
- , ""         -: ""
- , ""         -: ""
- ]
-
-
 
 
 -- ================================================================ --
 
 -- | macros with arguments
-myMacrosN :: R z (Apply Rankable CWorkflow_)
-myMacrosN = empty
+myMacrosN :: R z Macro 
+myMacrosN = fmap Macro $ empty
 
-  <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
-  <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  phrase
-  <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  phrase
-  <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
-  <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
-  <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
-  <|>  A1  'goto_line                goto_line                  <$           "go"        <*>  number
-  <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
-  <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
-  <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
-  <|>  A1  'query_clipboard_history  query_clipboard_history    <$           "clipboard" <*>  ((ordinalDigit-|-phrase)-?)
-  <|>  A1  'query_alfred             query_alfred               <$           "Alfred"    <*>  (phrase-?)
-  <|>  A1  'switch_tab               switch_tab                 <$           "tab"       <*>  (phrase-?-"")
-  <|>  A1  'visit_site               visit_site                 <$           "visit"     <*>  (phrase-?-"")
-  <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
-  <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation  
-  <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
-  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
+ <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
+ <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  phrase
+ <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  phrase
+ <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
+ <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
+ <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
+ <|>  A1  'goto_line                goto_line                  <$           "go"        <*>  number
+ <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
+ <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
+ <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
+ <|>  A1  'query_clipboard_history  query_clipboard_history    <$           "clipboard" <*>  ((ordinalDigit-|-phrase)-?)
+ <|>  A1  'query_alfred             query_alfred               <$           "Alfred"    <*>  (phrase-?)
+ <|>  A1  'switch_tab               switch_tab                 <$           "tab"       <*>  (phrase-?-"")
+ <|>  A1  'visit_site               visit_site                 <$           "visit"     <*>  (phrase-?-"")
+ <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
+ <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation  
+ <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
+ <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
+ 
+ <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
 
-  <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
-
--- TODO keep a elisp expression that aligns the block of code, when eval-last-sexp
--- TODO <\$ <\*>
+-- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
+-- "<\\$" "<\\*>"
 
 -- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
 
