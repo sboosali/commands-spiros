@@ -351,6 +351,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
  <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
+ <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation 
  
  <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
 
@@ -470,4 +471,9 @@ bookmark_it d_ = do
 insert_haddock p = do 
  s <- munge p
  insertTemplate (haddockTemplate s)
+
+insert_grammar d = do 
+ let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier  
+ s <- munge p
+ insertTemplate (grammarTemplate s)
 

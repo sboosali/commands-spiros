@@ -162,3 +162,11 @@ haddockTemplate text = [qc|
 
 |]
 
+grammarTemplate :: String -> Template 
+grammarTemplate text = [qc|
+{text} :: R z _
+{text} = '{text} <=> empty
+ <|> {cursor}
+
+|]
+

@@ -12,7 +12,7 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 -- ================================================================ --
 -- "static" phrase
 
-newtype Phrase = Phrase { unPhrase :: [Phrase_] } 
+newtype Phrase = Phrase [Phrase_] 
  deriving(Show,Read,Eq,Ord,Data,Monoid)
 
 instance IsString Phrase where
@@ -133,6 +133,9 @@ type PItem = (Maybe PFunc, [UPhrase])
 
 -- ================================================================ --
 -- helpers
+
+unPhrase :: Phrase -> [Phrase_]
+unPhrase (Phrase p) = p
 
 asUPhrase :: String -> UPhrase
 asUPhrase = Atom . Right . PWord
