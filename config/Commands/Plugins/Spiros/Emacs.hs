@@ -19,14 +19,14 @@ type ElispSexp = String
 data Emacs
  = EmacsFunction (Maybe Phrase)
  | EmacsExpression (Maybe Phrase)
+ -- TODO | EmacsKeyriff Keyriff
  deriving (Show,Read,Eq,Ord)
 
 
 -- ================================================================ --
 
 emacs = 'emacs <=> empty
- <|> EmacsFunction   (Just (Phrase [Pasted_]) ) <$ "run paste" 
- <|> EmacsExpression (Just (Phrase [Pasted_]) ) <$ "eval paste" -- TODO shouldn't be necessary 
+ <|> (EmacsFunction   . fromPasted) <$ "run"  <*> pasted
  <|> EmacsFunction      <$ "run"  <*> (interactive_-?)
  <|> EmacsExpression    <$ "eval" <*> (phrase-?)
 
@@ -37,6 +37,8 @@ emacs = 'emacs <=> empty
  where
  -- interactive_ = (word2phrase') <$> interactive   -- not a full phrase, for accuracy 
  interactive_ = phrase -- TODO takes fifteen seconds to load a vocabulary of five thousand 
+ fromPasted = Just . fromPhrase_
+
 
 
 -- ================================================================ --

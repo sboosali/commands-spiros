@@ -144,5 +144,8 @@ word2phrase_ :: String -> Phrase_
 word2phrase_ = Dictated_ . Dictation . (:[])
 
 word2phrase :: String -> Phrase
-word2phrase = Phrase . (:[]) . word2phrase_
+word2phrase = fromPhrase_ . word2phrase_
+
+fromPhrase_ :: Phrase_ -> Phrase 
+fromPhrase_ = Phrase . (:[]) 
 

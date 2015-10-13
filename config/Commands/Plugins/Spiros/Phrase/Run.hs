@@ -43,8 +43,8 @@ rankPhrase_ = \case
  Pasted_       -> defaultRank
  Clipboard_    -> defaultRank
  Blank_        -> defaultRank
+ Capped_ cs    -> highRank + 3 * rankChars cs -- NOTE to recognize "caps mta" 
  Spelled_ cs   -> highRank + 2 * rankChars cs
- Capped_ cs    -> highRank + 2 * rankChars cs
  Symbol_ cs    -> highRank + 2 * rankChars cs
  Separated_ _  -> defaultRank
  Bonked_       -> defaultRank

@@ -57,8 +57,7 @@ phrase = Phrase <$> complexGrammar 'phrase
 -- escaped, e.g. "quote greater equal unquote".
 phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
- <|> Pasted_     <$ "pasted"    -- "yank" 
- <|> Clipboard_  <$ "clip"    -- 
+ <|> pasted 
  <|> Blank_      <$ "blank"
  -- <|> Spelled_    <$ "spell" # (character-++)
  -- <|> Spelled_    <$ "lets" # letters -- (letter-++)
@@ -80,8 +79,7 @@ phraseB = 'phraseB <=> empty
  <|> Capped_   <$ "caps"              <*> (character-++)  -- abbreviation for "capital letters" 
  <|> Capped_   <$ "shrimp"            <*> (character-++)  -- abbreviation for "symbol", that's frequent
 
- <|> Pasted_    <$ "pasted"    -- "yank" 
- <|> Clipboard_ <$ "clip"    -- 
+ <|> pasted 
  <|> Blank_     <$ "blank"
 
  <|> Spelled_  <$> (phoneticAlphabetRHS-++)  -- last, since it's unprefixed 
@@ -100,6 +98,11 @@ phraseW = 'phraseW <=> word2phrase_ <$> word_
 -- | injects dictation into phrase_
 phraseD :: DNSEarleyRHS z Phrase_
 phraseD = 'phraseD <=> Dictated_ <$> dictation
+
+pasted :: DNSEarleyRHS z Phrase_ 
+pasted = 'pasted 
+ <=> Pasted_     <$ "pasted"    -- "yank" 
+ <|> Clipboard_  <$ "clip"    -- 
 
 separator = 'separator <=> empty
  <|> Separator ""  <$ "break" --TODO separation should depend on context i.e. blank between symbols, a space between words, space after a comma but not before it. i.e. the choice is delayed until munging.
