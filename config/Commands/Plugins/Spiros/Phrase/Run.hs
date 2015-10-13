@@ -42,9 +42,9 @@ rankPhrase_ = \case
  Quoted_ _     -> 2 * highRank
  Pasted_       -> defaultRank
  Blank_        -> defaultRank
- Spelled_ cs   -> highRank + defaultRank * rankChars cs
- Capped_ cs    -> highRank + defaultRank * rankChars cs
- Symbol_ cs    -> highRank + defaultRank * rankChars cs
+ Spelled_ cs   -> highRank + 2 * rankChars cs
+ Capped_ cs    -> highRank + 2 * rankChars cs
+ Symbol_ cs    -> highRank + 2 * rankChars cs
  Separated_ _  -> defaultRank
  Bonked_       -> defaultRank
  Cased_ _      -> defaultRank

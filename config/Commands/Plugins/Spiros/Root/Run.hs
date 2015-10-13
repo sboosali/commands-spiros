@@ -49,9 +49,10 @@ rankRoots = \case                --TODO fold over every field of every case, nor
 -- prioritize Action over Macro
 -- ideally, prioritize "more specific" over "less specific" matches 
 rankRoot = \case
- Acts_ ass            -> 2*highRank + safeAverage (fmap rankActs ass) -- "google word" matches the Action, not the Macro 
- Macro_ _i (Macro f) -> highRank + rankApply f
- Shortcut_ _i _s -> highRank
+ Acts_ ass            -> 4 * highRank + safeAverage (fmap rankActs ass)
+   -- NOTE "google word" now matches the Action, not the Macro 
+ Macro_ _i (Macro f) -> 3 * highRank + rankApply f
+ Shortcut_ _i _s -> 3 * highRank
  Shell_ s           -> highRank + rankShell s
  Emacs_ _i e        -> highRank + rankEmacs e
  Dictation_ _d       -> highRank
