@@ -20,8 +20,11 @@ import Data.Char
 -- | splats the Pasted into PAtom's, after splitting the clipboard into words
 splatPasted :: UPhrase -> OSX.ClipboardText -> MPhrase
 splatPasted p clipboard = either (substPasted clipboard) (:[]) <$> p
- where
- substPasted pasted Pasted = fmap PWord (words pasted)
+
+substPasted :: String -> Pasted -> [PAtom]
+substPasted pasted = \case
+ Pasted True  -> PWord <$> words pasted
+ Pasted False -> [PText pasted]
 
 mungePhrase :: MPhrase -> Spaced String
 mungePhrase p = concatPAtoms =<< evalSplatSexp applyPFunc p
@@ -44,7 +47,8 @@ concatPAtoms xs e = (flip spaceOut) e . fmap mungePAtom $ xs
 
 mungePAtom :: PAtom -> String
 mungePAtom = \case
- PWord    x  -> x
+ PWord          x  -> x
+ PText          x  -> x
  PAcronym False cs -> lower cs
  PAcronym True  cs -> upper cs
 
@@ -66,16 +70,17 @@ fromCasing = \case
 
 mapPAtom :: (String -> String) -> (PAtom -> PAtom)
 mapPAtom f = \case
- PWord    x  -> PWord    $ f x
- PAcronym b cs -> PAcronym b $ f cs
+ PWord    x    -> PWord    (f x)  
+ PText    x    -> PText    x          -- ignore transformation 
+ PAcronym b cs -> PAcronym b (f cs) -- TODO "copper mike tango alpha" doesn't work; it's "mta", should be "MTA".   
  -- PWord . f . mungePAtom
 
 joinWith :: Joiner -> ([PAtom] -> PAtom)
 joinWith = \case
  -- Joiner s    -> List.interleave (PWord s)
- Joiner s    -> PWord . List.intercalate s . fmap mungePAtom
- CamelJoiner -> PWord . camelAtoms
- ClassJoiner -> PWord . classAtoms
+ Joiner s     -> PWord . List.intercalate s . fmap mungePAtom
+ CamelJoiner  -> PWord . camelAtoms
+ ClassJoiner  -> PWord . classAtoms
  ShrinkJoiner -> PWord . shrinkAtoms
 
 camelAtoms :: [PAtom] -> String
@@ -87,6 +92,7 @@ classAtoms = squeezeCase . fmap go
  where
  go = \case
   PWord w       -> capitalize w
+  PText    x    -> x          -- ignore transformation 
   PAcronym _ cs -> upper cs -- TODO distinguish Capped from Acronym to preserve capitalization?
 
 shrinkAtoms :: [PAtom] -> String
@@ -173,7 +179,8 @@ pPhrase
   (Spelled_  cs)             -> update ps          $ (fromPAtom . PAcronym False) cs
   (Capped_   cs)             -> update ps          $ (fromPAtom . PAcronym True)  cs
   (Symbol_   cs)             -> update ps          $ (fromPAtom . PWord)          cs
-  Pasted_                    -> update ps          $ fromPasted                        
+  Pasted_                    -> update ps          $ fromPasted True                        
+  Clipboard_                 -> update ps          $ fromPasted False 
   Blank_                     -> update ps          $ (fromPAtom . PWord) ""             
   Bonked_                    -> update (popall ps) $ (fromPAtom . PWord) " "
   Separated_ (Separator x)   -> update (pop ps)    $ (fromPAtom . PWord) x
@@ -215,8 +222,8 @@ pPhrase
  fromItem (Nothing, ps) = List   ps
  fromItem (Just f,  ps) = Sexp f ps
 
- fromPasted :: UPhrase
- fromPasted = (Atom . Left) Pasted
+ fromPasted :: Bool -> UPhrase 
+ fromPasted = Atom . Left . Pasted
 
  fromPAtom :: PAtom -> UPhrase
  fromPAtom = Atom . Right

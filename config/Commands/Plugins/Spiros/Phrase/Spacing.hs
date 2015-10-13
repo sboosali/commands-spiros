@@ -87,6 +87,7 @@ defSpacing = Spacing $ \(l,r) -> if
  | otherwise                            -> ""
  -- cases should be disjoint (besides the last) for clarity
 
-spaceOut :: [String] -> Spaced String
-spaceOut xs spacing = concat $ fmap (either id (getSpacing spacing)) (interstagger xs)
+spaceOut :: [String] -> Spaced String -- TODO Either String 
+-- spaceOut xs _spacing = List.intercalated " " xs
+spaceOut xs spacing = concat (fmap (either id (getSpacing spacing)) (interstagger xs))
 

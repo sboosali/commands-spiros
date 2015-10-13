@@ -29,7 +29,8 @@ while @Phrase@ is the associated abstract syntax tree (e.g. s-expressions).
 data Phrase_
  = Escaped_  Keyword    -- ^ atom-like (wrt 'Sexp').
  | Quoted_   Dictation  -- ^ list-like.
- | Pasted_              -- ^ atom-like.
+ | Pasted_              -- ^ atom-like. the clipboard contents, with munging.  
+ | Clipboard_           -- ^ atom-like. the clipboard contents, without munging.  
  | Blank_               -- ^ atom-like.
  | Separated_ Separator -- ^ like a "close paren".
  | Bonked_              -- ^ like a "close paren". 
@@ -98,7 +99,8 @@ data PFunc
 -- 'PAcronym's behave differently from 'PWord's under some 'Joiner's (e.g. class case).
 -- 
 data PAtom
- = PWord String
+ = PWord String                 -- ^ a word without spaces 
+ | PText String                 -- ^ a word with spaces (ignored by "Commands.Plugins.Spiros.Phrase.Munging.applyPFunc") 
  | PAcronym Bool [Char]         -- ^ whether the acronym will be uppercased
  deriving (Show,Eq,Ord)
 
@@ -112,13 +114,16 @@ we know (what words are in) the Dictation at (DSL-)"parse-time" i.e. 'phrase',
 but we only know (what words are in) the Pasted at (DSL-)"runtime"
 (i.e. wrt the DSL, not Haskell). Thus, it's a placeholder.
 
+the Bool enables munging. 
+@'Pasted' 'False'@ means that the clipboard contents will be inserted literally. 
+
 -}
-data Pasted = Pasted  deriving (Show,Eq,Ord)
+data Pasted = Pasted Bool deriving (Show,Eq,Ord)
 
 -- | used by 'pPhrase'.
 type PStack = NonEmpty PItem
 
--- | an inlined subset of 'Sexp'.
+-- | a refined 'Sexp' (more lightweight than GADTs).  
 --
 -- Nothing represents 'List', Just represents 'Sexp', 'Atom' is not represented.
 type PItem = (Maybe PFunc, [UPhrase])
@@ -128,9 +133,6 @@ type PItem = (Maybe PFunc, [UPhrase])
 
 -- ================================================================ --
 -- helpers
-
--- unPhrase :: Phrase -> [Phrase_]
--- unPhrase (Phrase p) = p
 
 asUPhrase :: String -> UPhrase
 asUPhrase = Atom . Right . PWord
@@ -143,13 +145,4 @@ word2phrase_ = Dictated_ . Dictation . (:[])
 
 word2phrase :: String -> Phrase
 word2phrase = Phrase . (:[]) . word2phrase_
-
--- blankPhrase :: Phrase
--- blankPhrase = Phrase [Blank_]
-
--- snocPhrase :: Phrase -> String -> Phrase
--- snocPhrase p s = p ++ [fromString s]
-
--- mergeAdjacentDictated :: Phrase -> Phrase
--- mergeAdjacentDictated = id -- TODO
 

@@ -58,6 +58,7 @@ phrase = Phrase <$> complexGrammar 'phrase
 phraseA :: DNSEarleyRHS z Phrase_
 phraseA = 'phraseA <=> empty
  <|> Pasted_     <$ "pasted"    -- "yank" 
+ <|> Clipboard_  <$ "clip"    -- 
  <|> Blank_      <$ "blank"
  -- <|> Spelled_    <$ "spell" # (character-++)
  -- <|> Spelled_    <$ "lets" # letters -- (letter-++)
@@ -79,8 +80,9 @@ phraseB = 'phraseB <=> empty
  <|> Capped_   <$ "caps"              <*> (character-++)  -- abbreviation for "capital letters" 
  <|> Capped_   <$ "shrimp"            <*> (character-++)  -- abbreviation for "symbol", that's frequent
 
- <|> Pasted_   <$ "pasted"    -- "yank" 
- <|> Blank_    <$ "blank"
+ <|> Pasted_    <$ "pasted"    -- "yank" 
+ <|> Clipboard_ <$ "clip"    -- 
+ <|> Blank_     <$ "blank"
 
  <|> Spelled_  <$> (phoneticAlphabetRHS-++)  -- last, since it's unprefixed 
 

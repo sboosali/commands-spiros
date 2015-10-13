@@ -41,6 +41,7 @@ rankPhrase_ = \case
  Escaped_ _    -> 2 * highRank
  Quoted_ _     -> 2 * highRank
  Pasted_       -> defaultRank
+ Clipboard_    -> defaultRank
  Blank_        -> defaultRank
  Spelled_ cs   -> highRank + 2 * rankChars cs
  Capped_ cs    -> highRank + 2 * rankChars cs
