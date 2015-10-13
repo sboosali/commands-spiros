@@ -35,7 +35,6 @@ library
 
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Template
-        Commands.Plugins.Spiros.Edit
         Commands.Plugins.Spiros.Shell
         Commands.Plugins.Spiros.Keys
         Commands.Plugins.Spiros.Number 
@@ -55,6 +54,10 @@ library
         Commands.Plugins.Spiros.Phrase.Run
         Commands.Plugins.Spiros.Phrase.Munging
         Commands.Plugins.Spiros.Phrase.Spacing
+
+        Commands.Plugins.Spiros.Edit
+        Commands.Plugins.Spiros.Edit.Types 
+        Commands.Plugins.Spiros.Edit.Run 
 
         Commands.Plugins.Spiros.Emacs
         Commands.Plugins.Spiros.Emacs.Config
