@@ -2,8 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns                        #-}
 module Commands.Plugins.Spiros.Main where 
 import           Commands.Plugins.Spiros.Etc
-import           Commands.Plugins.Spiros.Root.Run 
-import           Commands.Plugins.Spiros.Root.Types 
+import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Shim (getShim)
 
 import qualified Commands.Backends.OSX         as OSX

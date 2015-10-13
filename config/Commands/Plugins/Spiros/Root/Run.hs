@@ -5,8 +5,7 @@
 {-# LANGUAGE ViewPatterns                                                   #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Root.Run where
-import           Commands.Plugins.Spiros.Root -- TODO there should be a .Grammar that is imported, rather than vice versa 
+module Commands.Plugins.Spiros.Root.Run where 
 import           Commands.Plugins.Spiros.Root.Types 
 import           Commands.Plugins.Spiros.Etc
 import           Commands.Plugins.Spiros.Emacs
@@ -19,25 +18,11 @@ import           Commands.Plugins.Spiros.Shortcut.Types
 
 import           Commands.Backends.OSX
 import           Commands.Etc
-import           Commands.Mixins.DNS13OSX9
 import Commands.Sugar.Keys
 
 -- import           Control.Parallel
 import qualified Data.List as List
-import           Prelude hiding (foldl, foldr1)
-import           Control.Monad.ST.Unsafe
-import           System.IO.Unsafe
 
-
-rootsCommand = Command roots bestRoots runRoots -- TODO is this the right place? 
-
-rootsParser :: RULED EarleyParser s Roots
-rootsParser = EarleyParser rootsProd bestRoots
-
--- ================================================================ --
-
-rootsProd :: RULED EarleyProd s Roots
-rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots -- TODO lol 
 
 bestRoots = argmax rankRoots
 
