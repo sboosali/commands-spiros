@@ -3,7 +3,6 @@ module Commands.Plugins.Spiros.Shortcut.Types where
 
 import Commands.Etc
 import Commands.Mixins.DNS13OSX9
-import Commands.Sugar.Keys
 import Commands.Backends.OSX
 
 import           Data.Text.Lazy                 (Text)

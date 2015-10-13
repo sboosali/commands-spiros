@@ -80,7 +80,7 @@ unsafeShellCommands =
  [ "remove"-: "rm"
  , "recursively remove"-: "rm -r"
  , "remove dear"-: "rmdir"
- , "synchronize"-: "rsync -av"
+ , "are sink"-: "rsync -av"
  , "move"-: "mv"
  , ""-: ""
  , ""-: ""
