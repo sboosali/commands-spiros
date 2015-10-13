@@ -36,7 +36,7 @@ mungeDictation (Dictation ws) = unwords ws
 >>> concatPAtoms ["",""]
 PWord ""
 >>> concatPAtoms ["",""]
-PWord ""
+PWord ""she 
 
 -}
 concatPAtoms :: [PAtom] -> Spaced String

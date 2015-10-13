@@ -225,9 +225,6 @@ myMacros0_ =  vocabMacro
    delay 500                    -- must wait for clipboard 
    alt_tab
 
- , "haddock"-: do
-   insertTemplate haddockTemplate 
-
  , "occur again"-: do
    multi_occur "" 
    replicateM_ 2 $ press "<up>" 
@@ -353,6 +350,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation  
  <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
+ <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
  
  <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
 
@@ -468,4 +466,8 @@ bookmark_it d_ = do
    slotD d 
    delay 1000                    -- enough time to double check 
    replicateM_ 2 $ press "<ret>"
+
+insert_haddock p = do 
+ s <- munge p
+ insertTemplate (haddockTemplate s)
 

@@ -13,26 +13,9 @@ import           GHC.Exts                          (IsString (..), IsList (..))
 
 {- | a simple monoid that can hold the metadata of a cursor position. you can then can set the position of the cursor after inserting a template. 
 
-can be used with @-XQuasiQuotes@:
+can be used with @-XQuasiQuotes@ ('qc' supports interpolation).
 
-@
-'haddockTemplate' = ['qc'|
-\{-| {'cursor'}
-
--} 
-|]
-@
-
-for interpolation, just use 'qc':
-
-@
-'haddockTemplateWith' text = ['qc'|
-\{-| {text}{'cursor'}
-
--} 
-|]
-@
-
+see 'haddockTemplate' for example. 
 
 -}
 data Template
@@ -94,7 +77,7 @@ strips one leading newline and one trailing newline.
 increases readability of quasi-quotes, e.g.:
 
 @
-haddockTemplate = [qc|
+haddockTemplate2 = [qc|
 \{-| {cursor}
 
 -} 
@@ -104,7 +87,7 @@ haddockTemplate = [qc|
 rather than: 
 
 @
-haddockTemplate = [qc|\{-| {cursor}
+haddockTemplate3 = [qc|\{-| {cursor}
 
 -}|]
 @
@@ -160,9 +143,20 @@ cursor = TemplateCursor
 
 -- ================================================================ --
 
-haddockTemplate :: Template 
-haddockTemplate = [qc|
-\{-| {cursor}
+{-| 
+
+@
+'haddockTemplate' text = ['qc'|
+\{-| {text} {'cursor'}
+
+-} 
+|]
+@
+
+-}
+haddockTemplate :: String -> Template 
+haddockTemplate text = [qc|
+\{-| {text} {cursor}
 
 -}
 

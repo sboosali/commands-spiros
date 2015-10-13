@@ -87,8 +87,8 @@ emacsShortcuts = shortcuts
  , "evil toggle"-: "C-z"
  , "divider"-: "M--"                -- (it parses) 
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
- , ""-: ""
- , ""-: ""
+ , "record"-: "<f3>"
+ , "repeat"-: "<f4>"
  , ""-: ""
  , ""-: ""
  , ""-: ""
