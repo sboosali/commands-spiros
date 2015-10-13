@@ -34,18 +34,21 @@ library
         Commands.Plugins.Spiros.Main 
 
         Commands.Plugins.Spiros.Shim
-        Commands.Plugins.Spiros.Macros
-        Commands.Plugins.Spiros.Macros.Types 
         Commands.Plugins.Spiros.Template
         Commands.Plugins.Spiros.Edit
         Commands.Plugins.Spiros.Shell
         Commands.Plugins.Spiros.Keys
-        Commands.Plugins.Spiros.Shortcut
-        Commands.Plugins.Spiros.Shortcut.Types
+        Commands.Plugins.Spiros.Number 
 
         Commands.Plugins.Spiros.Root
         Commands.Plugins.Spiros.Root.Types 
         Commands.Plugins.Spiros.Root.Run 
+
+        Commands.Plugins.Spiros.Macros
+        Commands.Plugins.Spiros.Macros.Types 
+
+        Commands.Plugins.Spiros.Shortcut
+        Commands.Plugins.Spiros.Shortcut.Types
 
         Commands.Plugins.Spiros.Phrase
         Commands.Plugins.Spiros.Phrase.Types
