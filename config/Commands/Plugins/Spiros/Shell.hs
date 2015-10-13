@@ -16,11 +16,11 @@ data Safety
             -- (it writes to the history, but that's a benign side effect). 
             --   or can be easily undone, e.g. "git stash". 
  | Unsafe   -- ^ e.g. "rm"  
- deriving (Show,Eq,Ord,Bounded,Enum)
+ deriving (Show,Read,Eq,Ord,Bounded,Enum)
 
 data Shell                     
  = Shell Safety String Phrase -- TODO "safety" depends on options/subcommands, not just the command itself 
- deriving (Show,Eq,Ord)
+ deriving (Show,Read,Eq,Ord)
 
 shell = 'shell <=> foldMap go shellCommands
  where

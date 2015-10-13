@@ -11,7 +11,7 @@ import           GHC.Exts                        (IsString (..))
 
 
 newtype Shortcut = Shortcut KeyRiff
- deriving (Show,Eq,Ord)
+ deriving (Show,Read,Eq,Ord)
 
 runShortcut :: MonadWorkflow m => Shortcut -> m ()                   
 runShortcut (Shortcut kr) = runKeyRiff kr

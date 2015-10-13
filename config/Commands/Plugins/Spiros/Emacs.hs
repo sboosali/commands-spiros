@@ -19,7 +19,7 @@ type ElispSexp = String
 data Emacs
  = EmacsFunction (Maybe Phrase)
  | EmacsExpression (Maybe Phrase)
- deriving (Show,Eq)
+ deriving (Show,Read,Eq,Ord)
 
 
 -- ================================================================ --

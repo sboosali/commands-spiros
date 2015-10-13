@@ -22,7 +22,7 @@ data Template
  = TemplateCursor 
  | TemplateText String 
  | TemplateList [Template] 
- deriving (Show,Eq,Ord)
+ deriving (Show,Read,Eq,Ord)
 
 {- | when constructed with 'mappend', a @Template@ is always flat (see 'flattenTemplate'). 
 

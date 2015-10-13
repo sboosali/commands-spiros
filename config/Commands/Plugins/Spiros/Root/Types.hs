@@ -29,18 +29,18 @@ data Root
 
 data Acts
  = ActsRW Int Act   -- ^ read/write actions
- deriving (Show,Eq)
+ deriving (Show,Read,Eq)
 
 data Act
  = KeyRiff_ KeyRiff
  --TODO | Click_ Click
  | Edit_ Edit
  | Move_ Move
- deriving (Show,Eq)
+ deriving (Show,Read,Eq)
 
-data Click = Click Times Button deriving (Show,Eq)
+data Click = Click Times Button deriving (Show,Read,Eq,Ord)
 
-data Times = Single | Double | Triple deriving (Show,Eq,Enum)
+data Times = Single | Double | Triple deriving (Show,Read,Eq,Ord,Enum,Bounded)
 
-data Button = LeftButton | MiddleButton | RightButton deriving (Show,Eq,Enum)
+data Button = LeftButton | MiddleButton | RightButton deriving (Show,Read,Eq,Ord,Enum,Bounded)
 

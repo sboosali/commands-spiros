@@ -13,7 +13,7 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 -- "static" phrase
 
 newtype Phrase = Phrase { unPhrase :: [Phrase_] } 
- deriving(Show,Eq,Ord,Data,Monoid)
+ deriving(Show,Read,Eq,Ord,Data,Monoid)
 
 instance IsString Phrase where
  fromString = word2phrase
@@ -42,24 +42,24 @@ data Phrase_
  | Capped_   [Char]     -- ^ atom-like.
  | Symbol_   [Char]     -- ^ atom-like.
  | Dictated_ Dictation  -- ^ list-like.
- deriving (Show,Eq,Ord,Data)
+ deriving (Show,Read,Eq,Ord,Data)
 
 instance IsString Phrase_ where
  fromString = word2phrase_
 
-data Casing = UpperCase | LowerCase | CapCase deriving (Show,Eq,Ord,Enum,Bounded,Data)
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Read,Eq,Ord,Enum,Bounded,Data)
 
-data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Eq,Ord,Data)
+data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Read,Eq,Ord,Data)
 
-data Brackets = Brackets String String deriving (Show,Eq,Ord,Data)
+data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Data)
 
-data Splitter = Splitter deriving (Show,Eq,Ord,Data)
+data Splitter = Splitter deriving (Show,Read,Eq,Ord,Data)
 
-newtype Separator = Separator String  deriving (Show,Eq,Ord,Data)
+newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data)
 
-newtype Keyword = Keyword String  deriving (Show,Eq,Ord,Data)
+newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data)
 
-newtype Dictation = Dictation [String] deriving (Show,Eq,Ord,Data)
+newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data)
 
 instance IsString Dictation where
  fromString = Dictation . words
@@ -92,7 +92,7 @@ data PFunc
  | Joined     Joiner
  | Surrounded Brackets
  | Splitted   Splitter 
- deriving (Show,Eq,Ord)
+ deriving (Show,Read,Eq,Ord)
 
 -- | "Phrase Atom".
 --
@@ -102,7 +102,7 @@ data PAtom
  = PWord String                 -- ^ a word without spaces 
  | PText String                 -- ^ a word with spaces (ignored by "Commands.Plugins.Spiros.Phrase.Munging.applyPFunc") 
  | PAcronym Bool [Char]         -- ^ whether the acronym will be uppercased
- deriving (Show,Eq,Ord)
+ deriving (Show,Read,Eq,Ord)
 
 -- | for doctest
 instance IsString PAtom where fromString = PWord
@@ -118,7 +118,7 @@ the Bool enables munging.
 @'Pasted' 'False'@ means that the clipboard contents will be inserted literally. 
 
 -}
-data Pasted = Pasted Bool deriving (Show,Eq,Ord)
+data Pasted = Pasted Bool deriving (Show,Read,Eq,Ord)
 
 -- | used by 'pPhrase'.
 type PStack = NonEmpty PItem
