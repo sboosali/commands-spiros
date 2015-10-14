@@ -12,6 +12,7 @@ import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec)
 
 import Data.Foldable
 import qualified Data.List as List
+import System.Exit(ExitCode(..)) 
 
 
 -- ================================================================ --
@@ -209,4 +210,11 @@ diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (
 
 either2maybe :: Either e a -> Maybe a 
 either2maybe = either (const Nothing) Just 
+
+either2bool :: Either e a -> Bool
+either2bool = either (const False) (const True) 
+
+bool2exitcode :: Bool -> ExitCode 
+bool2exitcode False = ExitFailure 1
+bool2exitcode True  = ExitSuccess 
 

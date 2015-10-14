@@ -121,6 +121,15 @@ myMacros0_ =  vocabMacro
    emacs_reach_shell
    slot "cabal run server"
 
+ , "voice test"-: do   -- for bootstrapping 
+   global_reach_voice_app
+   emacs_reach_shell
+   slot "cabal run server -- test" 
+
+ , "voice shell"-: do   -- for bootstrapping 
+   global_reach_voice_app
+   emacs_reach_shell
+
  , "voice rebel"-: do           -- REPL
    global_reach_voice_app
    emacs_reach_repl 
@@ -128,10 +137,12 @@ myMacros0_ =  vocabMacro
 
  , "voice notes"-: do
    global_reach_voice_app
+   move_window_down
    switch_buffer "notes"
 
  , "voice data"-: do
    global_reach_voice_app
+   move_window_down
    switch_buffer "data.txt"
 
  , "run again"-: do
