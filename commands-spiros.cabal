@@ -40,6 +40,7 @@ library
 
         Commands.Plugins.Spiros.Template
         Commands.Plugins.Spiros.Template.Types 
+        Commands.Plugins.Spiros.Template.QQ 
 
         Commands.Plugins.Spiros.Root
         Commands.Plugins.Spiros.Root.Types 
