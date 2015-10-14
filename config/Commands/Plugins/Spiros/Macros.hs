@@ -130,6 +130,10 @@ myMacros0_ =  vocabMacro
    global_reach_voice_app
    switch_buffer "notes"
 
+ , "voice data"-: do
+   global_reach_voice_app
+   switch_buffer "data.txt"
+
  , "run again"-: do
    execute_extended_command
    press "<up>"
