@@ -15,11 +15,9 @@ getShim ShimR{..} = [qc|
 # _commands.py
 
 # natlink13 library
-from natlinkmain import (setCheckForGrammarChanges)
-from natlinkutils import (GrammarBase)
 import natlink  # a DLL
 import natlinkmain
-# import natlinkutils
+import natlinkutils
 
 # standard library
 import time
@@ -75,7 +73,7 @@ correcting_export = "correcting"
 correcting_rule = '''
 <correcting> exported
  = <dgndictation>
- | nil | zero | one | two | three | four | five | six | sev | seven | eight | nine;
+ | zero | one | two | three | four | five | six | seven | eight | nine;
 '''
 
 readable_export = "readable"
@@ -101,7 +99,7 @@ all_lists   = merge_dicts(H_LISTS,reading_lists)
 
 # the grammar
 
-class NarcissisticGrammar(GrammarBase):
+class NarcissisticGrammar(natlinkutils.GrammarBase):
     ''' 'Narcissistic' because:
 
     * load(.., allResults=1)     means: every recognition triggers gotResultsObject
@@ -172,6 +170,7 @@ class NarcissisticGrammar(GrammarBase):
             self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting" or should_change_mode == "microphone/sleeping") else (True if should_change_mode == "normal" else self.should_request)
             self.current_mode   = should_change_mode or self.current_mode
 
+# TODO must happen before 
             self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
 
             # the microphone falls asleep during silence,
@@ -192,12 +191,16 @@ class NarcissisticGrammar(GrammarBase):
                     if should_change_microphone_mode:
                         self.current_mode = should_change_microphone_mode
 
+ # TODO must enable requests to pass through, after the first "fix" is ignored 
+            if self.current_mode == "correcting": 
+                hypotheses = list(get_results(self.previous_results_object))
+                post_correction(hypotheses) 
+
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
             if should_send_request and self.should_request:
                 print 'data  =', json.dumps(data)
-                request  = urllib2.Request(url, json.dumps(data), \{"Content-Type": "application/json"})
-                response = urllib2.urlopen(request)
+                post_recognition(data) 
             pass
 
         except Exception as e:
@@ -254,10 +257,25 @@ class NarcissisticGrammar(GrammarBase):
 
 # API
 
-# TODO             handleDGNUpdate(grammar, response)
-def handleDGNUpdate(grammar, response):
+def post_recognition(recognition): 
+    url      = "%s/recognition/" % (server_address,)        # TODO parameterize API
+    request  = urllib2.Request(url, json.dumps(recognition), \{"Content-Type": "application/json"})
+    response = urllib2.urlopen(request)
+    return response 
+
+def post_correction(hypotheses):
+    url      = "%s/correct/" % (server_address,)        # TODO parameterize API
+    request  = urllib2.Request(url, json.dumps(hypotheses), \{"Content-Type": "application/json"})
+    response = urllib2.urlopen(request)
+    return response 
+
+# TODO             handleDNSUpdate(grammar, response)
+def handleDNSUpdate(grammar, response):
     pass 
 
+
+
+# magic 
 
 # data :: [String] 
 # datum :: String
@@ -480,7 +498,8 @@ GRAMMAR = None # mutable global
 
 def load():
     global GRAMMAR
-    setCheckForGrammarChanges(1) # automatically reload on file change (not only when microphone toggles on)
+    # automatically reload on file change (not only when microphone toggles on)
+    natlinkmain.setCheckForGrammarChanges(1)
     GRAMMAR = NarcissisticGrammar()
     GRAMMAR.initialize()
 
