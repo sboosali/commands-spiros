@@ -36,7 +36,7 @@ import Data.Monoid ((<>))
 import System.Exit
 
 
-type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> [Text] -> a -> IO Bool -- TODO
+type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> Ranking a -> [Text] -> a -> IO Bool -- TODO
 
 type AmbiguousParser a = [Text] -> (Maybe a, [a])
 
@@ -71,7 +71,7 @@ spirosTest = do
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings :: RULED DNSEarleyCommand r SpirosType -> RULED (VSettings OSX.CWorkflow) r SpirosType
-spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic) (spirosUpdateConfig command)
+spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic rankRoots) (spirosUpdateConfig command)
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 -- spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret (\_ _ _ -> return())) (spirosUpdateConfig command)
@@ -142,8 +142,14 @@ spirosSetup settings = do
 * executes the compiled actions (in 'IO').
 
 -}
-spirosInterpret :: (Show a) => ServerMagic a -> (forall r. RULED (VSettings OSX.CWorkflow) r a) -> [Text] -> Response ()
-spirosInterpret serverMagic vSettings = \ws -> do
+spirosInterpret
+ :: (Show a)
+ => ServerMagic a
+ -> Ranking a
+ -> (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> [Text]
+ -> Response ()
+spirosInterpret serverMagic theRanking vSettings = \ws -> do
 
  t0<- liftIO$ getTime theClock 
 
@@ -177,7 +183,7 @@ spirosInterpret serverMagic vSettings = \ws -> do
   -- the Objective-C bindings print out which functions are called
 
  -- magic actions, TODO replace with a free monad
- shouldExecute <- liftIO$ serverMagic theHandlers theAmbiguousParser ws value
+ shouldExecute <- liftIO$ serverMagic theHandlers theAmbiguousParser theRanking ws value
 
  t2<- liftIO$ getTime theClock 
 
@@ -213,7 +219,7 @@ spirosInterpret serverMagic vSettings = \ws -> do
 
 -- | on 'Ambiguous', print all parse results.  
 spirosMagic :: ServerMagic Roots 
-spirosMagic theHandlers theAmbiguousParser theWords = \case 
+spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case 
 
   Frozen (List.nub -> List.sort -> stages) _r -> do
    replicateM_ 2 (putStrLn"")
@@ -228,7 +234,7 @@ spirosMagic theHandlers theAmbiguousParser theWords = \case
 
   Ambiguous _ -> case theWords of
    ((T.unpack -> "explicate"):ws) -> do -- TODO grammatical symbol is hardcoded 
-    liftIO$ handleParses theAmbiguousParser ws 
+    liftIO$ handleParses theAmbiguousParser theRanking ws 
     return False 
    _ -> return True 
 
@@ -295,8 +301,8 @@ handleStage CommandsResponse{..}= \case
 
 handleParses
  :: (Show a)
- => ([Text] -> (Maybe a, [a])) -> [Text] -> IO ()
-handleParses theParser ws = do
+ => AmbiguousParser a -> Ranking a -> [Text] -> IO ()
+handleParses theParser theRanking ws = do
  let (value,values) = theParser ws
  let message = [ ""
                , "" 
@@ -322,7 +328,8 @@ handleParses theParser ws = do
  where 
  showValue ((+1) -> index_) value =
   [ ""
-  , (show index_ ++ ".")
+  , (show index_ <> ".")
+  , ("(" <> show (theRanking value) <> ")")
   , show value
   ]
 

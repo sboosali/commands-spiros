@@ -15,11 +15,15 @@ import Data.Aeson (FromJSON)
 {-| 
 
 -}
-type CorrectAPI
-    = "correct" :> ReqBody '[JSON] DNSHypotheses :> Post '[JSON] ()
-  -- :<|> 
+type CorrectAP = "correct" :> ReqBody '[JSON] DNSHypotheses :> Post '[JSON] ()
+ -- :<|> 
 
 -- data DNSCorrection = DNSCorrection 
+
+-- active grammars, loaded grammars, vocabulary lists, microphone state, all states, previous recognition objects, 
+-- data DNSState = DNSState
+--  {
+--  }
 
 {-| the hypotheses of the previous recognition. 
 
