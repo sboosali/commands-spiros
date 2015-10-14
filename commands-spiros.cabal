@@ -33,10 +33,13 @@ library
         Commands.Plugins.Spiros.Types 
         Commands.Plugins.Spiros.Main 
 
-        Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Shell
         Commands.Plugins.Spiros.Keys
         Commands.Plugins.Spiros.Number 
+
+        Commands.Plugins.Spiros.Shim
+        Commands.Plugins.Spiros.Shim.API 
+        Commands.Plugins.Spiros.Shim.QQ
 
         Commands.Plugins.Spiros.Template
         Commands.Plugins.Spiros.Template.Types 
@@ -92,6 +95,7 @@ library
         split ==0.2.*, 
         clock ==0.5.*, 
         free ==4.12.*, 
+        aeson ==0.9.*,
         template-haskell ==2.10.*, 
         time -any
     default-language: Haskell2010
