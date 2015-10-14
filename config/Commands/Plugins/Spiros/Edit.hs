@@ -9,8 +9,8 @@ module Commands.Plugins.Spiros.Edit
 
 import Commands.Plugins.Spiros.Edit.Types
 import Commands.Plugins.Spiros.Edit.Run
+import Commands.Plugins.Spiros.Extra
 
-import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative

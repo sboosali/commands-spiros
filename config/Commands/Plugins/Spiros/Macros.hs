@@ -4,7 +4,7 @@
 module Commands.Plugins.Spiros.Macros where
 import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Macros.Types
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Edit
@@ -14,7 +14,6 @@ import Commands.Plugins.Spiros.Keys
 import  Commands.Plugins.Spiros.Template
 
 import Commands.Sugar.Keys
-import           Commands.Etc
 import Commands.RHS.Types 
 import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
@@ -144,6 +143,11 @@ myMacros0_ =  vocabMacro
    global_reach_voice_app
    move_window_down
    switch_buffer "data.txt"
+
+ , "voice to do"-: do
+   global_reach_voice_app
+   move_window_down
+   switch_buffer "TODO"
 
  , "run again"-: do
    execute_extended_command

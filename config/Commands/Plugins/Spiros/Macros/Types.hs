@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds        #-}
 module Commands.Plugins.Spiros.Macros.Types where
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 
 import Commands.RHS.Types 
 import Commands.Mixins.DNS13OSX9

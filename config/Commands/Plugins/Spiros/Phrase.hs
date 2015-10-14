@@ -15,7 +15,7 @@ import           Commands.Plugins.Spiros.Phrase.Run
 import           Commands.Plugins.Spiros.Phrase.Munging
 import           Commands.Plugins.Spiros.Phrase.Spacing
 
-import           Commands.Etc
+import           Commands.Extra
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import qualified Commands.Backends.OSX            as OSX

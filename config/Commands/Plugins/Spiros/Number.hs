@@ -2,9 +2,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Number where 
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 
-import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative

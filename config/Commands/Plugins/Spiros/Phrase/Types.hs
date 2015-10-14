@@ -2,7 +2,7 @@
 module Commands.Plugins.Spiros.Phrase.Types where
 
 import           Data.Sexp
-import           Commands.Etc
+import           Commands.Extra
 
 import           Data.List.NonEmpty               (NonEmpty)
 

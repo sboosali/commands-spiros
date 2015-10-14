@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable, DeriveFunctor, LambdaCase  #-}
 module Commands.Plugins.Spiros.Root.Types where
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros.Types 
 import           Commands.Plugins.Spiros.Shell

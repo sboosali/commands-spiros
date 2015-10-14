@@ -3,10 +3,9 @@
 module Commands.Plugins.Spiros.Phrase.Run where
 import Commands.Plugins.Spiros.Phrase.Types
 import Commands.Plugins.Spiros.Phrase.Munging
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 
 import qualified Commands.Backends.OSX            as OSX
-import           Commands.Etc
 import           Commands.Plugins.Spiros.Phrase.Spacing
 import Commands.Sugar.Keys
 

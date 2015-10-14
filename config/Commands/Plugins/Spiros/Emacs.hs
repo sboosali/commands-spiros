@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Emacs where
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Emacs.Config
 -- import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
 import           Commands.Plugins.Spiros.Phrase
@@ -11,7 +11,6 @@ import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 
 import           Control.Applicative
-import           Data.Foldable                         (traverse_)
 
 
 type ElispSexp = String

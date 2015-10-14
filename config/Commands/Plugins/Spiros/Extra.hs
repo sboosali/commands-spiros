@@ -1,11 +1,16 @@
 {-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
-module Commands.Plugins.Spiros.Etc where
+module Commands.Plugins.Spiros.Extra
+ ( module Commands.Plugins.Spiros.Extra
+ , module Commands.Extra
+ ) where
+
 import Commands.Plugins.Spiros.Types
 
 -- import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 import           Commands.Sugar.Keys 
+import           Commands.Extra -- for reexport 
 
 import qualified System.FilePath.Posix as FilePath
 import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec) 

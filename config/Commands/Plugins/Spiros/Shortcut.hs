@@ -5,7 +5,7 @@ module Commands.Plugins.Spiros.Shortcut where
 import Commands.Plugins.Spiros.Shortcut.Types 
 import Commands.Plugins.Spiros.Chrome.Gmail 
 
-import Commands.Etc
+import Commands.Extra
 import Commands.Mixins.DNS13OSX9
 
 import Control.Applicative

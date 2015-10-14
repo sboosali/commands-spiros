@@ -7,7 +7,7 @@
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root.Run where 
 import           Commands.Plugins.Spiros.Root.Types 
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Macros.Types 
@@ -17,7 +17,6 @@ import           Commands.Plugins.Spiros.Edit
 import           Commands.Plugins.Spiros.Shortcut.Types 
 
 import           Commands.Backends.OSX
-import           Commands.Etc
 import Commands.Sugar.Keys
 
 -- import           Control.Parallel

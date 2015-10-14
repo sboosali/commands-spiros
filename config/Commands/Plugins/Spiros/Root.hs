@@ -11,6 +11,7 @@ module Commands.Plugins.Spiros.Root
  , module Commands.Plugins.Spiros.Root.Run -- TODO there should be a .Grammar that is imported, rather than vice versa 
  ) where
 import           Commands.Plugins.Spiros.Root.Types 
+import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Root.Run 
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros
@@ -20,7 +21,6 @@ import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
 import  Commands.Plugins.Spiros.Keys
 
-import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative

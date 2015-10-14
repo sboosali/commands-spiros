@@ -3,9 +3,9 @@
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Chrome.Gmail where 
 import Commands.Plugins.Spiros.Shortcut.Types 
+import Commands.Plugins.Spiros.Extra
 -- import Commands.Plugins.Spiros.Chrome.Types 
 
-import Commands.Etc 
 import Commands.Mixins.DNS13OSX9
 
 

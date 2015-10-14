@@ -4,12 +4,11 @@
 
 -}
 module Commands.Plugins.Spiros.Server where 
-import           Commands.Plugins.Spiros.Etc
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Shim (getShim)
 
 import qualified Commands.Backends.OSX         as OSX
-import           Commands.Etc
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Servers.Servant

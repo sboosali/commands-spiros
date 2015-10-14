@@ -5,7 +5,7 @@
 -}
 module Commands.Plugins.Spiros.Shim.API where
 
-import Commands.Etc
+import Commands.Extra
 import Commands.Servers.Servant.Types
 
 import Servant

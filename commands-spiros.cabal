@@ -29,7 +29,7 @@ library
         buildable: False
     exposed-modules:
         Commands.Plugins.Spiros
-        Commands.Plugins.Spiros.Etc
+        Commands.Plugins.Spiros.Extra
         Commands.Plugins.Spiros.Types 
         Commands.Plugins.Spiros.Main 
         Commands.Plugins.Spiros.Server 

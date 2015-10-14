@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Commands.Plugins.Spiros.Shortcut.Types where
 
-import Commands.Etc
+import Commands.Extra
 import Commands.Mixins.DNS13OSX9
 import Commands.Backends.OSX
 
