@@ -11,11 +11,16 @@ import           Commands.Plugins.Spiros.Phrase.Types
 import Commands.Backends.OSX (KeyRiff) 
 
 
+type SpirosType = Roots
+
 data Roots
- = Frozen Root
+ = Frozen [Stage] Root
  | Ambiguous Root
  | Root_ Root
  deriving (Show,Eq)
+
+-- | the stages of the DSL 
+data Stage = RawStage | ParseStage | RunStage deriving (Show,Read,Eq,Ord,Bounded,Enum)
 
 data Root
  = Acts_       [Acts]         -- ^ chained and repeated

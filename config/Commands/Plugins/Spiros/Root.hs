@@ -20,6 +20,7 @@ import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
 import  Commands.Plugins.Spiros.Keys
 
+import           Commands.Etc
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative
@@ -39,10 +40,16 @@ rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots 
 -- ================================================================ --
 
 roots :: R z Roots
-roots = 'roots
- <=> Frozen <$ (token"freeze") <*> root --TODO recursion
- <|> Ambiguous <$ (token"explicate") <*> root --TODO recursion
+roots = 'roots <=> empty
+ <|> freezeRoot
+ <|> Ambiguous <$ "explicate" <*> root --TODO recursion
  <|> Root_ <$> root
+
+freezeRoot :: R z Roots 
+freezeRoot = 'freezeRoot <=> empty --TODO recursion
+ <|> Frozen [RawStage]    <$ "freeze" <* "raw"   <*> root -- TODO doesn't work 
+ <|> Frozen [ParseStage]  <$ "freeze" <* "parse" <*> root -- TODO doesn't work 
+ <|> Frozen constructors  <$ "freeze"            <*> root
 
 root :: R z Root
 root = 'root <=> empty

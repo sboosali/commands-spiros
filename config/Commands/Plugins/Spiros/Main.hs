@@ -11,7 +11,7 @@ import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Servers.Servant
 
-import           Control.Lens                  hiding (from, ( # ))
+import           Control.Lens (imap, (&)) 
 import           Control.Monad.Trans.Either
 import qualified Data.ByteString.Lazy.Char8    as BSC
 import qualified Data.Text.Lazy                as T
@@ -29,11 +29,14 @@ import           System.IO.Unsafe
 import System.IO
 import System.Mem
 import Control.Arrow ((&&&)) 
+import qualified Data.List as List 
+import Data.Monoid ((<>))
 
 
-type SpirosType = Roots
+type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> [Text] -> a -> IO Bool -- TODO
 
-type ServerMagic a = (([Text] -> (Maybe a, [a])) -> [Text] -> a -> IO (Bool)) -- TODO
+type AmbiguousParser a = [Text] -> (Maybe a, [a])
+
 
 
 -- ================================================================ --
@@ -136,7 +139,7 @@ spirosInterpret serverMagic vSettings = \ws -> do
     putStrLn$ "ERROR:"
     print e
     putStrLn$ "WORDS:"
-    T.putStrLn$ T.intercalate (T.pack " ") ws
+    putStrLn$ showWords ws
     hFlush stdout
    left$ err400{errBody = BSC.pack (show e)}
 
@@ -144,15 +147,20 @@ spirosInterpret serverMagic vSettings = \ws -> do
 
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
- let workflow = fromF ((vSettings&vConfig&vDesugar) context value)  -- TODO church encoding doesn't accelerate construction
+ let hParse = either2maybe . (e'ParseBest (vSettings&vConfig&vParser))
+ let hDesugar = fromF . ((vSettings&vConfig&vDesugar) context)
+ let theHandlers = CommandsHandlers{..}
+
+ let theAmbiguousParser theWords = ((fmap (vSettings&vConfig&vParser&pBest) . nonEmpty) &&& id) (e'ParseList (vSettings&vConfig&vParser&pProd) theWords)
+
+ let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
  liftIO$ workflowIO 
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
 
  -- magic actions, TODO replace with a free monad
- let parser_ ws_ = ((fmap (vSettings&vConfig&vParser&pBest) . nonEmpty) &&& id) (e'ParseList (vSettings&vConfig&vParser&pProd) ws_)
- shouldExecute <- liftIO$ serverMagic parser_ ws value 
+ shouldExecute <- liftIO$ serverMagic theHandlers theAmbiguousParser ws value
 
  t2<- liftIO$ getTime theClock 
 
@@ -177,7 +185,7 @@ spirosInterpret serverMagic vSettings = \ws -> do
   print value
   putStrLn ""
   putStrLn$ "WORDS:"
-  T.putStrLn$ T.intercalate (T.pack " ") ws
+  putStrLn$ showWords ws
 
   -- performMinorGC
   performMajorGC
@@ -188,37 +196,136 @@ spirosInterpret serverMagic vSettings = \ws -> do
 
 -- | on 'Ambiguous', print all parse results.  
 spirosMagic :: ServerMagic Roots 
-spirosMagic parse_ ws = \case 
+spirosMagic theHandlers theAmbiguousParser theWords = \case 
 
-  Ambiguous _r -> case ws of
-   ((T.unpack -> "explicate"):ws_) -> liftIO$ do -- TODO grammatical symbol is hardcoded 
-    let (value,values) = parse_ ws_
-    replicateM_ 3 (putStrLn"")
+  Frozen (List.nub -> List.sort -> stages) _r -> do
+   replicateM_ 2 (putStrLn"")
 
-    putStrLn$ "LENGTH:" 
-    print   $ length values 
-    putStrLn$ "" 
+   case theWords of
+    ((T.unpack -> "freeze"):ws) -> do -- TODO grammatical symbol is hardcoded 
+        let theResponse = handleRequest theHandlers ws 
+        traverse_ (handleStage theResponse) stages 
+        return False 
 
-    putStrLn$ "WORDS:"
-    T.putStrLn$ T.intercalate (T.pack " ") ws
-    putStrLn$ "" 
+    _ -> return True 
 
-    putStrLn$ "BEST:"
-    print   $ value 
-    putStrLn$ "" 
-
-    putStrLn$ "VALUES:"
-    itraverse_ printValue values 
-
+  Ambiguous _ -> case theWords of
+   ((T.unpack -> "explicate"):ws) -> do -- TODO grammatical symbol is hardcoded 
+    liftIO$ handleParses theAmbiguousParser ws 
     return False 
-
    _ -> return True 
 
   _ -> return True 
 
- where 
- printValue ((+1) -> index_) value = do 
+
+type CommandsRequest = [Text]
+
+data CommandsResponse a b = CommandsResponse 
+ { rRaw       :: [Text]
+ , rParsed    :: Maybe a 
+ , rDesugared :: Maybe b 
+ }
+
+data CommandsHandlers a b = CommandsHandlers
+ { hParse   :: [Text] -> Maybe a 
+ , hDesugar :: a -> b 
+ }
+
+{-| the fields in the output are constructed lazily, with intermediary computations shared. 
+
+-}
+handleRequest :: CommandsHandlers a b -> CommandsRequest -> CommandsResponse a b  
+handleRequest CommandsHandlers{..} ws = CommandsResponse{..} 
+ where
+ rRaw       = ws
+ rParsed    = hParse rRaw
+ rDesugared = hDesugar <$> rParsed
+
+
+printStage :: (Show a) => CommandsResponse a OSX.Workflow_ -> Stage -> IO() 
+printStage CommandsResponse{..} = \case 
+ RawStage   -> do 
   putStrLn ""
-  print $ show index_ ++ "." 
-  print value
+  putStrLn "WORDS:"
+  putStrLn$ showWords rRaw
+ ParseStage -> do 
+  putStrLn ""
+  putStrLn "VALUE:"
+  traverse_ print rParsed
+ RunStage   -> do 
+  putStrLn ""
+  putStrLn "WORKFLOW:" 
+  traverse_ printWorkflow rDesugared
+
+
+handleStage :: (Show a) => CommandsResponse a OSX.Workflow_ -> Stage -> IO ()  
+handleStage CommandsResponse{..}= \case 
+
+         RawStage   -> do 
+             putStrLn ""
+             putStrLn "WORDS:"
+             printAndPaste (showWords rRaw)
+
+         ParseStage -> do 
+             putStrLn ""
+             putStrLn "VALUE:"
+             traverse_ (printAndPaste . show) rParsed
+
+         RunStage   -> do 
+             putStrLn ""
+             putStrLn "WORKFLOW:" 
+             traverse_ (printAndPaste . OSX.showWorkflow) rDesugared 
+
+handleParses
+ :: (Show a)
+ => ([Text] -> (Maybe a, [a])) -> [Text] -> IO ()
+handleParses theParser ws = do
+ let (value,values) = theParser ws
+ let message = [ ""
+               , "" 
+               , "" 
+
+               , "LENGTH:" 
+               , show (length values) 
+               , "" 
+
+               , "WORDS:"
+               , showWords ws 
+               , "" 
+
+               , "BEST:"
+               , show value 
+               , "" 
+
+               , "VALUES:"
+               ] <> concat (imap showValue values)
+
+ printAndPaste (List.intercalate "\n" message)
+
+ where 
+ showValue ((+1) -> index_) value =
+  [ ""
+  , (show index_ ++ ".")
+  , show value
+  ]
+
+
+showWords :: [Text] -> String 
+showWords = T.unpack . T.intercalate (T.pack " ")
+
+printWorkflow :: OSX.Workflow_ -> IO ()
+printWorkflow = putStrLn . OSX.showWorkflow
+
+
+insertByClipboardIO :: String -> IO ()
+insertByClipboardIO s = OSX.runWorkflow $ do
+ insertByClipboard ("\n" <> s <> "\n")
+ OSX.delay 250 
+
+
+printAndPaste :: String -> IO ()
+printAndPaste s = do 
+ insertByClipboardIO s 
+ putStrLn s
+
 

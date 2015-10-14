@@ -21,6 +21,12 @@ import           Text.InterpolatedString.Perl6 (qc)
 
 -}
 haddockTemplate :: String -> Template 
+haddockTemplate "" = [qc|
+\{-| {cursor}
+
+-}
+
+|]
 haddockTemplate text = [qc|
 \{-| {text} {cursor}
 

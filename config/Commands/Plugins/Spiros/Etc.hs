@@ -207,3 +207,6 @@ restoringClipboard m = do
 diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer 
 diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
 
+either2maybe :: Either e a -> Maybe a 
+either2maybe = either (const Nothing) Just 
+

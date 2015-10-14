@@ -27,7 +27,7 @@ import qualified Data.List as List
 bestRoots = argmax rankRoots
 
 rankRoots = \case                --TODO fold over every field of every case, normalizing each case
- Frozen r -> highRank + rankRoot r
+ Frozen _ r -> highRank + rankRoot r
  Ambiguous r -> highRank + rankRoot r
  Root_ r   -> rankRoot r
 
@@ -57,8 +57,8 @@ rankAct = \case
 -- ================================================================ --
 
 runRoots context = \case
- Frozen r -> insert (show r)
- Ambiguous _r -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 
+ Frozen _ _ -> nothing           -- TODO needs magic server actions , which needs a more general monad stack 
+ Ambiguous _ -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 
  Root_ r  -> runRoot context r
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
