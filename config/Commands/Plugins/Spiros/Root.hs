@@ -26,6 +26,7 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 import           Control.Monad.ST.Unsafe
 import           System.IO.Unsafe
+import           GHC.Exts                        (IsString(..))
 
 
 rootsCommand = Command roots bestRoots runRoots -- TODO is this the right place? 
@@ -42,14 +43,17 @@ rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots 
 roots :: R z Roots
 roots = 'roots <=> empty
  <|> freezeRoot
- <|> Ambiguous <$ "explicate" <*> root --TODO recursion
+ <|> Ambiguous <$ (fromString RootsAmbiguousPrefix) <*> root --TODO recursion
  <|> Root_ <$> root
 
 freezeRoot :: R z Roots 
 freezeRoot = 'freezeRoot <=> empty --TODO recursion
- <|> Frozen [RawStage]    <$ "freeze" <* "raw"   <*> root -- TODO doesn't work 
- <|> Frozen [ParseStage]  <$ "freeze" <* "parse" <*> root -- TODO doesn't work 
- <|> Frozen constructors  <$ "freeze"            <*> root
+ <|> Frozen [RawStage]    <$ (fromString RootsFrozenPrefix) <* "raw"   <*> root -- TODO doesn't work 
+ <|> Frozen [ParseStage]  <$ (fromString RootsFrozenPrefix) <* "parse" <*> root -- TODO doesn't work 
+ <|> Frozen constructors  <$ (fromString RootsFrozenPrefix)            <*> root
+
+pattern RootsAmbiguousPrefix = "explicate"
+pattern RootsFrozenPrefix    = "freeze" 
 
 root :: R z Root
 root = 'root <=> empty

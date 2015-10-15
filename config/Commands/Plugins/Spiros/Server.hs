@@ -225,7 +225,7 @@ spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case
    replicateM_ 2 (putStrLn"")
 
    case theWords of
-    ((T.unpack -> "freeze"):ws) -> do -- TODO grammatical symbol is hardcoded 
+    ((T.unpack -> RootsFrozenPrefix):ws) -> do -- TODO grammatical symbol is hardcoded 
         let theResponse = handleRequest theHandlers ws 
         traverse_ (handleStage theResponse) stages 
         return False 
@@ -233,7 +233,7 @@ spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case
     _ -> return True 
 
   Ambiguous _ -> case theWords of
-   ((T.unpack -> "explicate"):ws) -> do -- TODO grammatical symbol is hardcoded 
+   ((T.unpack -> RootsAmbiguousPrefix):ws) -> do -- TODO grammatical symbol is hardcoded 
     liftIO$ handleParses theAmbiguousParser theRanking ws 
     return False 
    _ -> return True 
