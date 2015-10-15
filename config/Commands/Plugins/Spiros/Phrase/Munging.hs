@@ -43,7 +43,10 @@ PWord ""she
 
 -}
 concatPAtoms :: [PAtom] -> Spaced String
-concatPAtoms xs e = (flip spaceOut) e . fmap mungePAtom $ xs
+concatPAtoms xs e
+ = (flip spaceOut) e
+ . fmap mungePAtom
+ $ xs
 
 mungePAtom :: PAtom -> String
 mungePAtom = \case

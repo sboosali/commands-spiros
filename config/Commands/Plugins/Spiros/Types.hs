@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Commands.Plugins.Spiros.Types where
 
 

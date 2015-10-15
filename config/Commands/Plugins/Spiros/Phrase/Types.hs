@@ -13,7 +13,7 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 -- "static" phrase
 
 newtype Phrase = Phrase [Phrase_] 
- deriving(Show,Read,Eq,Ord,Data,Monoid)
+ deriving(Show,Read,Eq,Ord,Monoid,Generic,Data)
 
 instance IsString Phrase where
  fromString = word2phrase
@@ -47,19 +47,19 @@ data Phrase_
 instance IsString Phrase_ where
  fromString = word2phrase_
 
-data Casing = UpperCase | LowerCase | CapCase deriving (Show,Read,Eq,Ord,Enum,Bounded,Data)
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 
-data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Read,Eq,Ord,Data)
+data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Read,Eq,Ord,Data,Generic)
 
-data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Data)
+data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Data,Generic)
 
-data Splitter = Splitter deriving (Show,Read,Eq,Ord,Data)
+data Splitter = Splitter deriving (Show,Read,Eq,Ord,Data,Generic)
 
-newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data)
+newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data,Generic)
 
-newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data)
+newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data,Generic)
 
-newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data)
+newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data,Generic)
 
 instance IsString Dictation where
  fromString = Dictation . words

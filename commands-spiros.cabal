@@ -76,7 +76,8 @@ library
 
 
     build-depends:
-        base ==4.8.*,
+        s-expression ==0.0.0, 
+
         haskell-src-meta ==0.6.*,
         commands-core -any,
         containers -any,
@@ -101,8 +102,12 @@ library
         free ==4.12.*, 
         aeson ==0.9.*,
         template-haskell ==2.10.*, 
-        time -any
+        time -any, 
+
+        base ==4.8.*
+
     default-language: Haskell2010
+    default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable
     hs-source-dirs: config
     ghc-options: -Wall
 
