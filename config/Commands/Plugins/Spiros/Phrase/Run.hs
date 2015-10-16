@@ -32,7 +32,7 @@ instance Rankable Phrase_ where rank = rankPhrase_
 instance Rankable Dictation where rank = rankDictation 
 
 rankPhrase :: Phrase -> Int
-rankPhrase = safeAverage . fmap rankPhrase_ . unPhrase
+rankPhrase = sum . fmap rankPhrase_ . unPhrase
 
 -- the specificity ("probability") of the phrase parts. bigger is better.
 rankPhrase_ :: Phrase_ -> Int

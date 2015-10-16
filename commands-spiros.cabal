@@ -77,6 +77,7 @@ library
 
     build-depends:
         s-expression ==0.0.0, 
+        enumerate ==0.0.0, 
 
         haskell-src-meta ==0.6.*,
         commands-core -any,

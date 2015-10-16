@@ -38,6 +38,13 @@ emacs = 'emacs <=> empty
  interactive_ = phrase -- TODO takes fifteen seconds to load a vocabulary of five thousand 
  fromPasted = Just . fromPhrase_
 
+myBuffers :: R z Phrase 
+myBuffers = vocab 
+ [ ""-: "" 
+ , "shell"-: "*shell*" 
+ , ""-: "" 
+ ] 
+
 
 
 -- ================================================================ --

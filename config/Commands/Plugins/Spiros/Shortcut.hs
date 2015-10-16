@@ -17,6 +17,7 @@ myShortcuts = 'myShortcuts
  <=> globalShortcuts
  <|> emacsShortcuts
  <|> magitShortcuts
+ <|> haskellShortcuts
  <|> chromeShortcuts 
  <|> gmailShortcuts
 
@@ -112,6 +113,24 @@ magitShortcuts = shortcuts
  , ""-: ""
  ]
 
+haskellShortcuts :: R z Shortcut 
+haskellShortcuts = shortcuts 
+ [ ""-: ""
+ , "bring rebel"-: "C-`"                               -- haskell-interactive-bring
+ , "type"-: "C-c C-t" 
+ , "insert type"-: "C-u C-c C-t" 
+ , "info"-: "C-c C-i"                             -- haskell-process-do-info
+ , "builder"-: "C-c C-c"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: "" 
+ ] 
 
 chromeShortcuts :: R z Shortcut 
 chromeShortcuts = shortcuts

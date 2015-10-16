@@ -164,7 +164,7 @@ myMacros0_ =  vocabMacro
 
  , "next error"-: do
    move_window_down
-   runEmacs "compilation-next-error"
+   press "C-x and `"
    press "C-l"
    press "C-l"
    press "<ret>" 
@@ -249,8 +249,9 @@ myMacros0_ =  vocabMacro
    replicateM_ 2 $ press "<up>" 
    press "<ret>"
 
- , ""-: do
-   nothing
+ , "bring process"-: do
+   move_window_down
+   switch_buffer "*haskell-process-log*" 
 
  , ""-: do
    nothing
@@ -352,8 +353,8 @@ myMacrosN :: R z Macro
 myMacrosN = fmap Macro $ empty
 
  <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
- <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  phrase
- <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  phrase
+ <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  (myBuffers<|>phrase)
+ <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  (phrase)
  <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
  <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
  <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
