@@ -116,7 +116,6 @@ magitShortcuts = shortcuts
 haskellShortcuts :: R z Shortcut 
 haskellShortcuts = shortcuts 
  [ ""-: ""
- , "bring rebel"-: "C-`"                               -- haskell-interactive-bring
  , "type"-: "C-c C-t" 
  , "insert type"-: "C-u C-c C-t" 
  , "info"-: "C-c C-i"                             -- haskell-process-do-info

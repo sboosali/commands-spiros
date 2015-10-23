@@ -253,6 +253,12 @@ myMacros0_ =  vocabMacro
    move_window_down
    switch_buffer "*haskell-process-log*" 
 
+ , "bring rebel"-: do 
+   haskell_interactive_bring
+   delay 100 
+   window_bottom
+   slot ":r"
+
  , ""-: do
    nothing
 

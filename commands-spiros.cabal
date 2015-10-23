@@ -76,8 +76,10 @@ library
 
 
     build-depends:
+        -- cabal sandbox add-source ~/s-expression
         s-expression ==0.0.0, 
-        enumerate ==0.0.0, 
+        -- cabal sandbox add-source ~/enumerate 
+        enumerate ==0.0.0,
 
         haskell-src-meta ==0.6.*,
         commands-core -any,

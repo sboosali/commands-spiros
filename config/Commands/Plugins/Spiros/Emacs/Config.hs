@@ -47,3 +47,7 @@ window_bottom = press "M-<down>"
 -- my_keymap_prefix = (kbd"M-q")
 -- keymap = "M-q"                  -- NOTE nonstandard  
 keymap = "C-x C-y"
+
+haskell_interactive_bring :: MonadWorkflow m=>m()
+haskell_interactive_bring = press "C-`"      -- haskell-mode 
+
