@@ -5,6 +5,7 @@ module Commands.Plugins.Spiros.Macros where
 import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Macros.Types
 import           Commands.Plugins.Spiros.Extra
+import           Commands.Plugins.Spiros.Apply 
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Edit

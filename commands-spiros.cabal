@@ -34,6 +34,7 @@ library
         Commands.Plugins.Spiros.TypeLevel
         Commands.Plugins.Spiros.Main 
         Commands.Plugins.Spiros.Server 
+        Commands.Plugins.Spiros.Apply
 
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Shim.API 

@@ -155,6 +155,9 @@ highRank = 1000
 defaultRankMultiplier :: Int
 defaultRankMultiplier = 1000
 
+rankAtLeast :: Rankable a => Int -> a -> Int
+rankAtLeast i a = min i (rank a) 
+
 instance Rankable Int where rank = const defaultRank
 instance Rankable Ordinal where rank = const defaultRank 
 instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
@@ -220,4 +223,12 @@ either2bool = either (const False) (const True)
 bool2exitcode :: Bool -> ExitCode 
 bool2exitcode False = ExitFailure 1
 bool2exitcode True  = ExitSuccess 
+
+(.!!)   :: (t1 -> t2) -> (a -> b ->           t1) -> (a -> b ->           t2)
+(.!!!)  :: (t1 -> t2) -> (a -> b -> c ->      t1) -> (a -> b -> c ->      t2)
+(.!!!!) :: (t1 -> t2) -> (a -> b -> c -> d -> t1) -> (a -> b -> c -> d -> t2)
+
+(.!!)   f g = \a b     -> f (g a b)
+(.!!!)  f g = \a b c   -> f (g a b c)
+(.!!!!) f g = \a b c d -> f (g a b c d)
 
