@@ -157,8 +157,6 @@ defaultRankMultiplier = 1000
 
 instance Rankable Int where rank = const defaultRank
 instance Rankable Ordinal where rank = const defaultRank 
-instance Rankable Workflow_         -- TODO
-instance Rankable CWorkflow_         -- TODO
 instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
 instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = rankLeftBiased
 

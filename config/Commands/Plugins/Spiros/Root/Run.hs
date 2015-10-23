@@ -35,7 +35,7 @@ rankRoots = \case                --TODO fold over every field of every case, nor
 rankRoot = \case
  Acts_ ass            -> 4 * highRank + safeAverage (fmap rankActs ass)
    -- NOTE "google word" now matches the Action, not the Macro 
- Macro_ _i (Macro f) -> 3 * highRank + rankApply f
+ Macro_ _i m -> 3 * highRank + rankMacro m
  Shortcut_ _i _s -> 3 * highRank
  Shell_ s           -> highRank + rankShell s
  Emacs_ _i e        -> highRank + rankEmacs e

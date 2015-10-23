@@ -358,6 +358,9 @@ ordinal2keypress
 myMacrosN :: R z Macro 
 myMacrosN = fmap Macro $ empty
 
+ <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase
+
+ <|>  A1  'replace_with_something   replace_with_something     <$           "replace"   <*>  phrase
  <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
  <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  (myBuffers<|>phrase)
  <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  (phrase)
@@ -378,8 +381,6 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
  <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
  <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation 
- 
- <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <*"with" <*> phrase
 
 -- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
 -- "<\\$" "<\\*>"
@@ -399,6 +400,9 @@ multi_occur p = do
  runEmacs "multi-occur-in-matching-buffers"
  slot "."                       -- match all buffers 
  insertP p                     -- match this regexp 
+
+replace_with_something this = do
+ runEmacsWithP "replace-regexp" [this]
 
 replace_with this that = do
  runEmacsWithP "replace-regexp" [this, that]
