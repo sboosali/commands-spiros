@@ -13,7 +13,7 @@ import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Servers.Servant
 
-import           Control.Lens (imap, (&)) 
+import           Control.Lens 
 import           Control.Monad.Trans.Either
 import qualified Data.ByteString.Lazy.Char8    as BSC
 import qualified Data.Text.Lazy                as T
@@ -68,10 +68,20 @@ spirosTest = do
  status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings rootsCommand) -- lazy 
  exitWith status 
 
-
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
-spirosSettings :: RULED DNSEarleyCommand r SpirosType -> RULED (VSettings OSX.CWorkflow) r SpirosType
-spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic rankRoots) (spirosUpdateConfig command)
+spirosSettings
+ :: RULED DNSEarleyCommand r SpirosType
+ -> RULED (VSettings OSX.CWorkflow) r SpirosType
+spirosSettings command = VSettings
+ 8888
+ (spirosSetup )
+ (spirosInterpret spirosMagic rankRoots)
+ (spirosUpdateConfig spirosDnsOptimizationSettings command)
+
+spirosDnsOptimizationSettings :: DnsOptimizationSettings
+spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
+ & dnsOptimizeInlineSmall .~ True
+ -- & .~ 
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 -- spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret (\_ _ _ -> return())) (spirosUpdateConfig command)
@@ -90,9 +100,13 @@ spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret spirosMagic
 
 
 -- spirosUpdateConfig :: VPlugin (E.Rule r Root) Root -> IO (VConfig (E.Rule r Root) Root)
-spirosUpdateConfig :: RULED DNSEarleyCommand r a -> RULED (VConfig OSX.CWorkflow) r a
-spirosUpdateConfig command = unsafePerformIO$ do
- vGrammar <- de'deriveGrammarObservedSharing (command&_cRHS)
+spirosUpdateConfig
+ :: DnsOptimizationSettings
+ -- -> RULED (VSettings OSX.CWorkflow) r a
+ -> RULED DNSEarleyCommand r a
+ -> RULED (VConfig OSX.CWorkflow) r a
+spirosUpdateConfig dnsSettings command = unsafePerformIO$ do
+ vGrammar <- de'deriveGrammarObservedSharing dnsSettings (command&_cRHS)
  -- let eProd = runST$ de'deriveParserObservedSharing (command&_cRHS)
  eProd <- unsafeSTToIO$ de'deriveParserObservedSharing (command&_cRHS) --TODO runST, but input is not rank2
  let vParser = EarleyParser eProd (command&_cBest)
@@ -101,13 +115,15 @@ spirosUpdateConfig command = unsafePerformIO$ do
 {-# NOINLINE spirosUpdateConfig #-}
 
 
-spirosSetup :: RULED (VSettings OSX.CWorkflow) r a -> IO (Either VError ())
-spirosSetup settings = do
+spirosSetup
+ :: RULED (VSettings OSX.CWorkflow) r a
+ -> IO (Either VError ())
+spirosSetup vSettings = do
  hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
 
- let address = Address (Host "192.168.56.1") (Port (settings&vPort))
+ let address = Address (Host "192.168.56.1") (Port (vSettings&vPort))
 
- let theShim = applyShim getShim address (settings&vConfig&vGrammar)
+ let theShim = applyShim getShim address (vSettings&vConfig&vGrammar)
 
  case theShim of 
 
