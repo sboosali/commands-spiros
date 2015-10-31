@@ -11,6 +11,7 @@ import Commands.Sugar.Keys
 
 import           Data.List.NonEmpty               (NonEmpty (..))
 
+import qualified Data.List as List 
 import           Control.Monad ((>=>)) 
 
 
@@ -20,6 +21,45 @@ runPhrase_ spacing clipboard
  . flip(splatPasted) clipboard
  . pPhrase
  . unPhrase
+
+-- | 
+runDictation :: (OSX.MonadWorkflow m) => Dictation -> m () 
+runDictation = \case
+ Dictation ws -> OSX.insert (List.intercalate " " ws)
+
+-- | 
+runLetters :: (OSX.MonadWorkflow m) => Letters -> m () 
+runLetters = insertL
+
+-- runLetters
+insertL :: (OSX.MonadWorkflow m) => Letters -> m () 
+insertL (Letters cs) = OSX.insert cs 
+
+slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
+slotD p = do
+ OSX.delay 10
+ insertD p
+ press "<ret>"
+
+insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
+insertD = mungeDictation >>> OSX.insert
+
+slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
+slotP p = do
+ OSX.delay 10
+ insertP p
+ press "<ret>"
+
+insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
+insertP = munge >=> OSX.insert
+
+munge :: (OSX.MonadWorkflow m) => Phrase -> m String
+munge (Phrase p1) = do
+ p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
+ return$ mungePhrase p2 defSpacing
+
+
+-- ================================================================ --
 
 bestPhrase :: NonEmpty Phrase -> Phrase
 bestPhrase = argmax rankPhrase
@@ -65,27 +105,4 @@ rankDictation (Dictation ws) = length ws - 1
 --  . argmax rankPhrase
 --  . NonEmpty.fromList --  TODO
 --  . parseList phrase_
-
-slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
-slotD p = do
- OSX.delay 10
- insertD p
- press "<ret>"
-
-insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
-insertD = mungeDictation >>> OSX.insert
-
-slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
-slotP p = do
- OSX.delay 10
- insertP p
- press "<ret>"
-
-insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
-insertP = munge >=> OSX.insert
-
-munge :: (OSX.MonadWorkflow m) => Phrase -> m String
-munge (Phrase p1) = do
- p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
- return$ mungePhrase p2 defSpacing
 

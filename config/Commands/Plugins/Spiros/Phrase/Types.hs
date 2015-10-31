@@ -61,6 +61,8 @@ newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data,Generic)
 
 newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data,Generic)
 
+newtype Letters = Letters [Char] deriving (Show,Read,Eq,Ord,Data,Generic)
+
 instance IsString Dictation where
  fromString = Dictation . words
  -- safe: words "" == []
@@ -69,6 +71,9 @@ instance IsList Dictation where
  type Item Dictation = String
  fromList = Dictation
  toList (Dictation ws) = ws
+
+instance IsString Letters where fromString = Letters 
+
 
 -- no {JoinerFunction ([String] -> String)} to keep the {Eq} instance for caching
 -- fake equality? {JoinerFunction Name ([String] -> String)} so {JoinerFunction 'camelCase camelCase}
@@ -151,4 +156,7 @@ word2phrase = fromPhrase_ . word2phrase_
 
 fromPhrase_ :: Phrase_ -> Phrase 
 fromPhrase_ = Phrase . (:[]) 
+
+letters2dictation :: Letters -> Dictation 
+letters2dictation (Letters cs) = Dictation (map (:[]) cs)
 

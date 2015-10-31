@@ -28,7 +28,8 @@ data Root
  | Shortcut_   Number  Shortcut  -- ^ repeated 
  | Shell_              Shell  -- ^
  | Emacs_      Number  Emacs  -- ^ repeated 
- | Dictation_  Dictation      -- ^ 
+ | Letters_    Letters       -- ^ 
+ | Dictation_  Dictation     -- ^ 
  | Phrase_     Phrase        -- ^ 
  deriving (Show,Eq)
 

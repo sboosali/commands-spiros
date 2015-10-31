@@ -20,7 +20,6 @@ import           Commands.Backends.OSX
 import Commands.Sugar.Keys
 
 -- import           Control.Parallel
-import qualified Data.List as List
 
 
 bestRoots = argmax rankRoots
@@ -35,11 +34,12 @@ rankRoots = \case                --TODO fold over every field of every case, nor
 rankRoot = \case
  Acts_ ass            -> 4 * highRank + safeAverage (fmap rankActs ass)
    -- NOTE "google word" now matches the Action, not the Macro 
- Macro_ _i m -> 3 * highRank + rankMacro m
- Shortcut_ _i _s -> 3 * highRank
+ Macro_ _i m        -> 3 * highRank + rankMacro m
+ Shortcut_ _i _s    -> 3 * highRank
  Shell_ s           -> highRank + rankShell s
  Emacs_ _i e        -> highRank + rankEmacs e
- Dictation_ _d       -> highRank
+ Letters_ _l         -> highRank + 1 
+ Dictation_ _d       -> highRank + 0
  Phrase_    p        -> rankPhrase p
 
 rankActs = \case
@@ -68,6 +68,7 @@ runRoot context = \case
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
  Shell_ s      -> runShell s
  Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
+ Letters_ l   -> runLetters l
  Dictation_ d -> runDictationTop d 
  Phrase_ p    -> runPhraseTop context p
 
@@ -103,8 +104,4 @@ runPhraseByClipboard _context p = do
 runDictationTop d = do 
  runDictation d 
  insert " "
-
--- | 
-runDictation = \case
- Dictation ws -> insert (List.intercalate " " ws)
 

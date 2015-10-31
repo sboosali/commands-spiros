@@ -62,7 +62,8 @@ root = 'root <=> empty
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
  <|> Macro_     <$> (number-?-1) <*> myMacros
  <|> Shell_     <$>                  shell
- <|> Dictation_ <$  (token"say")  <*> dictation
+ <|> Dictation_ <$  "say"   <*> dictation
+ <|> Letters_   <$  "spell" <*> letters
  --TODO <|> Phrase_    <$  (token"pray") <*> phrase
  <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
 

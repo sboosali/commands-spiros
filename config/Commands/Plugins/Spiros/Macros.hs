@@ -109,7 +109,9 @@ myMacros0_ :: R z Macro
 myMacros0_ =  vocabMacro
  [ "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
-   press "<del>" 
+   -- delay 100 
+   -- press "M-1"
+   press "<ret>" 
 
  , "voice build"-: do   -- for bootstrapping 
    global_reach_voice_app
@@ -260,8 +262,11 @@ myMacros0_ =  vocabMacro
    window_bottom
    slot ":r"
 
- , ""-: do
-   nothing
+ , "try"-: do
+   haskell_compile
+   haskell_interactive_bring
+   delay 100 
+   window_bottom
 
  , ""-: do
    nothing
@@ -333,23 +338,30 @@ myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-
  ]
 
 myOrdinals :: R z Macro 
-myOrdinals = (vocabMacro . fmap (fmap runOrdinalKeyChord)) dictOrdinalDigit
+myOrdinals = (vocabMacro . fmap (fmap runOrdinalAsSelect)) dictOrdinalDigit
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
 -- | run an ordinal as a keypress.
--- @runOrdinalKeyChord (Ordinal 3)@ is like @press "M-3"@. 
-runOrdinalKeyChord :: Ordinal -> CWorkflow_
-runOrdinalKeyChord
+-- @runOrdinalAsSelect (Ordinal 3)@ is like @press "M-3"@. 
+runOrdinalAsSelect :: Ordinal -> CWorkflow_
+runOrdinalAsSelect
  = uncurry sendKeyChord
- . ordinal2keypress
+ . digit2select 
+ . unOrdinal
 
-ordinal2keypress :: Ordinal -> KeyChord
-ordinal2keypress 
+
+{-| 
+
+@digit2select (Ordinal 2)@ is like @"M-2 :: KeyRiff"@. 
+
+
+-}
+digit2select :: Integer -> KeyChord
+digit2select 
  = addMod CommandModifier
  . (either __BUG__ id)
  . digit2keypress
- . unOrdinal
 
 
 
@@ -450,7 +462,7 @@ query_clipboard_history Nothing = do
 query_clipboard_history (Just (Left n)) = do 
  toggle_clipboard_history
  delay 500
- runOrdinalKeyChord n
+ runOrdinalAsSelect n
 query_clipboard_history (Just (Right p)) = do
  toggle_clipboard_history
  delay 500

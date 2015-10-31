@@ -51,3 +51,6 @@ keymap = "C-x C-y"
 haskell_interactive_bring :: MonadWorkflow m=>m()
 haskell_interactive_bring = press "C-`"      -- haskell-mode 
 
+haskell_compile :: MonadWorkflow m=>m()
+haskell_compile = press "C-c C-c"      -- haskell-mode 
+

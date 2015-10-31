@@ -24,7 +24,6 @@ import qualified Data.Text.Lazy                   as T
 
 import           Control.Applicative
 import           Data.Char
-import           Data.Foldable                    (Foldable (..))
 
 
 phraseCommand :: DNSEarleyCommand z Phrase
@@ -252,24 +251,23 @@ phoneticAlphabet =
 literalAlphabetRHS :: DNSEarleyRHS z Char
 literalAlphabetRHS = foldMap (\c -> (c <$ token [c]) <|> (c <$ token [toUpper c])) ['a'..'z'] -- TODO What will we get back from Dragon anyway?
 
+dictation :: R z Dictation 
 dictation = dragonGrammar 'dictation
  ((Dictation . fmap T.unpack) <$> some anyWord)
  (DGNDictation)
 {-# NOINLINE dictation #-} --TODO doesn't help with the unshared <dictation__4>/<dictation__14>/<dictation__16>
 
+word_ :: R z String
 word_ = dragonGrammar 'word_
  (T.unpack <$> anyWord)
  (DGNWords)
 
+letters :: R z Letters              -- TODO rename to dgnletters, but then must be qualified when serialized to avoid conflict 
+letters = simpleGrammar 'letters
+ ((Letters . T.unpack) <$> anyLetters)
+ ((SomeDNSNonTerminal . DNSBuiltinRule) DGNLetters)
+
 keyword :: R z Keyword 
 keyword = 'keyword
  <=> (Keyword . T.unpack) <$> terminals
-
-letters = simpleGrammar 'letters
- ((T.unpack . fold) <$> some anyWord)
- (DNSMultiple $ SomeDNSNonTerminal $ DNSBuiltinRule $ DGNLetters)
-
--- newtype Letters = Letters [Char] deriving (Show,Eq,Ord)
--- letters = (set dnsInline True defaultDNSInfo) $ 'letters <=>
---  Letters <$ (letter-+)
 

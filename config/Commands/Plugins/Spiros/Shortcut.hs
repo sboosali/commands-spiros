@@ -82,7 +82,8 @@ emacsShortcuts = shortcuts
  , "close"-: "C-c C-c"
  , "full-screen"-: "C-x 1"
  , "split screen"-: "C-x 2"
- , "other buffer"-: "C-x o"
+ , "other buffer"-: "C-x b <ret>"
+ , "other window"-: "C-x o"
  , "undo"-: "C-/"
  , "redo"-: "C-?"               -- NOTE undo-tree-mode
  , "evil toggle"-: "C-z"
