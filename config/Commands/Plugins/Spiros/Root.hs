@@ -62,6 +62,7 @@ root = 'root <=> empty
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
  <|> Macro_     <$> (number-?-1) <*> myMacros
  <|> Shell_     <$>                  shell
+ <|> Macro_ 1   <$  "my"    <*> myAliases
  <|> Dictation_ <$  "say"   <*> dictation
  <|> Letters_   <$  "spell" <*> letters
  --TODO <|> Phrase_    <$  (token"pray") <*> phrase

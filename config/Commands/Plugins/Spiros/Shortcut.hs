@@ -28,6 +28,7 @@ globalShortcuts = shortcuts
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
  , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
+ , "yes"-: "<ret>"
  , "del"-: "<del>"
  , "return"-: "<ret>"
  , "delete"-: "<del>"

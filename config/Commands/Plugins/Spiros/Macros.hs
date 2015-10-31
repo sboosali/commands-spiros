@@ -21,12 +21,12 @@ import           Commands.Backends.OSX
 
 import           Control.Applicative
 import qualified Data.List as List
-import Control.Arrow (second) 
 import Control.Monad (replicateM_) 
 
--- default (Workflow ())            -- ExtendedDefaultRules 
+-- default (Workflow ())            -- ExtendedDefaultRules. TODO doesn't help with inference 
 
 
+-- | all macros (should be a VocabularyList)
 myMacros :: R z Macro
 myMacros = 'myMacros <=> empty 
  <|> myMacrosN
@@ -298,14 +298,14 @@ myMacros0_ =  vocabMacro
  ]
 
 -- | macros without arguments
-myAliases :: R z Macro             -- TODO String
-myAliases = vocabMacro$ fmap (second sendText) -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
+myAliases :: R z Macro
+myAliases = aliasMacro sendText myAliasesList -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
+
+myAliasesList = 
  [ ""-: ""
  , "arrow"-: "->"
  , "to do"-: "TODO"
  , "I owe unit"-: "IO ()"
- , "ret"-: "\n"
- , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -320,7 +320,9 @@ myAliases = vocabMacro$ fmap (second sendText) -- TODO embed into any phrase. in
  ]
 
 myApps :: R z Macro
-myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-typed
+myApps = aliasMacro openApplication myAppsList  -- TODO make less stringly-typed
+
+myAppsList = 
  [ ""      -: ""
  , "man"      -: "Commands"
  , "work"     -: "Work"
@@ -338,7 +340,7 @@ myApps = vocabMacro $ fmap (second openApplication)  -- TODO make less stringly-
  ]
 
 myOrdinals :: R z Macro 
-myOrdinals = (vocabMacro . fmap (fmap runOrdinalAsSelect)) dictOrdinalDigit
+myOrdinals = aliasMacro runOrdinalAsSelect dictOrdinalDigit
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
 
@@ -367,7 +369,7 @@ digit2select
 
 -- ================================================================ --
 
--- | macros with arguments
+-- | macros with arguments (should be a VocabularyList)
 myMacrosN :: R z Macro 
 myMacrosN = fmap Macro $ empty
 

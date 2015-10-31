@@ -12,6 +12,7 @@ import           Commands.Backends.OSX
 import Data.Function (on)
 import           GHC.Exts                        (IsString)
 import Language.Haskell.TH.Syntax (Name, mkName) 
+import Control.Arrow (second) 
 
 
 newtype Macro = Macro (Apply IsMacroArgument CWorkflow_)
@@ -48,6 +49,9 @@ unMacro (Macro f) = f
 -}
 getMacroName :: Macro -> Name 
 getMacroName = getApplyName . unMacro
+
+aliasMacro :: (IsString t, Show t, Functor'RHS n t f) => (a -> CWorkflow_) -> [(String, a)] -> RHS n t f Macro 
+aliasMacro f = vocabMacro . fmap (second f) 
 
 {-| a specialized vocabulary where the macro name comes from the dict key.  
 
