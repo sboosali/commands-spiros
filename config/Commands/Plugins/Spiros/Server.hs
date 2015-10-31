@@ -273,13 +273,8 @@ spirosHypotheses
  :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
  -> [Hypothesis]
  -> Response ()
-spirosHypotheses _settings hypotheses = do 
- liftIO$ print$ imap showHypothesis hypotheses 
-
- where 
- showHypothesis ((+1) -> index_) hypothesis = 
-  show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
-
+spirosHypotheses _settings hypotheses = do
+ liftIO$ handleHypotheses hypotheses
 
 
 type CommandsRequest = [Text]
@@ -384,5 +379,20 @@ leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) all
  countWidth = length (show lineCount)
  lineCount = length allLines 
  allLines = T.lines code
+
+
+handleHypotheses :: [Hypothesis] -> IO ()
+handleHypotheses hypotheses = do 
+ putStrLn$ (List.intercalate "\n") message
+
+ where 
+ message =
+  [ "" 
+  , "" 
+  , "HYPOTHESES:"
+  ] <> (imap showHypothesis hypotheses) 
+
+ showHypothesis ((+1) -> index_) hypothesis = 
+  show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
 
 

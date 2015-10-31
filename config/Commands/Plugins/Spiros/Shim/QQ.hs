@@ -65,13 +65,14 @@ dnsmode_rule = '''<dnsmode> exported = dictating | commanding;'''
 
 # see handle_correctable(...)
 correctable_export = "correctable"
-correctable_rule = '''<correctable> exported = fix;'''
+correctable_rule = '''<correctable> exported = "fix-it" | correct;'''
 
 # see handle_correcting(...)
 correcting_export = "correcting"
 correcting_rule = '''
 <correcting> exported
- = <dgndictation>
+ = yes 
+ | <dgndictation>
  | zero | one | two | three | four | five | six | seven | eight | nine;
 '''
 
@@ -113,7 +114,8 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
     gramSpec = None        # initialized in set_rules(...) 
     should_request = True
-    previous_results_object = None        # set by recognition, initialized during first call to gotResultsObject()
+    previous_results = None        # set by recognition, initialized during first call to gotResultsObject()
+    correcting_results = None        # set by "correcting", must be None otherwise 
     current_mode = "normal"
 
     def initialize(self):
@@ -149,28 +151,43 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
         print "recognitionType =", recognitionType
         if not recognitionType: return
 
-        words = next(get_results(resultsObject), [])
-        data  = munge_recognition(words)
-        url   = "%s/recognition/" % (server_address,)        # TODO parameterize "recognition" API
+        raw   = next(get_results(resultsObject), [])
+        words = munge_recognition(raw)
 
         # print 'resultsObject =',resultsObject
-        print 'words =', words
-        print 'url   =', url
+        print 'raw =', raw
 
         try:
 
-#            if words and words!=["Microphone","off"]:
+#            if raw and raw!=["Microphone","off"]:
 #                self.activateSet([],exclusive=0)
 #                natlink.recognitionMimic(["Microphone","off"])
 #            else:
 #                self.activateSet([microphone_export, H_EXPORT], exclusive=1)
 
-            (should_send_request, should_change_mode) = try_magic_handlers(self,data)
-            self.should_request = False if (should_change_mode == "dnsmode/dictating" or should_change_mode == "correcting" or should_change_mode == "microphone/sleeping") else (True if should_change_mode == "normal" else self.should_request)
-            self.current_mode   = should_change_mode or self.current_mode
+            (should_send_request, should_change_mode) = try_magic_handlers(self,words)
 
-# TODO must happen before 
-            self.previous_results_object = resultsObject if self.current_mode == "normal" else self.previous_results_object
+            if should_change_mode: 
+                self.current_mode = should_change_mode 
+
+            if self.current_mode == "correcting" or self.current_mode == "dnsmode/dictating" or self.current_mode == "microphone/sleeping": 
+                self.should_request = False 
+            if self.current_mode == "normal": 
+                self.should_request = True  
+
+            # we set it only the first time we enter "correcting" mode 
+            # i.e. we don't want to try to "correct the correction"
+            if self.previous_results != None and self.current_mode == "correcting": 
+                self.correcting_results = self.previous_results
+                # TODO must enable requests to pass through, after the first "fix-it" is ignored 
+                raw_hypotheses = list(get_results(self.correcting_results))
+                print_hypotheses(raw_hypotheses)
+                hypotheses = [munge_recognition(hypothesis) for hypothesis in raw_hypotheses] 
+                post_hypotheses(hypotheses) 
+
+#             if self.current_mode == "normal": # TODO 
+#                 self.previous_results = resultsObject
+            self.previous_results = resultsObject
 
             # the microphone falls asleep during silence,
             # but doesn't wake up when a command is uttered. 
@@ -190,16 +207,11 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
                     if should_change_microphone_mode:
                         self.current_mode = should_change_microphone_mode
 
- # TODO must enable requests to pass through, after the first "fix" is ignored 
-            if self.current_mode == "correcting": 
-                hypotheses = list(get_results(self.previous_results_object))
-                post_correction(hypotheses) 
-
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
+
             if should_send_request and self.should_request:
-                print 'data  =', json.dumps(data)
-                post_recognition(data) 
+                post_recognition(words, self.current_mode) 
             pass
 
         except Exception as e:
@@ -214,8 +226,8 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
             print
             print "status  =", response.getcode()
             print "body    =", list(response)
-#             for (index, hypothesis) in enumerate(get_results(resultsObject)):
-#                 print "hypothesis %d = %s" % (index, munge_recognition(hypothesis))
+            print "previous_results   =", self.previous_results
+            print "correcting_results =", self.correcting_results
 
         except NameError:
             print
@@ -256,15 +268,23 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
 # API
 
-def post_recognition(recognition): 
+# recognition :: [String] 
+def post_recognition(recognition, mode): 
     url      = "%s/recognition/" % (server_address,)        # TODO parameterize API
-    request  = urllib2.Request(url, json.dumps(recognition), \{"Content-Type": "application/json"})
+    data     = json.dumps(recognition) 
+    request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
+    print 'url   =', url
+    print 'data  =', data 
     response = urllib2.urlopen(request)
     return response 
 
-def post_correction(hypotheses):
-    url      = "%s/correct/" % (server_address,)        # TODO parameterize API
-    request  = urllib2.Request(url, json.dumps(hypotheses), \{"Content-Type": "application/json"})
+# hypotheses :: [[String]] 
+def post_hypotheses(hypotheses):
+    url      = "%s/hypotheses/" % (server_address,)        # TODO parameterize API
+    data     = json.dumps(hypotheses)
+    request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
+    print 'url   =', url
+    print 'data  =', data 
     response = urllib2.urlopen(request)
     return response 
 
@@ -351,7 +371,7 @@ def handle_dnsmode(grammar,datum):
 
 def handle_correctable(grammar,datum):
 
-    if   datum == "fix":
+    if   datum == "fix-it" or datum == "correct":
         grammar.activateSet([correcting_export],exclusive=1)
         return "correcting"     # change state 
 
@@ -359,16 +379,21 @@ def handle_correctable(grammar,datum):
         return None
 
 
-def handle_correcting(grammar,datum):
+def handle_correcting(grammar,datum,corrected_recognition=None):
 
-    if   datum == "zero":
+    if   datum == "yes":
+
         grammar.activateSet(active_exports,exclusive=1)
-        recognition = first_result(grammar.previous_results_object)
+        recognition = first_result(grammar.correcting_results)
         print     "original_recognition   =", recognition 
+
         if recognition is not None:
-            did_correction_succeed = grammar.previous_results_object.correction(recognition)
-            print "corrected_recognition  =", recognition 
+            corrected_recognition
+            did_correction_succeed = grammar.correcting_results.correction(corrected_recognition) if corrected_recognition else False # TODO 
+            grammar.correcting_results = None   # even if it fails 
+            print "corrected_recognition  =", corrected_recognition 
             print "did_correction_succeed =", did_correction_succeed
+
         return "normal"      # change state 
 
     else:
@@ -407,7 +432,7 @@ def isUnicode(data):
 
 
 def isNoise(data):
-    return data in [["the"],["if"],["him"],["A"],["that"],["a"]] #TODO hack, noise tends to be recognized as these short single words
+    return data in [["the"],["if"],["him"],["A"],["that"],["a"], ["she"]] #TODO hack, noise tends to be recognized as these short single words
 
 
 
@@ -465,6 +490,11 @@ def timeit(message, callback, *args, **kwargs):
     return result
 
 
+def print_hypotheses(hypotheses):
+    for (index, hypothesis) in enumerate(hypotheses):
+        print "hypothesis %d = %s" % (index, munge_recognition(hypothesis))
+
+          
 '''
 from natlink.txt:
 

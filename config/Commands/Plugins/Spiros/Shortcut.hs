@@ -52,6 +52,7 @@ globalShortcuts = shortcuts
  , "copying"-: "M-c"               -- 
  , "cutting"-: "M-x"                -- 
  , "kill"-: "C-k"
+ , "killer"-: "C-k"
  , "show apps"-: "M-<tab>"
  , "twist"-: "M-<tab> <ret>"
  , "switch"-: "M-`"
