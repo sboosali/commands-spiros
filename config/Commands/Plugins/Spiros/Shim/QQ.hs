@@ -1,15 +1,14 @@
 {-# LANGUAGE DeriveFunctor, QuasiQuotes, RecordWildCards #-}
 -- | (you should read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Shim.QQ where
+import Commands.Plugins.Spiros.Extra (CanInterpolate) 
 
 import           Commands.Frontends.Dragon13
 
 import           Text.InterpolatedString.Perl6
 
-import           GHC.Exts                        (IsString)
 
-
-getShim :: (IsString t, Monoid t) => ShimR t -> t
+getShim :: (CanInterpolate t) => ShimR t -> t
 getShim ShimR{..} = [qc|
 #-*- coding: utf-8 -*-
 # _commands.py

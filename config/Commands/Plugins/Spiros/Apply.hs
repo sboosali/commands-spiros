@@ -4,7 +4,7 @@ module Commands.Plugins.Spiros.Apply where
 import Commands.Plugins.Spiros.TypeLevel
 import Commands.Plugins.Spiros.Extra
 
-import Language.Haskell.TH.Syntax (Name, mkName) 
+import Language.Haskell.TH.Syntax (Name)
 
 
 -- | "freeze" function application, up to arity @4@.

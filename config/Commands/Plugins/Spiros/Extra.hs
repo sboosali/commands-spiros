@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables, ConstraintKinds  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
@@ -18,6 +18,7 @@ import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec)
 import Data.Foldable
 import qualified Data.List as List
 import System.Exit(ExitCode(..)) 
+import           GHC.Exts                        (IsString)
 
 
 -- ================================================================ --
@@ -231,4 +232,13 @@ bool2exitcode True  = ExitSuccess
 (.!!)   f g = \a b     -> f (g a b)
 (.!!!)  f g = \a b c   -> f (g a b c)
 (.!!!!) f g = \a b c d -> f (g a b c d)
+
+{-| a type that supports string interpolation.
+
+i.e. supports string literals (via 'IsString') and can be appended (via 'Monoid'). 
+
+uses @ConstraintKinds@. 
+  
+-}
+type CanInterpolate t = (IsString t, Monoid t)
 
