@@ -428,6 +428,10 @@ search_regexp p = do
   press "C-s"
   maybe nothing insertP p
 
+reverse_search_regexp p = do
+  press "C-r"
+  maybe nothing insertP p
+
 find_text p = do
  press "M-f"
  delay browserDelay

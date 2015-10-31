@@ -1,5 +1,5 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns                        #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns, OverloadedStrings                         #-}
 {-| (very hacky for now) 
 
 -}
@@ -7,6 +7,7 @@ module Commands.Plugins.Spiros.Server where
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Shim (getShim)
+import           Commands.Plugins.Spiros.Server.Workflow 
 
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Frontends.Dragon13
@@ -68,6 +69,7 @@ spirosTest = do
  status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings rootsCommand) -- lazy 
  exitWith status 
 
+
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings
  :: RULED DNSEarleyCommand r SpirosType
@@ -76,12 +78,15 @@ spirosSettings command = VSettings
  8888
  (spirosSetup )
  (spirosInterpret spirosMagic rankRoots)
+ (spirosHypotheses ) 
  (spirosUpdateConfig spirosDnsOptimizationSettings command)
+
 
 spirosDnsOptimizationSettings :: DnsOptimizationSettings
 spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
  & dnsOptimizeInlineSmall .~ True
  -- & .~ 
+
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 -- spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret (\_ _ _ -> return())) (spirosUpdateConfig command)
@@ -128,12 +133,15 @@ spirosSetup vSettings = do
  case theShim of 
 
   Left (PythonSyntaxError e s) -> do
+   let (errorRow, errorColumn) = getPythonErrorSpan e
+   let (marginWidth, countWidth, code) = leftAppendLineNumbers s
 
-   putStrLn ""
-   T.putStrLn s
    putStrLn ""
    print e
    putStrLn ""
+   T.putStrLn$ code 
+   putStrLn ""
+   OSX.runWorkflow $ findErrorBySearch countWidth marginWidth errorRow errorColumn 
    putStrLn "SHIM PARSING FAILURE" -- TODO logging
    return$ Left(VError "")
 
@@ -142,6 +150,10 @@ spirosSetup vSettings = do
    -- putStrLn$ T.unpack shim  -- too long (5k lines)
    putStrLn ""
 
+   -- because:
+   -- 1. when pasting into an editor in virtual box, the clipboard contents are often trailed by Unicode garbage
+   -- 2. which is why the shim ends in a comment 
+   -- 3. but Unicode characters can have nonlocal effects on other characters, like on previous lines   
    OSX.runWorkflow$ OSX.setClipboard (T.unpack (T.filter isAscii shim))
 
    T.putStrLn$ displayAddress address
@@ -257,6 +269,19 @@ spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case
   _ -> return True 
 
 
+spirosHypotheses
+ :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> [Hypothesis]
+ -> Response ()
+spirosHypotheses _settings hypotheses = do 
+ liftIO$ print$ imap showHypothesis hypotheses 
+
+ where 
+ showHypothesis ((+1) -> index_) hypothesis = 
+  show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
+
+
+
 type CommandsRequest = [Text]
 
 data CommandsResponse a b = CommandsResponse 
@@ -350,22 +375,14 @@ handleParses theParser theRanking ws = do
   ]
 
 
-showWords :: [Text] -> String 
-showWords = T.unpack . T.intercalate (T.pack " ")
-
-printWorkflow :: OSX.Workflow_ -> IO ()
-printWorkflow = putStrLn . OSX.showWorkflow
-
-
-insertByClipboardIO :: String -> IO ()
-insertByClipboardIO s = OSX.runWorkflow $ do
- insertByClipboard ("\n" <> s <> "\n")
- OSX.delay 250 
-
-
-printAndPaste :: String -> IO ()
-printAndPaste s = do 
- insertByClipboardIO s 
- putStrLn s
+leftAppendLineNumbers :: Text -> (Int,Int,Text) 
+leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) allLines)
+ where 
+ go ((+1) -> lineNumber) oneLine = getLeftMargin lineNumber <> oneLine 
+ marginWidth = (fromInteger . toInteger . T.length) (getLeftMargin (0::Integer))  -- assumes the length is constant 
+ getLeftMargin lineNumber = "[" <> T.pack (padNumber countWidth lineNumber) <> "]"
+ countWidth = length (show lineCount)
+ lineCount = length allLines 
+ allLines = T.lines code
 
 

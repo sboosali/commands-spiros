@@ -33,8 +33,10 @@ library
         Commands.Plugins.Spiros.Types 
         Commands.Plugins.Spiros.TypeLevel
         Commands.Plugins.Spiros.Main 
-        Commands.Plugins.Spiros.Server 
         Commands.Plugins.Spiros.Apply
+
+        Commands.Plugins.Spiros.Server 
+        Commands.Plugins.Spiros.Server.Workflow
 
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Shim.API 

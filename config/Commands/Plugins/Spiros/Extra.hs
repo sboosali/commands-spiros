@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables, ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables, ConstraintKinds, NamedFieldPuns   #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
@@ -14,11 +14,15 @@ import           Commands.Extra -- for reexport
 
 import qualified System.FilePath.Posix as FilePath
 import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec) 
+import Language.Python.Common
+import qualified Data.Text.Lazy                as T
+import Data.Text.Lazy (Text) 
 
 import Data.Foldable
 import qualified Data.List as List
 import System.Exit(ExitCode(..)) 
 import           GHC.Exts                        (IsString)
+import Text.Printf
 
 
 -- ================================================================ --
@@ -241,4 +245,29 @@ uses @ConstraintKinds@.
   
 -}
 type CanInterpolate t = (IsString t, Monoid t)
+
+padNumber :: Integral a => Int -> a -> String 
+padNumber padding n = printf ("%0." ++ show padding ++ "d") (toInteger n) 
+
+getPythonErrorSpan :: ParseError -> (Int,Int)
+getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span 
+ where 
+
+ go = \case
+  UnexpectedToken (token_span -> theSpan) -> fromSourceSpan theSpan 
+  UnexpectedChar _ location -> fromSourceLocation location 
+  _ -> Nothing
+
+ fromSourceSpan = \case
+  SpanCoLinear{ span_row, span_start_column } -> Just (span_row, span_start_column) 
+  SpanMultiLine{ span_start_row, span_start_column } -> Just (span_start_row, span_start_column) 
+  SpanPoint{ span_row, span_column } -> Just (span_row, span_column) 
+  _ -> Nothing
+
+ fromSourceLocation = \case
+  Sloc{ sloc_row, sloc_column } -> Just (sloc_row, sloc_column) 
+  _ -> Nothing 
+
+showWords :: [Text] -> String 
+showWords = T.unpack . T.intercalate (T.pack " ")
 

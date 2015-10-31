@@ -6,7 +6,6 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
-
 import Data.Monoid                           ((<>))
 -- import           Control.Applicative
 
