@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables, ConstraintKinds, NamedFieldPuns   #-}
+{-# LANGUAGE FlexibleContexts, LambdaCase, RankNTypes, TypeSynonymInstances, FlexibleInstances, ViewPatterns, OverloadedStrings, ScopedTypeVariables, ConstraintKinds, NamedFieldPuns, NoMonomorphismRestriction   #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
@@ -129,7 +129,7 @@ nothing = return ()
 onlyWhen :: (Monad m) => (b -> Maybe b) -> b -> (m () -> m ())
 onlyWhen predicate_ question_ action_ = maybe nothing (const action_) (predicate_ question_)
 
-slot :: MonadWorkflow m => String -> m () 
+-- slot :: MonadWorkflow m => String -> m () 
 slot s = do
  delay 10
  sendText s
@@ -189,7 +189,7 @@ chromeDelay = 250 :: Int                 -- milliseconds
 
 browserDelay = chromeDelay
 
-runRepeat :: (MonadWorkflow m) => Int -> Number -> (m () -> m ())
+-- runRepeat :: (MonadWorkflow m) => Int -> Number -> (m () -> m ())
 runRepeat delay_ times_
  = traverse_ id
  . List.intersperse (delay delay_)
@@ -198,12 +198,12 @@ runRepeat delay_ times_
 
 -- used when sendText is too slow/laggy
 -- insertByClipboard :: String -> AMonadAction_
-insertByClipboard :: MonadWorkflow m => String -> m () 
+-- insertByClipboard :: MonadWorkflow m => String -> m () 
 insertByClipboard s = do
  setClipboard s
  presspaste
 
-presspaste :: MonadWorkflow m => m () 
+-- presspaste :: MonadWorkflow m => m () 
 presspaste = press "M-v"
 
 -- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  

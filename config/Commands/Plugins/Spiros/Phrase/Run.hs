@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, FlexibleInstances, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, FlexibleInstances, FlexibleContexts, NoMonomorphismRestriction  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans #-} -- TODO orphans? 
 module Commands.Plugins.Spiros.Phrase.Run where
 import Commands.Plugins.Spiros.Phrase.Types
@@ -23,37 +23,39 @@ runPhrase_ spacing clipboard
  . unPhrase
 
 -- | 
-runDictation :: (OSX.MonadWorkflow m) => Dictation -> m () 
+
+-- runDictation :: (OSX.MonadWorkflow m) => Dictation -> m () 
 runDictation = \case
  Dictation ws -> OSX.insert (List.intercalate " " ws)
 
 -- | 
-runLetters :: (OSX.MonadWorkflow m) => Letters -> m () 
+
+-- runLetters :: (OSX.MonadWorkflow m) => Letters -> m () 
 runLetters = insertL
 
 -- runLetters
-insertL :: (OSX.MonadWorkflow m) => Letters -> m () 
+-- insertL :: (OSX.MonadWorkflow m) => Letters -> m () 
 insertL (Letters cs) = OSX.insert cs 
 
-slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
+-- slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
 slotD p = do
  OSX.delay 10
  insertD p
  press "<ret>"
 
-insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
+-- insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
 insertD = mungeDictation >>> OSX.insert
 
-slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
+-- slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
 slotP p = do
  OSX.delay 10
  insertP p
  press "<ret>"
 
-insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
+-- insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
 insertP = munge >=> OSX.insert
 
-munge :: (OSX.MonadWorkflow m) => Phrase -> m String
+-- munge :: (OSX.MonadWorkflow m) => Phrase -> m String
 munge (Phrase p1) = do
  p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
  return$ mungePhrase p2 defSpacing

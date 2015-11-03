@@ -478,8 +478,11 @@ def munge_recognition(words):
     >>> munge_recognition(['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter'])
     ["spell", "A", ",", "a", "letter"]
     '''
-    return [word.split('\\\\')[0] for word in words]
+    return [encode_windows(word).split('\\\\')[0] for word in words]
 
+# http://stackoverflow.com/questions/12468179/unicodedecodeerror-utf8-codec-cant-decode-byte-0x9c
+def encode_windows(s): 
+    return s.decode('cp1252').encode('utf-8')
 
 # http://stackoverflow.com/questions/1685221/accurately-measure-time-python-function-takes
 def timeit(message, callback, *args, **kwargs):

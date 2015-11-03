@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Commands.Plugins.Spiros.Shortcut.Types where
 
 import Commands.Extra
@@ -13,7 +14,6 @@ import           GHC.Exts                        (IsString (..))
 newtype Shortcut = Shortcut KeyRiff
  deriving (Show,Read,Eq,Ord)
 
-runShortcut :: MonadWorkflow m => Shortcut -> m ()                   
 runShortcut (Shortcut kr) = runKeyRiff kr
 
 shortcuts :: (Functor'RHS n Text f) => [(String,String)] -> RHS n Text f Shortcut

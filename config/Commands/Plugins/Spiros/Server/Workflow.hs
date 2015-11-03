@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts                         #-}
-
+{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Commands.Plugins.Spiros.Server.Workflow where 
 import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Edit (Move(..), Direction(..), Region(..), moveEmacs)
@@ -28,7 +28,7 @@ printAndPaste s = do
 then move right (to the one-based error row).
 
 -}
-findErrorBySearch :: (OSX.MonadWorkflow m) => Int -> Int -> Int -> Int -> m () 
+-- findErrorBySearch :: (OSX.MonadWorkflow m) => Int -> Int -> Int -> Int -> m () 
 findErrorBySearch countWidth marginWidth errorRow errorColumn = do
  reverse_search_regexp (Just (word2phrase (padNumber countWidth errorRow))) 
  moveEmacs (Move Left_ Line)
