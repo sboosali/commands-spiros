@@ -177,7 +177,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
             # we set it only the first time we enter "correcting" mode 
             # i.e. we don't want to try to "correct the correction"
-            if self.previous_results != None and self.current_mode == "correcting": 
+            if self.correcting_results != None and self.current_mode == "correcting": 
                 self.correcting_results = self.previous_results
                 # TODO must enable requests to pass through, after the first "fix-it" is ignored 
                 raw_hypotheses = list(get_results(self.correcting_results))

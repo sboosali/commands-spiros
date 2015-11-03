@@ -1,17 +1,17 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Commands.Plugins.Spiros.Main where 
 import Commands.Plugins.Spiros.Server 
+import Commands.Plugins.Spiros.Finite 
 
 
-mainWith :: [String] -> IO ()
 mainWith = \case
 
- [] -> do
-  spirosServer
+ [] -> spirosServer
 
- ["test"] -> do
-  spirosTest
+ ["test"] -> spirosTest
 
- _ -> do
-  return() 
+ ["finite"] -> printFinite
+
+ _ -> return() 
 

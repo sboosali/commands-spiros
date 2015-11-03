@@ -123,7 +123,7 @@ haskellShortcuts = shortcuts
  , "insert type"-: "C-u C-c C-t" 
  , "info"-: "C-c C-i"                             -- haskell-process-do-info
  , "builder"-: "C-c C-c"
- , ""-: ""
+ , "restart"-: "M-x <ret> haskell-process-restart"
  , ""-: ""
  , ""-: ""
  , ""-: ""
