@@ -107,7 +107,9 @@ myMacros0 = 'myMacros0
 -- | macros without arguments
 myMacros0_ :: R z Macro 
 myMacros0_ =  vocabMacro
- [ "voice"-: do                   -- short for "commands server"
+ [ "test"-: return()            -- NOTE a recognition without a workflow: for triggering the (callback-driven) Python client 
+
+ , "voice"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
    -- delay 100 
    -- press "M-1"

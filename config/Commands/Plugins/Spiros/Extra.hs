@@ -14,15 +14,19 @@ import           Commands.Extra -- for reexport
 
 import qualified System.FilePath.Posix as FilePath
 import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec) 
-import Language.Python.Common
+import Language.Python.Common.Token
+import Language.Python.Common.SrcLocation
+import Language.Python.Common.ParseError
 import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
+import           Control.Lens(imap)  
 
 import Data.Foldable
 import qualified Data.List as List
 import System.Exit(ExitCode(..)) 
 import           GHC.Exts                        (IsString)
-import Text.Printf
+import Text.Printf (printf) 
+import Data.Monoid              ((<>))
 
 
 -- ================================================================ --
@@ -248,6 +252,16 @@ type CanInterpolate t = (IsString t, Monoid t)
 
 padNumber :: Integral a => Int -> a -> String 
 padNumber padding n = printf ("%0." ++ show padding ++ "d") (toInteger n) 
+
+leftAppendLineNumbers :: Text -> (Int,Int,Text) 
+leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) allLines)
+ where 
+ go ((+1) -> lineNumber) oneLine = getLeftMargin lineNumber <> oneLine 
+ marginWidth = (fromInteger . toInteger . T.length) (getLeftMargin (0::Integer))  -- assumes the length is constant 
+ getLeftMargin lineNumber = "[" <> T.pack (padNumber countWidth lineNumber) <> "]"
+ countWidth = length (show lineCount)
+ lineCount = length allLines 
+ allLines = T.lines code
 
 getPythonErrorSpan :: ParseError -> (Int,Int)
 getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span 

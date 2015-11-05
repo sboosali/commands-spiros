@@ -379,17 +379,6 @@ handleParses theParser theRanking ws = do
   ]
 
 
-leftAppendLineNumbers :: Text -> (Int,Int,Text) 
-leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) allLines)
- where 
- go ((+1) -> lineNumber) oneLine = getLeftMargin lineNumber <> oneLine 
- marginWidth = (fromInteger . toInteger . T.length) (getLeftMargin (0::Integer))  -- assumes the length is constant 
- getLeftMargin lineNumber = "[" <> T.pack (padNumber countWidth lineNumber) <> "]"
- countWidth = length (show lineCount)
- lineCount = length allLines 
- allLines = T.lines code
-
-
 handleHypotheses :: Address -> [Hypothesis] -> IO ()
 handleHypotheses _address hypotheses = do 
  putStrLn$ (List.intercalate "\n") message
