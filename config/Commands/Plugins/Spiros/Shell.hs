@@ -6,8 +6,8 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
-import Data.Monoid                           ((<>))
 -- import           Control.Applicative
+
 
 data Safety
  = Safe     -- ^ shell commands that have no side effects, e.g. "ls"

@@ -8,8 +8,6 @@ import           Commands.Plugins.Spiros.Macros (reverse_search_regexp)
 
 import qualified Commands.Backends.OSX         as OSX
 
-import Data.Monoid 
-
 
 printWorkflow :: OSX.Workflow_ -> IO ()
 printWorkflow = putStrLn . OSX.showWorkflow

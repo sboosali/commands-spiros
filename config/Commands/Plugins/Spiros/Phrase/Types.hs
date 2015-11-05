@@ -1,10 +1,11 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, TypeFamilies         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, TypeFamilies, StandaloneDeriving          #-}
 module Commands.Plugins.Spiros.Phrase.Types where
 
 import           Data.Sexp
 import           Commands.Extra
 
 import           Data.List.NonEmpty               (NonEmpty)
+import           Data.Semigroup (Semigroup) 
 
 import           GHC.Exts                         (IsString (..),IsList (..))
 
@@ -13,7 +14,8 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 -- "static" phrase
 
 newtype Phrase = Phrase [Phrase_] 
- deriving(Show,Read,Eq,Ord,Monoid,Generic,Data)
+ deriving(Show,Read,Eq,Ord,Monoid,Data,Generic)
+deriving instance Semigroup Phrase 
 
 instance IsString Phrase where
  fromString = word2phrase
@@ -42,7 +44,7 @@ data Phrase_
  | Capped_   [Char]     -- ^ atom-like.
  | Symbol_   [Char]     -- ^ atom-like.
  | Dictated_ Dictation  -- ^ list-like.
- deriving (Show,Read,Eq,Ord,Data)
+ deriving (Show,Read,Eq,Ord,Data,Generic)
 
 instance IsString Phrase_ where
  fromString = word2phrase_
@@ -55,16 +57,16 @@ data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Data,Generic)
 
 data Splitter = Splitter deriving (Show,Read,Eq,Ord,Data,Generic)
 
-newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data,Generic)
+newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
 
-newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data,Generic)
+newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
 
-newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data,Generic)
+newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
 
-newtype Letters = Letters [Char] deriving (Show,Read,Eq,Ord,Data,Generic)
+newtype Letters = Letters [Char] deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
 
 instance IsString Dictation where
- fromString = Dictation . words
+ fromString = words2dictation 
  -- safe: words "" == []
 
 instance IsList Dictation where
@@ -147,6 +149,9 @@ asUPhrase = Atom . Right . PWord
 
 bracket :: Char -> Brackets
 bracket c = Brackets [c] [c]
+
+words2dictation :: String -> Dictation 
+words2dictation = Dictation . words
 
 word2phrase_ :: String -> Phrase_
 word2phrase_ = Dictated_ . Dictation . (:[])

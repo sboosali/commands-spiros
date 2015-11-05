@@ -3,6 +3,7 @@
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
  , module Commands.Extra
+ , module Data.Semigroup
  ) where
 
 import Commands.Plugins.Spiros.Types
@@ -20,13 +21,14 @@ import Language.Python.Common.ParseError
 import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
 import           Control.Lens(imap)  
+import Data.Semigroup ((<>))
 
 import Data.Foldable
 import qualified Data.List as List
 import System.Exit(ExitCode(..)) 
 import           GHC.Exts                        (IsString)
 import Text.Printf (printf) 
-import Data.Monoid              ((<>))
+import System.IO
 
 
 -- ================================================================ --
@@ -284,4 +286,17 @@ getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span
 
 showWords :: [Text] -> String 
 showWords = T.unpack . T.intercalate (T.pack " ")
+
+index :: (Integral n, Num n) => [a] -> n -> Maybe a
+index [] _ = Nothing 
+index (x:xs) n
+ | n == 0    = Just x
+ | n < 0     = Nothing 
+ | otherwise = index xs (n-1)
+
+prompt :: String -> IO String
+prompt s = do
+    putStr s 
+    hFlush stdout
+    getLine
 
