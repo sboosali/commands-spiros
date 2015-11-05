@@ -11,7 +11,11 @@ immutableVocabulary = vocab . fmap (id &&& id)
 
 interactive :: DNSEarleyRHS z String
 interactive = 'interactive <=> immutableVocabulary
- [ ""
+ [ "" 
+ , "magit status"
+ ] 
+
+{-  [ ""
  , "desktop save in desktop dir"
  , "gnus score mode"
  , "tabbar mwheel switch tab"
@@ -4331,3 +4335,5 @@ interactive = 'interactive <=> immutableVocabulary
  , "helm surfraw"
  , "org set tags to"
  ] 
+
+-} 

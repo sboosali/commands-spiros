@@ -287,6 +287,9 @@ getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span
 showWords :: [Text] -> String 
 showWords = T.unpack . T.intercalate (T.pack " ")
 
+printMessage :: [String] -> IO ()
+printMessage = putStrLn . List.intercalate "\n"
+
 index :: (Integral n, Num n) => [a] -> n -> Maybe a
 index [] _ = Nothing 
 index (x:xs) n

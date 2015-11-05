@@ -154,6 +154,11 @@ myMacros0_ =  vocabMacro
    move_window_down
    switch_buffer "TODO"
 
+ , "voice client"-: do
+   global_reach_voice_app
+   move_window_up 
+   switch_buffer "Shim/QQ"
+
  , "run again"-: do
    execute_extended_command
    press "<up>"

@@ -165,3 +165,6 @@ fromPhrase_ = Phrase . (:[])
 letters2dictation :: Letters -> Dictation 
 letters2dictation (Letters cs) = Dictation (map (:[]) cs)
 
+displayDictation :: Dictation -> String 
+displayDictation (Dictation ws) = unwords ws
+
