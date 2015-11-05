@@ -27,14 +27,18 @@ library
     
     if !os(osx)
         buildable: False
+
     exposed-modules:
+
         Commands.Plugins.Spiros
         Commands.Plugins.Spiros.Extra
         Commands.Plugins.Spiros.Types 
         Commands.Plugins.Spiros.TypeLevel
         Commands.Plugins.Spiros.Main 
+
         Commands.Plugins.Spiros.Apply
         Commands.Plugins.Spiros.Finite 
+        Commands.Plugins.Spiros.Correct 
 
         Commands.Plugins.Spiros.Server 
         Commands.Plugins.Spiros.Server.Workflow
@@ -46,6 +50,8 @@ library
         Commands.Plugins.Spiros.Template
         Commands.Plugins.Spiros.Template.Types 
         Commands.Plugins.Spiros.Template.QQ 
+
+        -- grammars 
 
         Commands.Plugins.Spiros.Root
         Commands.Plugins.Spiros.Root.Types 
