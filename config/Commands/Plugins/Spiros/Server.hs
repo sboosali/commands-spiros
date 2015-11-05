@@ -79,8 +79,9 @@ spirosSettings command = VSettings
  (spirosSetup )
  (spirosInterpret spirosMagic rankRoots)
  (spirosHypotheses ) 
+ (spirosCorrection ) 
  (spirosUpdateConfig spirosDnsOptimizationSettings command)
-
+ (Address localhost (Port 8889))       -- TODO Commands.Plugins.Spiros.Port 
 
 spirosDnsOptimizationSettings :: DnsOptimizationSettings
 spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
@@ -175,9 +176,9 @@ spirosInterpret
  => ServerMagic a
  -> Ranking a
  -> (forall r. RULED (VSettings OSX.CWorkflow) r a)
- -> [Text]
+ -> RecognitionRequest 
  -> Response ()
-spirosInterpret serverMagic theRanking vSettings = \ws -> do
+spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
 
  t0<- liftIO$ getTime theClock 
 
@@ -271,10 +272,18 @@ spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case
 
 spirosHypotheses
  :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
- -> [Hypothesis]
+ -> HypothesesRequest 
  -> Response ()
-spirosHypotheses _settings hypotheses = do
- liftIO$ handleHypotheses hypotheses
+spirosHypotheses settings = \(HypothesesRequest hypotheses) -> do
+ liftIO$ handleHypotheses (settings&vUIAddress) hypotheses
+
+
+spirosCorrection
+ :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> CorrectionRequest 
+ -> Response ()
+spirosCorrection _settings = \(CorrectionRequest correction) -> do
+ liftIO$ handleCorrection correction
 
 
 type CommandsRequest = [Text]
@@ -381,9 +390,11 @@ leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) all
  allLines = T.lines code
 
 
-handleHypotheses :: [Hypothesis] -> IO ()
-handleHypotheses hypotheses = do 
+handleHypotheses :: Address -> [Hypothesis] -> IO ()
+handleHypotheses _address hypotheses = do 
  putStrLn$ (List.intercalate "\n") message
+
+ 
 
  where 
  message =
@@ -394,5 +405,10 @@ handleHypotheses hypotheses = do
 
  showHypothesis ((+1) -> index_) hypothesis = 
   show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
+
+
+handleCorrection :: [Text] -> IO ()
+handleCorrection _correction = do 
+ return()                       -- TODO 
 
 
