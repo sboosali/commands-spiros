@@ -100,7 +100,11 @@ library
         async -any,
         either -any,
         bytestring -any,
-        servant-server -any,
+
+        servant-client ==0.4.4.5,
+        servant-server ==0.4.4.5,
+        servant        ==0.4.4.5,
+
         transformers -any,
         filepath -any,
         interpolatedstring-perl6 ==1.*,
