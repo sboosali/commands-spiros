@@ -39,6 +39,7 @@ library
         Commands.Plugins.Spiros.Apply
         Commands.Plugins.Spiros.Finite 
         Commands.Plugins.Spiros.Correct 
+        Commands.Plugins.Spiros.Digit 
 
         Commands.Plugins.Spiros.Server 
         Commands.Plugins.Spiros.Server.Workflow
@@ -83,6 +84,7 @@ library
         Commands.Plugins.Spiros.Emacs.Config
         Commands.Plugins.Spiros.Emacs.InteractiveCommands
 
+        Commands.Plugins.Spiros.Chrome
         Commands.Plugins.Spiros.Chrome.Gmail
 
 
@@ -128,7 +130,7 @@ library
     default-language: Haskell2010
     default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable
     hs-source-dirs: config
-    ghc-options: -Wall
+    ghc-options: -Wall 
 
 executable server
     main-is: Main.hs
@@ -139,5 +141,7 @@ executable server
         base ==4.8.*
     default-language: Haskell2010
     hs-source-dirs: .
-    ghc-options: -Wall -fno-warn-name-shadowing
+    ghc-options: 
+     -threaded 
+     -Wall -fno-warn-name-shadowing
 

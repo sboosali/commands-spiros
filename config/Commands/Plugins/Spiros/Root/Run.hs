@@ -9,7 +9,6 @@ module Commands.Plugins.Spiros.Root.Run where
 import           Commands.Plugins.Spiros.Root.Types 
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Emacs
-import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Macros.Types
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Shell

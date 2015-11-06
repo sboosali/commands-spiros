@@ -2,7 +2,6 @@
 module Commands.Plugins.Spiros.Edit.Run where 
 import Commands.Plugins.Spiros.Edit.Types
 import Commands.Plugins.Spiros.Emacs
-import Commands.Plugins.Spiros.Emacs.Config 
 import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Backends.OSX

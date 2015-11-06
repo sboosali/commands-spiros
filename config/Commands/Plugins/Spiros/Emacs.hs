@@ -1,10 +1,14 @@
 {-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Emacs where
+module Commands.Plugins.Spiros.Emacs
+ ( module Commands.Plugins.Spiros.Emacs
+ , module Commands.Plugins.Spiros.Emacs.Config
+ , module Commands.Plugins.Spiros.Emacs.InteractiveCommands 
+ ) where
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Emacs.Config
--- import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
+import           Commands.Plugins.Spiros.Emacs.InteractiveCommands
 import           Commands.Plugins.Spiros.Phrase
 
 import Commands.Mixins.DNS13OSX9
