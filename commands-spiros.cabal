@@ -123,6 +123,7 @@ library
         aeson ==0.9.*,
         template-haskell ==2.10.*, 
         time -any, 
+        stm ==2.4.*,  
 
         ghc-prim==0.4.*, 
         base ==4.8.*

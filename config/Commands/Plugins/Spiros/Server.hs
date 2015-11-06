@@ -6,8 +6,10 @@
 module Commands.Plugins.Spiros.Server where 
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Root
+import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (getShim)
 import           Commands.Plugins.Spiros.Server.Workflow 
+import           Commands.Plugins.Spiros.Correct 
 
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Frontends.Dragon13
@@ -33,20 +35,34 @@ import System.IO
 import System.Mem
 import Control.Arrow ((&&&)) 
 import qualified Data.List as List 
-import Data.Monoid ((<>))
 import System.Exit
+import Control.Concurrent.STM
 
 
 type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> Ranking a -> [Text] -> a -> IO Bool -- TODO
 
 type AmbiguousParser a = [Text] -> (Maybe a, [a])
 
+type CommandsRequest = [Text]
+
+data CommandsResponse a b = CommandsResponse 
+ { rRaw       :: [Text]
+ , rParsed    :: Maybe a 
+ , rDesugared :: Maybe b 
+ }
+
+data CommandsHandlers a b = CommandsHandlers
+ { hParse   :: [Text] -> Maybe a 
+ , hDesugar :: a -> b 
+ }
 
 
 -- ================================================================ --
 
 spirosServer :: IO ()
-spirosServer = serveNatlink (spirosSettings rootsCommand)
+spirosServer = do
+ globals <- newSpirosGlobals
+ serveNatlink (spirosSettings globals rootsCommand)
 -- spirosServer = spirosServe rootCommand
 -- spirosServer = spirosServe rootPlugin
 
@@ -66,15 +82,17 @@ spirosServer = serveNatlink (spirosSettings rootsCommand)
 
 spirosTest :: IO () 
 spirosTest = do 
- status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings rootsCommand) -- lazy 
+ globals <- newSpirosGlobals
+ status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
  exitWith status 
 
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings
- :: RULED DNSEarleyCommand r SpirosType
+ :: VGlobals
+ -> RULED DNSEarleyCommand r SpirosType
  -> RULED (VSettings OSX.CWorkflow) r SpirosType
-spirosSettings command = VSettings
+spirosSettings spirosGlobals command = VSettings
  8888
  (spirosSetup )
  (spirosInterpret spirosMagic rankRoots)
@@ -82,6 +100,12 @@ spirosSettings command = VSettings
  (spirosCorrection ) 
  (spirosUpdateConfig spirosDnsOptimizationSettings command)
  (Address localhost (Port 8889))       -- TODO Commands.Plugins.Spiros.Port 
+ spirosGlobals
+
+newSpirosGlobals :: IO VGlobals  -- TODO rename Spiros to my 
+newSpirosGlobals = do
+ vResponse <- atomically (newTVar emptyDNSResponse) 
+ return VGlobals{..} 
 
 spirosDnsOptimizationSettings :: DnsOptimizationSettings
 spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
@@ -177,7 +201,7 @@ spirosInterpret
  -> Ranking a
  -> (forall r. RULED (VSettings OSX.CWorkflow) r a)
  -> RecognitionRequest 
- -> Response ()
+ -> Response (DNSResponse)
 spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
 
  t0<- liftIO$ getTime theClock 
@@ -221,29 +245,49 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
  when shouldExecute $ liftIO$ do
-  replicateM_ 3 (putStrLn"")
-  putStrLn$ "WORKFLOW:"
-  putStr  $ OSX.showWorkflow workflow
-  putStrLn ""
-  putStrLn$ "TIMES:"
-  putStrLn$ show d1 ++ "ms"
-  putStrLn$ show d2 ++ "ms"
-  putStrLn$ show d3 ++ "ms"
-  putStrLn ""
-  putStrLn$ "CONTEXT:"
-  print context
-  putStrLn ""
-  putStrLn$ "VALUE:"
-  print value
-  putStrLn ""
-  putStrLn$ "WORDS:"
-  putStrLn$ showWords ws
+     replicateM_ 3 (putStrLn"")
+     putStrLn$ "WORKFLOW:"
+     putStr  $ OSX.showWorkflow workflow
+     putStrLn ""
+     putStrLn$ "TIMES:"
+     putStrLn$ show d1 ++ "ms"
+     putStrLn$ show d2 ++ "ms"
+     putStrLn$ show d3 ++ "ms"
+     putStrLn ""
+     putStrLn$ "CONTEXT:"
+     print context
+     putStrLn ""
+     putStrLn$ "VALUE:"
+     print value
+     putStrLn ""
+     putStrLn$ "WORDS:"
+     putStrLn$ showWords ws
 
-  -- performMinorGC
-  performMajorGC
+     -- performMinorGC
+     performMajorGC                -- TODO other thread and delayed 
+
+ dnsRespond vSettings
 
  where 
  theClock = Realtime
+
+
+spirosHypotheses
+ :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> HypothesesRequest 
+ -> Response DNSResponse
+spirosHypotheses vSettings = \hypotheses -> do
+ liftIO$ handleHypotheses (vSettings&vUIAddress) hypotheses
+ dnsRespond vSettings
+
+
+spirosCorrection
+ :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> CorrectionRequest 
+ -> Response DNSResponse 
+spirosCorrection vSettings = \(CorrectionRequest correction) -> do
+ liftIO$ handleCorrection correction
+ dnsRespond vSettings
 
 
 -- | on 'Ambiguous', print all parse results.  
@@ -269,35 +313,6 @@ spirosMagic theHandlers theAmbiguousParser theRanking theWords = \case
 
   _ -> return True 
 
-
-spirosHypotheses
- :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
- -> HypothesesRequest 
- -> Response ()
-spirosHypotheses settings = \(HypothesesRequest hypotheses) -> do
- liftIO$ handleHypotheses (settings&vUIAddress) hypotheses
-
-
-spirosCorrection
- :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
- -> CorrectionRequest 
- -> Response ()
-spirosCorrection _settings = \(CorrectionRequest correction) -> do
- liftIO$ handleCorrection correction
-
-
-type CommandsRequest = [Text]
-
-data CommandsResponse a b = CommandsResponse 
- { rRaw       :: [Text]
- , rParsed    :: Maybe a 
- , rDesugared :: Maybe b 
- }
-
-data CommandsHandlers a b = CommandsHandlers
- { hParse   :: [Text] -> Maybe a 
- , hDesugar :: a -> b 
- }
 
 {-| the fields in the output are constructed lazily, with intermediary computations shared. 
 
@@ -379,18 +394,35 @@ handleParses theParser theRanking ws = do
   ]
 
 
-handleHypotheses :: Address -> [Hypothesis] -> IO ()
-handleHypotheses _address hypotheses = do 
- putStrLn$ (List.intercalate "\n") message
+handleHypotheses :: Address -> HypothesesRequest -> IO ()
+handleHypotheses _address hypotheses@(HypothesesRequest hs) = do 
+ printMessage $ hypothesesMessage 
 
- 
+ theCorrection <- promptCorrection hypotheses
+
+ printMessage $ correctionMessage theCorrection
 
  where 
- message =
+
+ correctionMessage c =
+  [ "" 
+  , "" 
+  , "CORRECTION:"
+  ] <> [displayDictation c]
+
+ hypothesesMessage =
   [ "" 
   , "" 
   , "HYPOTHESES:"
-  ] <> (imap showHypothesis hypotheses) 
+  , "" 
+  ] <> showHypotheses hs 
+
+ showHypotheses = \case
+  [] -> [] 
+  (theRecognition:theHypotheses) -> concat
+   [ fmap (" " <>) (imap showHypothesis theHypotheses) 
+   , ["(" <> showHypothesis (-1::Int) theRecognition <> ")"] 
+   ]
 
  showHypothesis ((+1) -> index_) hypothesis = 
   show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
@@ -399,5 +431,10 @@ handleHypotheses _address hypotheses = do
 handleCorrection :: [Text] -> IO ()
 handleCorrection _correction = do 
  return()                       -- TODO 
+
+
+writeCorrection :: VGlobals -> CorrectionResponse -> STM () 
+writeCorrection VGlobals{..} correction = do
+ modifyTVar (vResponse) $ set (responseCorrection) (Just correction) 
 
 

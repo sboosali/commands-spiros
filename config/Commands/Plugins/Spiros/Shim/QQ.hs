@@ -330,6 +330,7 @@ def post_recognition(recognition, mode):
     print 'url   =', url
     print 'data  =', data 
     response = urllib2.urlopen(request)
+    # print 'resp  =', list(response)
     return response 
 
 # hypotheses :: [[String]] 
@@ -341,6 +342,7 @@ def post_hypotheses(identifier, hypotheses):
     print 'url   =', url
     print 'data  =', data 
     response = urllib2.urlopen(request)
+    # print 'resp  =', list(response)
     return response 
 
 # 
@@ -609,3 +611,4 @@ def unload():
 
 load()
 #|] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
+
