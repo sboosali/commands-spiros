@@ -108,11 +108,14 @@ myMacros0_ :: R z Macro
 myMacros0_ =  vocabMacro
  [ "test"-: return()            -- NOTE a recognition without a workflow: for triggering the (callback-driven) Python client 
 
- , "voice"-: do                   -- short for "commands server"
+ , "logs"-: do                   -- short for "commands server"
    openApplication "Terminal"   -- TODO make less stringly-typed
    -- delay 100 
    -- press "M-1"
    press "<ret>" 
+
+ , "voice"-: do
+   global_reach_voice_app
 
  , "voice build"-: do   -- for bootstrapping 
    global_reach_voice_app
@@ -274,11 +277,15 @@ myMacros0_ =  vocabMacro
    delay 100 
    window_bottom
 
- , ""-: do
+ , "rebel that"-: do            -- TODO 
    nothing
 
- , ""-: do
-   nothing
+ , "add module"-: do
+   selection <- getHighlighted -- TODO select Whole Token
+   haskell_interactive_bring
+   delay 100 
+   window_bottom
+   slot $ ":m + " <> selection 
 
  , ""-: do
    nothing

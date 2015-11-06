@@ -1,7 +1,7 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, RankNTypes, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts  #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, RankNTypes, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts, NoMonomorphismRestriction  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Edit 
+module Commands.Plugins.Spiros.Edit
  ( module Commands.Plugins.Spiros.Edit
  , module Commands.Plugins.Spiros.Edit.Types
  , module Commands.Plugins.Spiros.Edit.Run
@@ -79,4 +79,6 @@ region = 'region
  <|> Function_  <$ "fun"
  <|> Reference  <$ "ref"
  <|> Structure  <$ "struct"
+
+getHighlighted = selected Whole That 
 
