@@ -1,3 +1,4 @@
+{-# LANGUAGE ViewPatterns, LambdaCase #-} 
 {-| "Commands.Plugins.Spiros.Root" 'Commands.Plugins.Spiros.Root.root' 
 
 -}
@@ -11,6 +12,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 
 import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
+import Data.Monoid              (First(..))
 
 
 {-| a user can choose: 
@@ -25,12 +27,25 @@ type Correction = Either Digit Dictation
 promptCorrection :: HypothesesRequest -> IO Dictation 
 promptCorrection hypotheses = do 
  line <- prompt "correction> " 
- case fromCorrection hypotheses =<< parseCorrection line of 
+ case getCorrection hypotheses line of 
   Nothing -> promptCorrection hypotheses 
   Just d -> return d 
 
+{-| 
+
+>>> getCorrection (HypothesesRequest [["hello", "world"]]) "0" 
+Just (Dictation ["hello","world"]) 
+>>> getCorrection (HypothesesRequest [["hello", "world"]]) "1"
+Nothing   
+>>> getCorrection (HypothesesRequest [["hello", "world"]]) "some words"  
+Just (Dictation ["some","words"]) 
+
+-}
+getCorrection :: HypothesesRequest -> String -> Maybe Dictation 
+getCorrection hypotheses line = fromCorrection hypotheses =<< parseCorrection line
+
 parseCorrection :: String -> Maybe Correction 
-parseCorrection s = (Left <$> parseDigit s) <> (Right <$> isDictation s)
+parseCorrection (strip -> s) = getFirst $ First (Left <$> parseDigit s) <> First (Right <$> isDictation s)
  where isDictation = fmap (words2dictation . NonEmpty.toList) . NonEmpty.nonEmpty      -- TODO 
 
 fromCorrection :: HypothesesRequest -> Correction -> Maybe Dictation 
