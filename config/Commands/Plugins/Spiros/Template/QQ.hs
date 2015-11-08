@@ -30,7 +30,6 @@ haddockTemplate text = [qc|
 
 |]
 
-
 grammarTemplate :: String -> Template 
 grammarTemplate text = [qc|
 {text} :: R z _
@@ -39,4 +38,25 @@ grammarTemplate text = [qc|
 
 |]
 
+{-| 
 
+-}
+grammarModuleTemplate :: String -> String -> Template 
+grammarModuleTemplate typeName valueName = [qc|
+\{-# LANGUAGE OverloadedStrings, PostfixOperators #-}
+\{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
+\{-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
+\{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+module Commands.Plugins.Spiros.{typeName}  where 
+import Commands.Plugins.Spiros.Extra
+
+import Commands.Mixins.DNS13OSX9
+
+import Control.Applicative
+
+
+{valueName} :: R z _
+{valueName} = '{valueName} <=> empty
+ <|> empty{cursor}
+
+|]

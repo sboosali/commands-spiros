@@ -120,17 +120,17 @@ myMacros0_ =  vocabMacro
  , "voice build"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal build server"
+   slot "cabal build -j4 server"   -- parallel buildis twenty five percent faster 
 
  , "voice run"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal run server"
+   slot "cabal run -j4 server"  -- TODO isn't this a global flag? 
 
  , "voice test"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal run server -- test" 
+   slot "cabal run -j4 server -- test" 
 
  , "voice shell"-: do   -- for bootstrapping 
    global_reach_voice_app
@@ -285,13 +285,13 @@ myMacros0_ =  vocabMacro
    haskell_interactive_bring
    delay 100 
    window_bottom
-   slot $ ":m + " <> selection 
+   slot $ ":m +" <> selection 
+
+ , "open maps"-: do
+   openURL "https://www.google.com/maps" 
 
  , ""-: do
-   nothing
-
- , ""-: do
-   nothing
+   nothing  
 
  , ""-: do
    nothing
@@ -409,6 +409,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase 
  <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
  <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation 
+ <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation 
 
 -- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
 -- "<\\$" "<\\*>"
@@ -538,4 +539,9 @@ insert_grammar d = do
  let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier  
  s <- munge p
  insertTemplate (grammarTemplate s)
+
+insert_grammar_module d = do 
+ typeName  <- munge $ Phrase [Joined_ ClassJoiner, Dictated_ d] -- class case it, it's a Haskell value-level identifier 
+ valueName <- munge $ Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier 
+ insertTemplate (grammarModuleTemplate typeName valueName)
 
