@@ -89,11 +89,13 @@ print Numbers.TWO is Numbers.TWO
 
 # types 
 
+Mode = enum("Mode", "Normal Correcting Dictating Sleeping Off Reading")
+
 MagicState = enum("MagicState", "")
 
 CorrectionStatus = enum("CorrectionStatus", "Success Heterophonic InvalidWord")
 
-MicrophoneState = enum("MicrophoneState", "On Sleeping Off")
+Microphone = enum("Microphone", "On Sleeping Off")
 
 
 
@@ -164,7 +166,7 @@ def print_hypotheses(hypotheses):
 
 # the microphone state changes independently of the "command mode".  
 def is_mode_awake(grammar):
-    return not (grammar.current_mode in ["microphone/sleeping", "microphone/off"])
+    return not (grammar.current_mode in [Mode.Sleeping, Mode.Off])
 
 
 
@@ -260,7 +262,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
     should_request = True
     previous_results = None        # set by recognition, initialized during first call to gotResultsObject()
     correcting_results = None        # set by "correcting", must be None otherwise 
-    current_mode = "normal"
+    current_mode = Mode.Normal 
 
 
     def initialize(self):
@@ -296,23 +298,15 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
         try:
 
             # 
-            (should_send_request, should_change_mode) = try_magic_handlers(self,words)
-
-            if should_change_mode: 
-                self.current_mode = should_change_mode 
-
-            if   not should_send_request: 
-                self.should_request = False 
-            elif self.current_mode == "dnsmode/dictating" or self.current_mode == "microphone/sleeping": 
-                self.should_request = False 
-            elif self.current_mode == "correcting" or self.current_mode == "normal":
-                self.should_request = True  
+            should_send_request = try_magic_handlers(self,words)
+            if not should_send_request: 
+                self.should_request = False
             else: 
-                pass 
+                self.should_request = should_request_in_mode(self.current_mode)  
 
             # we set it only the first time we enter "correcting" mode 
             # i.e. we don't want to try to "correct the correction"
-            if self.current_mode == "correcting" and self.correcting_results == None: 
+            if self.current_mode == Mode.Correcting and self.correcting_results == None: 
                 self.correcting_results = self.previous_results
                 # TODO must enable requests to pass through, after the first "fix-it" is ignored 
                 results_identity = id(self.correcting_results)
@@ -332,13 +326,13 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
                 natlink.setMicState("on")
 
             # the microphone may have been toggled manually by the GUI,
-            # or fallen asleep automatically.  
-            if self.current_mode.startswith("microphone"):
-                if natlink.getMicState() == "on":
+            # or fallen asleep automatically. 
+            if self.current_mode == Mode.Sleeping or self.current_mode == Mode.Off: 
+                if get_microphone() == Microphone.On: 
                     should_change_microphone_mode = handle_microphone(self,"mike on")
                     if should_change_microphone_mode:
                         self.current_mode = should_change_microphone_mode
-                if natlink.getMicState() == "sleeping":
+                if get_microphone() == Microphone.Sleeping: 
                     should_change_microphone_mode = handle_microphone(self,"mike off")
                     if should_change_microphone_mode:
                         self.current_mode = should_change_microphone_mode
@@ -438,7 +432,7 @@ def handle_response(self, data):
         print "correction_status      =", correction_status 
         print "original_recognition   =", first_result(original_recognition_results) 
         print "corrected_recognition  =", corrected_recognition 
-        self.current_mode = "normal"           # TODO only this should change it
+        set_mode(self, Mode.Normal)            # TODO NOTE only this should change it
         self.correcting_results = None 
         return correction_status
 
@@ -452,6 +446,7 @@ def validate_correction(data):
     except (ValueError, IndexError, TypeError) as e:  
         if DEBUG: print "  error = " , e 
         return None 
+
 
 
 
@@ -477,16 +472,16 @@ def try_magic_handlers(grammar,data):
         should_change_mode = handle_abrogation(data) or handle_correctable(grammar,datum) or handle_correcting(grammar,datum) or handle_microphone(grammar,datum) or handle_dnsmode(grammar,datum) or handle_readable(grammar,datum) or handle_reading(grammar,datum)
     should_send_request = is_recognition_good and not should_change_mode
 
-    return (should_send_request, should_change_mode) 
+    return (should_send_request)
 
 
 # you can abort any recognition by saying "abrogate". as a rare word, it will rarely be dictated (except for bootstrapping). if you must say it, it supports the "say" prefix (i.e. recognize literally everything after it). 
 def handle_abrogation(data):
 
-    # TODO the first predicate is a hack to let you say the magic word
+    # TODO the first predicate ("say") is a hack to let you say the magic word ("abrogate")
     # helps with development 
     if data[0] != "say" and "abrogate" in data:
-        return "normal"
+        return None 
 
     else:
         return None 
@@ -495,39 +490,24 @@ def handle_abrogation(data):
 # returns true if it matched the recognition (and executed the magic action).
 # in which case, don't send a request to the server to execute any non-magic actions.
 # "mike off" deactivates all grammars besides the microphone grammer, "putting the microphone to sleep".
-def handle_microphone(grammar,datum):
+def handle_microphone(grammar,datum): # TODO 
 
 # def read_microphone(datum):   
     if  datum == "wake up" or datum == "mike on":
-        natlink.setMicState("on") 
-        grammar.activateSet([microphone_export, H_EXPORT], exclusive=1)
-        return "normal"
+        set_mode(grammar, Mode.Normal ) 
+        return True 
 
     elif datum == "go to sleep" or datum == "mike off":
-        natlink.setMicState("sleeping")
-        grammar.activateSet([microphone_export],exclusive=1)
-        return "microphone/sleeping"       # change state
+        set_mode(grammar, Mode.Sleeping ) 
+        return True 
 
     elif datum == "mike dead":
-        natlink.setMicState("off")
-        return "microphone/off"       # change state
+        set_mode(grammar, Mode.Off ) 
+        return True 
 
     else:
         return None 
 
-# 
-def set_microphone(state):
-    if   state == MicrophoneState.On: 
-        natlink.setMicState("on") 
-
-    elif state == MicrophoneState.Sleeping: 
-        natlink.setMicState("sleeping")
-
-    elif state == MicrophoneState.Off: 
-        natlink.setMicState("off")
-
-    else: 
-        raise TypeError("set_microphone", state) 
 
 # 
 def handle_dnsmode(grammar,datum):
@@ -535,13 +515,12 @@ def handle_dnsmode(grammar,datum):
     # print 'handle_dnsmode(', datum, ')'
 
     if   datum == "dictating":
-        grammar.activateSet([dnsmode_export],exclusive=0)
-        natlinkmain.recognitionMimic(["Dictation","mode"]) 
-        return "dnsmode/dictating"          # TODO lol
+        set_mode(grammar, Mode.Dictating ) 
+        return True 
 
     elif datum == "commanding":
-        grammar.activateSet(active_exports,exclusive=1)
-        return "normal"           # TODO lol
+        set_mode(grammar, Mode.Normal ) 
+        return True 
 
     else:
         return None
@@ -550,8 +529,8 @@ def handle_dnsmode(grammar,datum):
 def handle_correctable(grammar,datum):
 
     if   datum == "fix-it" or datum == "correct":
-        grammar.activateSet([correcting_export],exclusive=1)
-        return "correcting"     # change state 
+        set_mode(grammar, Mode.Correcting ) 
+        return True 
 
     else:
         return None
@@ -559,9 +538,9 @@ def handle_correctable(grammar,datum):
 # 
 def handle_correcting(grammar,datum,corrected_recognition=None):
 
-    if   datum == "yes":
-# TODO     if  False: 
-        grammar.activateSet(active_exports,exclusive=1)
+# TODO     if   datum == "yes":
+    if  False: 
+        set_mode(grammar, Mode.Normal ) 
         recognition = first_result(grammar.correcting_results)
         print     "original_recognition   =", recognition 
 
@@ -572,28 +551,20 @@ def handle_correcting(grammar,datum,corrected_recognition=None):
                 print "correction_status      =", correction_status
             finally: 
                 grammar.correcting_results = None   # even if it fails 
-                return "normal"                     # even if it fails 
+                return True 
 
-        return "normal"      # change state 
+        return True 
 
     else:
         return None 
 
 
 # 
-def perform_correction(theRecognition, theCorrection): 
-    try: 
-        status = theRecognition.correction(theCorrection) 
-        return CorrectionStatus.Success if status else CorrectionStatus.Heterophonic
-    except natlink.InvalidWord: 
-        return CorrectionStatus.InvalidWord 
-
-# 
 def handle_readable(grammar,datum):
 
     if   datum == "reading":
-        grammar.activateSet([reading_export],exclusive=1)
-        return "reading"     # change state 
+        set_mode(grammar, Mode.Reading ) 
+        return True 
 
     else:
         return None
@@ -602,8 +573,8 @@ def handle_readable(grammar,datum):
 def handle_reading(grammar,datum):
 
     if   datum == "speaking":
-        grammar.activateSet(active_exports,exclusive=1)
-        return "normal"     # change state 
+        set_mode(grammar, Mode.Normal) 
+        return True 
 
     else:
         return None
@@ -626,6 +597,80 @@ def is_noise(data):
 #TODO hack, noise tends to be recognized as these short single words
 noise_recognitions = [["the"],["if"],["him"],["A"],["that"],["a"], ["she"]]
 
+# 
+def perform_correction(theRecognition, theCorrection): 
+    try: 
+        status = theRecognition.correction(theCorrection) 
+        return CorrectionStatus.Success if status else CorrectionStatus.Heterophonic
+    except natlink.InvalidWord: 
+        return CorrectionStatus.InvalidWord 
+
+# 
+def set_microphone(state):
+    if   state == Microphone.On: 
+        natlink.setMicState("on") 
+
+    elif state == Microphone.Sleeping: 
+        natlink.setMicState("sleeping")
+
+    elif state == Microphone.Off: 
+        natlink.setMicState("off")
+
+    else: 
+        raise TypeError("set_microphone", state) 
+
+# 
+def get_microphone():
+    s = natlink.getMicState()
+    if   s == "on":
+        return Microphone.On 
+    elif s == "sleeping":
+        return Microphone.Sleeping 
+    elif s == "off":
+        return Microphone.Off 
+    else: 
+        raise TypeError("get_microphone", s) 
+
+# 
+def should_request_in_mode(mode): 
+    if   mode in [Mode.Normal, Mode.Correcting, Mode.Reading]: 
+        return True 
+    elif mode in [Mode.Dictating, Mode.Sleeping, Mode.Off]: 
+        return False 
+    else: 
+        raise TypeError("should_request_from_mode", mode)
+
+# 
+def set_mode(grammar, mode):
+
+    if   mode == Mode.Normal :
+        grammar.activateSet(active_exports,exclusive=1)
+
+    elif mode == Mode.Correcting : 
+        grammar.activateSet([correcting_export],exclusive=1)
+
+    elif mode == Mode.Dictating : 
+        grammar.activateSet([dnsmode_export],exclusive=0)     # NOTE nonexclusive, enables dragons built-in commands 
+        natlinkmain.recognitionMimic(["Dictation","mode"]) 
+
+# TODO check audio 
+
+    elif mode == Mode.Sleeping : 
+        set_microphone(Microphone.Sleeping) 
+        grammar.activateSet([microphone_export],exclusive=1)
+
+    elif mode == Mode.Off : 
+        set_microphone(Microphone.Off)
+        grammar.activateSet([microphone_export],exclusive=1)
+
+    elif mode == Mode.Reading : 
+        grammar.activateSet([reading_export],exclusive=1) 
+
+    else: 
+        raise TypeError("set_mode", mode) 
+
+    grammar.current_mode = mode  
+    return mode 
 
 
 
