@@ -74,7 +74,9 @@ print Numbers.__cases__
 # ['ONE', 'TWO', 'THREE']
 print Numbers.TWO == Numbers.TWO
 # True 
-print Numbers.TWO != 2
+print Numbers.TWO != 2 
+# True 
+print Numbers.TWO != int(Numbers.TWO)
 # True 
 print Numbers.TWO is Numbers.TWO
 # True 
@@ -91,8 +93,6 @@ print Numbers.TWO is Numbers.TWO
 
 Mode = enum("Mode", "Normal Correcting Dictating Sleeping Off Reading")
 
-MagicState = enum("MagicState", "")
-
 CorrectionStatus = enum("CorrectionStatus", "Success Heterophonic InvalidWord")
 
 Microphone = enum("Microphone", "On Sleeping Off")
@@ -102,14 +102,16 @@ Microphone = enum("Microphone", "On Sleeping Off")
 
 
 
+
+
 # helpers
 
-def merge_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
-    z = dict()
-    z.update(x)
-    z.update(y)
-    return z
+def merge_dicts(*dictionaries):
+    '''Given some dicts, merge them into a new dict as a shallow copy.'''
+    d = dict()
+    for dictionary in dictionaries: 
+        d.update(dictionary)
+    return d
 
 # current time in milliseconds
 def now():
@@ -203,7 +205,7 @@ microphone_rule = '''<microphone> exported = wake up | mike on | mike off | go t
 
 # see handle_dnsmode(...)
 dnsmode_export = "dnsmode"
-dnsmode_rule = '''<dnsmode> exported = dictating | commanding;'''
+dnsmode_rule = '''<dnsmode> exported = dictating | \{_modes_};'''
 
 # see handle_correctable(...)
 correctable_export = "correctable"
@@ -222,15 +224,17 @@ readable_export = "readable"
 readable_rule = '''<readable> exported = reading ;'''
 
 reading_export = "reading"
-reading_rule = '''<reading> exported = \{reading} | speaking ;'''
-reading_lists = dict(reading=["scroll", "scroll down", "scroll up"])
+reading_rule = '''<reading> exported = \{_reading_} | \{_modes_} ;'''
+reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"])
+
+mode_lists = dict(_modes_=["speaking"])
 
 active_exports =           [microphone_export, dnsmode_export, correctable_export, readable_export, H_EXPORT]
 active_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   readable_rule, H_RULES]) 
 
 all_exports =           [microphone_export, dnsmode_export, correctable_export, correcting_export, reading_export, readable_export, H_EXPORT]
 all_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   correcting_rule,   reading_rule,   readable_rule, H_RULES]) 
-all_lists   = merge_dicts(H_LISTS,reading_lists)
+all_lists   = merge_dicts(H_LISTS, reading_lists, mode_lists)
 
 # TODO re-factor the microphone/dnsmode/correct/correcting grammars into their own grammar objects (GrammarBase)
 
@@ -313,7 +317,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
                 raw_hypotheses = list(get_results(self.correcting_results))
                 print_hypotheses(raw_hypotheses)
                 hypotheses = [munge_recognition(hypothesis) for hypothesis in raw_hypotheses] 
-                (response, data) = post_hypotheses(results_identity, hypotheses)
+                (_, data) = post_hypotheses(results_identity, hypotheses)
                 handle_response(self, data)
 
             # 
@@ -323,7 +327,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
             # but doesn't wake up when a command is uttered. 
             # we turn the microphone back on, as long as it should be on. 
             if is_mode_awake(self):
-                natlink.setMicState("on")
+                set_microphone(Microphone.On)
 
             # the microphone may have been toggled manually by the GUI,
             # or fallen asleep automatically. 
@@ -451,7 +455,6 @@ def validate_correction(data):
 
 
 
-
 # magic 
 
 # data :: [String] 
@@ -459,32 +462,85 @@ def validate_correction(data):
 def try_magic_handlers(grammar,data):
 
     # truthy if the recognition is good enough
-    is_recognition_good = data and is_unicode(data) and not is_noise(data)
+    isGood = is_recognition_good(data) 
 
-    # a Maybe String
-    should_change_mode = None
-
-    if is_recognition_good:
+    if isGood:
         datum = " ".join(data)
+        didPerformMagic = handle_everything(grammar,data,datum)
+        shouldSendRequest = not didPerformMagic 
+        return shouldSendRequest 
 
-        # truthy if the recognition has been handled "magically"
-        # by the client, and shouldn't be handled by the server TODO make this API explicit in servant
-        should_change_mode = handle_abrogation(data) or handle_correctable(grammar,datum) or handle_correcting(grammar,datum) or handle_microphone(grammar,datum) or handle_dnsmode(grammar,datum) or handle_readable(grammar,datum) or handle_reading(grammar,datum)
-    should_send_request = is_recognition_good and not should_change_mode
+    else:
+        return False 
 
-    return (should_send_request)
+
+# 
+def is_recognition_good(data): # TODO speed up 
+    return (    True
+            and     data 
+            and     is_unicode(data)
+            and not is_noise(data)
+            and not is_abrogation(data)
+           )
 
 
 # you can abort any recognition by saying "abrogate". as a rare word, it will rarely be dictated (except for bootstrapping). if you must say it, it supports the "say" prefix (i.e. recognize literally everything after it). 
-def handle_abrogation(data):
+def is_abrogation(data):
 
-    # TODO the first predicate ("say") is a hack to let you say the magic word ("abrogate")
+    # TODOthe first predicate ("say") is a hack to let you say the magic word ("abrogate")
     # helps with development 
-    if data[0] != "say" and "abrogate" in data:
-        return None 
+    # order for efficiency (LOL) 
+    return data[0] != "say" and "abrogate" in data
+
+
+# 
+def is_unicode(data):
+    try:
+        for word in data:
+            word.decode('utf8')
+        return True
+    except UnicodeDecodeError as e:
+        print e
+        print traceback.format_exc()
+        return False
+
+
+# 
+def is_noise(data):
+    return data in noise_recognitions   
+
+
+# 
+# truthy if the recognition has been handled "magically"
+# by the client, and shouldn't be handled by the server TODO make this API explicit in servant
+def handle_everything(grammar,data,datum):
+    return (   False 
+            or handle_correctable(grammar,datum)
+            or handle_correcting(grammar,datum) 
+            or handle_microphone(grammar,datum) 
+            or handle_dnsmode(grammar,datum)
+           )
+
+
+# 
+def handle_dnsmode(grammar,datum):
+
+    # print 'handle_dnsmode(', datum, ')'
+
+    if   datum == "speaking":
+        set_mode(grammar, Mode.Normal ) 
+        return True 
+
+    elif datum == "dictating":
+        set_mode(grammar, Mode.Dictating ) 
+        return True 
+
+    elif datum == "reading":
+        set_mode(grammar, Mode.Reading ) 
+        return True 
 
     else:
-        return None 
+        return False 
 
 
 # returns true if it matched the recognition (and executed the magic action).
@@ -506,24 +562,8 @@ def handle_microphone(grammar,datum): # TODO
         return True 
 
     else:
-        return None 
+        return False  
 
-
-# 
-def handle_dnsmode(grammar,datum):
-
-    # print 'handle_dnsmode(', datum, ')'
-
-    if   datum == "dictating":
-        set_mode(grammar, Mode.Dictating ) 
-        return True 
-
-    elif datum == "commanding":
-        set_mode(grammar, Mode.Normal ) 
-        return True 
-
-    else:
-        return None
 
 # 
 def handle_correctable(grammar,datum):
@@ -533,7 +573,7 @@ def handle_correctable(grammar,datum):
         return True 
 
     else:
-        return None
+        return False
 
 # 
 def handle_correcting(grammar,datum,corrected_recognition=None):
@@ -556,43 +596,7 @@ def handle_correcting(grammar,datum,corrected_recognition=None):
         return True 
 
     else:
-        return None 
-
-
-# 
-def handle_readable(grammar,datum):
-
-    if   datum == "reading":
-        set_mode(grammar, Mode.Reading ) 
-        return True 
-
-    else:
-        return None
-
-# 
-def handle_reading(grammar,datum):
-
-    if   datum == "speaking":
-        set_mode(grammar, Mode.Normal) 
-        return True 
-
-    else:
-        return None
-
-# 
-def is_unicode(data):
-    try:
-        for word in data:
-            word.decode('utf8')
-        return True
-    except UnicodeDecodeError as e:
-        print e
-        print traceback.format_exc()
-        return False
-
-# 
-def is_noise(data):
-    return data in noise_recognitions   
+        return False 
 
 #TODO hack, noise tends to be recognized as these short single words
 noise_recognitions = [["the"],["if"],["him"],["A"],["that"],["a"], ["she"]]
@@ -604,6 +608,38 @@ def perform_correction(theRecognition, theCorrection):
         return CorrectionStatus.Success if status else CorrectionStatus.Heterophonic
     except natlink.InvalidWord: 
         return CorrectionStatus.InvalidWord 
+
+# 
+def set_mode(grammar, mode):
+
+    if   mode == Mode.Normal :
+        grammar.activateSet(active_exports,exclusive=1)
+
+    elif mode == Mode.Correcting : 
+        grammar.activateSet([correcting_export],exclusive=1)
+
+    elif mode == Mode.Dictating : 
+        grammar.activateSet([dnsmode_export],exclusive=0)     # NOTE nonexclusive, enables dragons built-in commands 
+        natlinkmain.recognitionMimic(["Dictation","mode"]) 
+
+# TODO check audio 
+
+    elif mode == Mode.Sleeping : 
+        set_microphone(Microphone.Sleeping) 
+        grammar.activateSet([microphone_export],exclusive=1)
+
+    elif mode == Mode.Off : 
+        set_microphone(Microphone.Off)
+        grammar.activateSet([microphone_export],exclusive=1)
+
+    elif mode == Mode.Reading : 
+        grammar.activateSet([reading_export],exclusive=1) 
+
+    else: 
+        raise TypeError("set_mode", mode) 
+
+    grammar.current_mode = mode  
+    return mode 
 
 # 
 def set_microphone(state):
@@ -640,38 +676,6 @@ def should_request_in_mode(mode):
     else: 
         raise TypeError("should_request_from_mode", mode)
 
-# 
-def set_mode(grammar, mode):
-
-    if   mode == Mode.Normal :
-        grammar.activateSet(active_exports,exclusive=1)
-
-    elif mode == Mode.Correcting : 
-        grammar.activateSet([correcting_export],exclusive=1)
-
-    elif mode == Mode.Dictating : 
-        grammar.activateSet([dnsmode_export],exclusive=0)     # NOTE nonexclusive, enables dragons built-in commands 
-        natlinkmain.recognitionMimic(["Dictation","mode"]) 
-
-# TODO check audio 
-
-    elif mode == Mode.Sleeping : 
-        set_microphone(Microphone.Sleeping) 
-        grammar.activateSet([microphone_export],exclusive=1)
-
-    elif mode == Mode.Off : 
-        set_microphone(Microphone.Off)
-        grammar.activateSet([microphone_export],exclusive=1)
-
-    elif mode == Mode.Reading : 
-        grammar.activateSet([reading_export],exclusive=1) 
-
-    else: 
-        raise TypeError("set_mode", mode) 
-
-    grammar.current_mode = mode  
-    return mode 
-
 
 
 
@@ -698,4 +702,3 @@ def unload():
 
 load()
 #|] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
-
