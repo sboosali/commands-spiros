@@ -14,7 +14,7 @@ getShim ShimR{..} = [qc|
 # _commands.py
 
 # natlink13 library
-import natlink  # a DLL
+import natlink       # a DLL
 import natlinkmain
 import natlinkutils
 
@@ -36,6 +36,15 @@ import traceback
 
 DEBUG = False # True 
 
+#TODO hack, noise tends to be recognized as these short single words
+noise_recognitions = set(["the",
+                          "if",
+                          "him",
+                          "A",
+                          "that",
+                          "a",
+                          "she", 
+                         ])
 
 
 
@@ -104,7 +113,7 @@ Microphone = enum("Microphone", "On Sleeping Off")
 
 
 
-# helpers
+# Python helpers
 
 def merge_dicts(*dictionaries):
     '''Given some dicts, merge them into a new dict as a shallow copy.'''
@@ -116,6 +125,22 @@ def merge_dicts(*dictionaries):
 # current time in milliseconds
 def now():
     return int(time.clock() * 1000)
+
+# http://stackoverflow.com/questions/1685221/accurately-measure-time-python-function-takes
+def timeit(message, callback, *args, **kwargs):
+    before = time.clock()
+    result = callback(*args,**kwargs)
+    after = time.clock()
+    print message, ': ', (after - before) * 1000, 'ms'
+    return result
+
+
+
+
+
+
+
+# Dragon helpers 
 
 def first_result(resultsObject):
     return next(get_results(resultsObject), None)
@@ -143,24 +168,17 @@ def get_results_verbose(resultsObject):
     except:
         return
 
+# 
 def munge_recognition(words):
     '''
     >>> munge_recognition(['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter'])
     ["spell", "A", ",", "a", "letter"]
     '''
-    return [encode_windows(word).split('\\\\')[0] for word in words]
+    return list(encode_windows(word).split('\\\\')[0] for word in words)
 
 # http://stackoverflow.com/questions/12468179/unicodedecodeerror-utf8-codec-cant-decode-byte-0x9c
 def encode_windows(s): 
     return s.decode('cp1252').encode('utf-8')
-
-# http://stackoverflow.com/questions/1685221/accurately-measure-time-python-function-takes
-def timeit(message, callback, *args, **kwargs):
-    before = time.clock()
-    result = callback(*args,**kwargs)
-    after = time.clock()
-    print message, ': ', (after - before) * 1000, 'ms'
-    return result
 
 def print_hypotheses(hypotheses):
     for (index, hypothesis) in enumerate(hypotheses):
@@ -297,7 +315,8 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
         raw   = next(get_results(resultsObject), [])
         words = munge_recognition(raw)
 
-        print 'raw =', raw
+        print 'raw   =', raw
+        if DEBUG: print 'words =', words
 
         try:
 
@@ -429,17 +448,13 @@ def handle_response(self, data):
 
     x = validate_correction(data) 
     if x: 
-        (identifier, corrected_recognition) = x
-        original_recognition_results  = self.correcting_results
-        # correction_status = perform_correction(original_recognition_results, corrected_recognition)
-        correction_status = None
-        print "correction_status      =", correction_status 
-        print "original_recognition   =", first_result(original_recognition_results) 
-        print "corrected_recognition  =", corrected_recognition 
-        set_mode(self, Mode.Normal)            # TODO NOTE only this should change it
+        (identifier, correctedRecognition) = x
+        originalRecognitionObject = self.correcting_results
+        correctionStatus = perform_correction_logging(originalRecognitionObject, correctedRecognition)
+        print "correction_status      =", correctionStatus  
+        set_mode(self, Mode.Normal)            # TODO NOTE only this should change away from correcting mode 
         self.correcting_results = None 
-        return correction_status
-
+        return correctionStatus
 
 # e.g. data = \{\"_responseCorrection\":[0,[\"some\",\"words\"]],\"_responseMicrophoneState\":null,\"_responseDNSMode\":null}
 def validate_correction(data):
@@ -459,14 +474,15 @@ def validate_correction(data):
 
 # data :: [String] 
 # datum :: String
-def try_magic_handlers(grammar,data):
+def try_magic_handlers(grammar,words):
+    data = tuple(words)       # tuples are immutable and thus hashable 
+    datum = " ".join(data)
 
     # truthy if the recognition is good enough
-    isGood = is_recognition_good(data) 
+    isGood = is_recognition_good(data, datum) 
 
     if isGood:
-        datum = " ".join(data)
-        didPerformMagic = handle_everything(grammar,data,datum)
+        didPerformMagic = handle_everything(grammar,datum)
         shouldSendRequest = not didPerformMagic 
         return shouldSendRequest 
 
@@ -475,11 +491,11 @@ def try_magic_handlers(grammar,data):
 
 
 # 
-def is_recognition_good(data): # TODO speed up 
+def is_recognition_good(data, datum): # TODO speed up 
     return (    True
             and     data 
             and     is_unicode(data)
-            and not is_noise(data)
+            and not is_noise(datum)
             and not is_abrogation(data)
            )
 
@@ -513,12 +529,11 @@ def is_noise(data):
 # 
 # truthy if the recognition has been handled "magically"
 # by the client, and shouldn't be handled by the server TODO make this API explicit in servant
-def handle_everything(grammar,data,datum):
+def handle_everything(grammar,datum):
     return (   False 
-            or handle_correctable(grammar,datum)
-            or handle_correcting(grammar,datum) 
             or handle_microphone(grammar,datum) 
             or handle_dnsmode(grammar,datum)
+            or handle_correctable(grammar,datum)
            )
 
 
@@ -576,38 +591,18 @@ def handle_correctable(grammar,datum):
         return False
 
 # 
-def handle_correcting(grammar,datum,corrected_recognition=None):
-
-# TODO     if   datum == "yes":
-    if  False: 
-        set_mode(grammar, Mode.Normal ) 
-        recognition = first_result(grammar.correcting_results)
-        print     "original_recognition   =", recognition 
-
-        if recognition is not None:
-            print "corrected_recognition  =", corrected_recognition 
-            try: 
-                correction_status = perform_correction(grammar.correcting_results, corrected_recognition)
-                print "correction_status      =", correction_status
-            finally: 
-                grammar.correcting_results = None   # even if it fails 
-                return True 
-
-        return True 
-
-    else:
-        return False 
-
-#TODO hack, noise tends to be recognized as these short single words
-noise_recognitions = [["the"],["if"],["him"],["A"],["that"],["a"], ["she"]]
-
-# 
-def perform_correction(theRecognition, theCorrection): 
+def perform_correction(originalRecognitionObject, correctedRecognition): 
     try: 
-        status = theRecognition.correction(theCorrection) 
+        perform_correction_logging(originalRecognitionObject, correctedRecognition) 
+        status = originalRecognitionObject.correction(correctedRecognition) 
         return CorrectionStatus.Success if status else CorrectionStatus.Heterophonic
     except natlink.InvalidWord: 
         return CorrectionStatus.InvalidWord 
+
+def perform_correction_logging(originalRecognitionObject, correctedRecognition): 
+    print "original_recognition   =", first_result(originalRecognitionObject) 
+    print "corrected_recognition  =", correctedRecognition 
+    return None 
 
 # 
 def set_mode(grammar, mode):
