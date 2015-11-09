@@ -140,6 +140,8 @@ def timeit(message, callback, *args, **kwargs):
 
 
 
+
+
 # Dragon helpers 
 
 def first_result(resultsObject):
@@ -169,20 +171,31 @@ def get_results_verbose(resultsObject):
         return
 
 # 
-def munge_recognition(words):
+def from_dragon_recognition(words):
     '''
-    >>> munge_recognition(['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter'])
+    >>> from_dragon_recognition(['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter'])
     ["spell", "A", ",", "a", "letter"]
     '''
-    return list(encode_windows(word).split('\\\\')[0] for word in words)
+    return list(decode_from_windows(word).split('\\\\')[0] for word in words)
+
+# 
+def into_dragon_correction(words):
+    '''
+    >>> into_dragon_correction [u'this', u'is', u'a', u'long', u'sentence'] 
+    ['this', 'is', 'a', 'long', 'sentence']
+    '''
+    return list(encode_into_windows(word) for word in words)
 
 # http://stackoverflow.com/questions/12468179/unicodedecodeerror-utf8-codec-cant-decode-byte-0x9c
-def encode_windows(s): 
+def decode_from_windows(s): 
     return s.decode('cp1252').encode('utf-8')
+
+def encode_into_windows(s): 
+    return s.decode('utf-8').encode('cp1252')
 
 def print_hypotheses(hypotheses):
     for (index, hypothesis) in enumerate(hypotheses):
-        print "hypothesis %d = %s" % (index, munge_recognition(hypothesis))
+        print "hypothesis %d = %s" % (index, from_dragon_recognition(hypothesis))
 
 # the microphone state changes independently of the "command mode".  
 def is_mode_awake(grammar):
@@ -313,7 +326,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
         if not recognitionType: return
 
         raw   = next(get_results(resultsObject), [])
-        words = munge_recognition(raw)
+        words = from_dragon_recognition(raw)
 
         print 'raw   =', raw
         if DEBUG: print 'words =', words
@@ -335,7 +348,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
                 results_identity = id(self.correcting_results)
                 raw_hypotheses = list(get_results(self.correcting_results))
                 print_hypotheses(raw_hypotheses)
-                hypotheses = [munge_recognition(hypothesis) for hypothesis in raw_hypotheses] 
+                hypotheses = [from_dragon_recognition(hypothesis) for hypothesis in raw_hypotheses] 
                 (_, data) = post_hypotheses(results_identity, hypotheses)
                 handle_response(self, data)
 
@@ -448,9 +461,10 @@ def handle_response(self, data):
 
     x = validate_correction(data) 
     if x: 
-        (identifier, correctedRecognition) = x
+        (identifier, correctedRecognition_Unicode) = x
+        correctedRecognition_Windows = into_dragon_correction(correctedRecognition_Unicode) 
         originalRecognitionObject = self.correcting_results
-        correctionStatus = perform_correction_logging(originalRecognitionObject, correctedRecognition)
+        correctionStatus = perform_correction(originalRecognitionObject, correctedRecognition_Windows)
         print "correction_status      =", correctionStatus  
         set_mode(self, Mode.Normal)            # TODO NOTE only this should change away from correcting mode 
         self.correcting_results = None 
@@ -590,7 +604,7 @@ def handle_correctable(grammar,datum):
     else:
         return False
 
-# 
+# NOTE expects Dragon encoding. shouldn't throw.   
 def perform_correction(originalRecognitionObject, correctedRecognition): 
     try: 
         perform_correction_logging(originalRecognitionObject, correctedRecognition) 
