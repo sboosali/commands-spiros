@@ -38,11 +38,13 @@ library
 
         Commands.Plugins.Spiros.Apply
         Commands.Plugins.Spiros.Finite 
-        Commands.Plugins.Spiros.Correct 
         Commands.Plugins.Spiros.Digit 
 
         Commands.Plugins.Spiros.Server 
         Commands.Plugins.Spiros.Server.Workflow
+
+        Commands.Plugins.Spiros.Correct 
+        Commands.Plugins.Spiros.Correct.Grammar 
 
         Commands.Plugins.Spiros.Shim
         Commands.Plugins.Spiros.Shim.API 

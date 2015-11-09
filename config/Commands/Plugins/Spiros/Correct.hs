@@ -33,11 +33,13 @@ promptCorrection hypotheses = do
 
 {-| 
 
->>> getCorrection (HypothesesRequest [["hello", "world"]]) "0" 
+>>> getCorrection (HypothesesRequest [["hello","world"]]) " " 
+Nothing 
+>>> getCorrection (HypothesesRequest [["hello","world"]]) "0" -- TODO make it abort 
 Just (Dictation ["hello","world"]) 
->>> getCorrection (HypothesesRequest [["hello", "world"]]) "1"
+>>> getCorrection (HypothesesRequest [["hello","world"]]) "1"
 Nothing   
->>> getCorrection (HypothesesRequest [["hello", "world"]]) "some words"  
+>>> getCorrection (HypothesesRequest [["hello","world"]]) "some words"  
 Just (Dictation ["some","words"]) 
 
 -}

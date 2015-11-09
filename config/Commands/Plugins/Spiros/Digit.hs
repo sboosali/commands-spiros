@@ -1,5 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
 module Commands.Plugins.Spiros.Digit where 
+import Commands.Plugins.Spiros.Extra
+
+import Commands.Mixins.DNS13OSX9 -- TODO shorter module name 
 
 
 newtype Digit = Digit Int       -- TODO modular arithmetic: type Digit = Natural `Mod` 10
@@ -17,6 +20,7 @@ instance Enum Digit where
 
 parseDigit :: String -> Maybe Digit 
 parseDigit = \case 
+ "0" -> Just $ Digit 0 
  "1" -> Just $ Digit 1
  "2" -> Just $ Digit 2
  "3" -> Just $ Digit 3
@@ -29,4 +33,18 @@ parseDigit = \case
  _   -> Nothing 
 
 -- TODO use digits everywhere, ordinal grammars and cardinal garments  
+
+digit_ :: R z Digit 
+digit_ = vocabWith Digit 
+ [ "zero"  -: 0                -- disyllabic
+ , "one"   -: 1
+ , "two"   -: 2
+ , "three" -: 3
+ , "four"  -: 4
+ , "five"  -: 5
+ , "six"   -: 6
+ , "seven" -: 7                -- disyllabic
+ , "eight" -: 8
+ , "nine"  -: 9
+ ]
 
