@@ -28,7 +28,7 @@ mark = press "C-<spc>"
 
 activate_mark = replicateM_ 2 exchange_point_and_mark
 
-exchange_point_and_mark = press "C-x x"
+exchange_point_and_mark = press "C-x C-x"
 -- exchange_point_and_mark = runEmacs "exchange-point-and-mark"
 
 execute_extended_command = press "C-w" --TODO non-standard: make this configurable? ImplicitParams? this is the configuration! just put in separate module. or define this as a keypress, and explicitly turn it into an action at  use site.

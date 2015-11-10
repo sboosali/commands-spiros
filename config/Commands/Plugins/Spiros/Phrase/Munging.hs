@@ -1,4 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
+
+{-| 
+
+> -- for doctests 
+>>> :set -XOverloadedStrings 
+
+-}
 module Commands.Plugins.Spiros.Phrase.Munging where
 import           Commands.Plugins.Spiros.Phrase.Types
 import           Commands.Plugins.Spiros.Phrase.Spacing
@@ -32,10 +39,16 @@ mungePhrase p = concatPAtoms =<< evalSplatSexp applyPFunc p
 mungeDictation :: Dictation -> String
 mungeDictation (Dictation ws) = unwords ws 
 
+{-| >>> mungeDictation (spacedDictation "hello world") 
+"hello world "
+
+-}
+spacedDictation :: Dictation -> Dictation 
+spacedDictation = (<> Dictation [""])
+
 {- |
 
 
->>> :set -XOverloadedStrings
 >>> concatPAtoms ["",""]
 PWord ""
 >>> concatPAtoms ["",""]
@@ -238,4 +251,5 @@ mergeSpelled = foldr' go []
  go :: Phrase_ -> [Phrase_] -> [Phrase_]
  go (Spelled_ xs) (Spelled_ ys : ps) = (Spelled_ $ xs <> ys) : ps
  go p ps = p:ps
+
 

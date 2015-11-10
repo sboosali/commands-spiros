@@ -19,6 +19,7 @@ import           Commands.Backends.OSX
 import Commands.Sugar.Keys
 
 -- import           Control.Parallel
+import           Data.Maybe 
 
 
 bestRoots = argmax rankRoots
@@ -68,7 +69,7 @@ runRoot context = \case
  Shell_ s      -> runShell s
  Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
  Letters_ l   -> runLetters l
- Dictation_ d -> runDictationTop d 
+ Dictation_ d -> runDictationTop context d 
  Phrase_ p    -> runPhraseTop context p
 
 contextualDelay = \case
@@ -85,22 +86,28 @@ runAct context = \case
  Edit_ a     -> onlyWhen isEmacs context $ editEmacs a
  Move_ a     -> onlyWhen isEmacs context $ moveEmacs a
 
--- | top level TODO actual spacing
-runPhraseTop context p = do
- runPhrase context p
- insert " "
-
--- | 
-runPhrase _context p = do
- insert =<< munge p
-
 -- | 
 runPhraseByClipboard _context p = do
- insertByClipboard =<< munge p
- insert " "
+ s <- (<>" ") <$> munge p 
+ insertByClipboard s 
 
 -- | top level TODO actual spacing
-runDictationTop d = do 
- runDictation d 
- insert " "
+runPhraseTop context p = do
+ s <- (<>" ") <$> munge p 
+ insertGiven context s 
+
+-- | top level TODO actual spacing
+runDictationTop context d = do
+ let s = mungeDictation (spacedDictation d)
+ insertGiven context s 
+
+-- | 
+insertGiven context s = do 
+ if (isJust . isEmacs) context 
+ then insertEmacs s
+ else insertDefault s
+
+insertDefault = insert 
+
+insertEmacs = insertHighlighting
 

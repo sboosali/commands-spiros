@@ -53,6 +53,14 @@ myBuffers = vocab
 
 -- ================================================================ --
 
+insertHighlighting :: MonadWorkflow m => String -> m() 
+insertHighlighting s = do 
+ mark
+ delay emacsDelay 
+ insert s 
+ delay emacsDelay 
+ activate_mark
+
 runEmacs_ :: MonadWorkflow m => Emacs -> m() 
 runEmacs_ = \case 
  EmacsFunction   Nothing  -> execute_extended_command
