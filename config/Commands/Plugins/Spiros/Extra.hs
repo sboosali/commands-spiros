@@ -8,9 +8,8 @@ module Commands.Plugins.Spiros.Extra
 
 import Commands.Plugins.Spiros.Types
 
--- import           Commands.Mixins.DNS13OSX9
+import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
-import           Commands.Sugar.Keys 
 import           Commands.Extra -- for reexport 
 
 import qualified System.FilePath.Posix as FilePath
@@ -302,4 +301,15 @@ prompt s = do
     putStr s 
     hFlush stdout
     getLine
+
+type Vocab a = [(String, a)]
+
+vocabWith :: (IsString t, Show t, Functor'RHS n t f) => (a->b) -> Vocab a -> RHS n t f b 
+vocabWith f = vocab . fmap (fmap f) 
+
+strip :: String -> String 
+strip = rstrip . lstrip
+ where
+ lstrip = dropWhile (`elem` (" \t\n\r"::String))
+ rstrip = reverse . lstrip . reverse
 

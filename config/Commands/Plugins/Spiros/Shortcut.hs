@@ -28,7 +28,7 @@ globalShortcuts = shortcuts
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
  , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
- , "yes"-: "<ret>"
+ , "yes"-: "<ret>"  -- only active (or at least active) during correction mode 
  , "del"-: "<del>"
  , "return"-: "<ret>"
  , "delete"-: "<del>"
@@ -61,8 +61,11 @@ globalShortcuts = shortcuts
  , "scroll"-: "<spc>"
  , "scroll down"-: "<spc>"
  , "scroll up"-: "S-<spc>"
- , "submit"-: "M-<ret>"
+ , "submit"-: "<tab> <ret>"                 -- "M-<ret>"
  , "preferences"-: "M-,"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -93,6 +96,11 @@ emacsShortcuts = shortcuts
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "record"-: "<f3>"
  , "repeat"-: "<f4>"
+ , "read-only"-: "C-x C-q"
+ , "read/write"-: "C-x C-q"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""

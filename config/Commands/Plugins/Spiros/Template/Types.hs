@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase, TypeFamilies, ViewPatterns, FlexibleContexts  #-}
 module Commands.Plugins.Spiros.Template.Types where
+import Commands.Plugins.Spiros.Extra (insertByClipboard) 
 
 import           Commands.Backends.OSX
 import Commands.Sugar.Keys
@@ -54,19 +55,6 @@ toTemplateText = \case
 
 
 -- ================================================================ --
-
-{- | expects zero or one 'TemplateCursor'(s). 
-
-strips one leading newline and one trailing newline, 
-which increases the readability of quasiquotes. 
-
--}
-insertTemplate :: MonadWorkflow m => Template -> m ()                        
-insertTemplate template = do
- let (before, after) = mungeTemplate template 
- insert before 
- insert after 
- replicateM_ (length after) (press "<left>") 
 
 {-| munges the template, making it 'insert'able. 
 
@@ -135,4 +123,24 @@ flattenTemplate = \case
 -- | @cursor = 'TemplateCursor'@
 cursor :: Template
 cursor = TemplateCursor
+
+
+
+-- ================================================================ --
+
+{- | expects zero or one 'TemplateCursor'(s). 
+
+strips one leading newline and one trailing newline, 
+which increases the readability of quasiquotes. 
+
+-}
+insertTemplate :: MonadWorkflow m => Template -> m ()                        
+insertTemplate template = do
+ let (before, after) = mungeTemplate template 
+ -- when inserted not by clipboard, it's 
+ -- (a) harder to undo and 
+ -- (b) triggers functions, like "import" opens the mini buffer 
+ insertByClipboard before
+ insertByClipboard after 
+ replicateM_ (length after) (press "<left>") 
 
