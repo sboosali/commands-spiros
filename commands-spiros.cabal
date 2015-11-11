@@ -41,6 +41,7 @@ library
         Commands.Plugins.Spiros.Digit 
 
         Commands.Plugins.Spiros.Server 
+        Commands.Plugins.Spiros.Server.Types
         Commands.Plugins.Spiros.Server.Workflow
 
         Commands.Plugins.Spiros.Correct 

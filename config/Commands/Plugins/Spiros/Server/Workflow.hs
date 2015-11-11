@@ -6,6 +6,7 @@ import           Commands.Plugins.Spiros.Edit (Move(..), Direction(..), Region(.
 import           Commands.Plugins.Spiros.Phrase (word2phrase) 
 import           Commands.Plugins.Spiros.Macros (reverse_search_regexp)  
 
+import           Commands.Sugar.Keys (press) 
 import qualified Commands.Backends.OSX         as OSX
 
 
@@ -31,4 +32,14 @@ findErrorBySearch countWidth marginWidth errorRow errorColumn = do
  reverse_search_regexp (Just (word2phrase (padNumber countWidth errorRow))) 
  moveEmacs (Move Left_ Line)
  traverse_ moveEmacs (replicate (marginWidth + errorColumn - 2) (Move Right_ Character))
+
+reachCorrectionUi = do          -- TODO configurable. and maybe related to version control and relaunching. 
+ OSX.openApplication "Terminal" 
+
+unreachCorrectionUi = do 
+ openPreviousApplication 
+
+openPreviousApplication = do 
+ press "M-<tab>"
+ press "<ret>" 
 

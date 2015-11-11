@@ -8,6 +8,7 @@ import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (getShim)
+import           Commands.Plugins.Spiros.Server.Types 
 import           Commands.Plugins.Spiros.Server.Workflow 
 import           Commands.Plugins.Spiros.Correct 
 
@@ -37,31 +38,14 @@ import Control.Arrow ((&&&))
 import qualified Data.List as List 
 import System.Exit
 import Control.Concurrent.STM
-
-
-type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> Ranking a -> [Text] -> a -> IO Bool -- TODO
-
-type AmbiguousParser a = [Text] -> (Maybe a, [a])
-
-type CommandsRequest = [Text]
-
-data CommandsResponse a b = CommandsResponse 
- { rRaw       :: [Text]
- , rParsed    :: Maybe a 
- , rDesugared :: Maybe b 
- }
-
-data CommandsHandlers a b = CommandsHandlers
- { hParse   :: [Text] -> Maybe a 
- , hDesugar :: a -> b 
- }
+import Control.Concurrent
 
 
 -- ================================================================ --
 
 spirosServer :: IO ()
 spirosServer = do
- globals <- newSpirosGlobals
+ globals <- newVGlobals
  serveNatlink (spirosSettings globals rootsCommand)
 -- spirosServer = spirosServe rootCommand
 -- spirosServer = spirosServe rootPlugin
@@ -82,7 +66,7 @@ spirosServer = do
 
 spirosTest :: IO () 
 spirosTest = do 
- globals <- newSpirosGlobals
+ globals <- newVGlobals
  status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
  exitWith status 
 
@@ -102,9 +86,10 @@ spirosSettings spirosGlobals command = VSettings
  (Address localhost (Port 8889))       -- TODO Commands.Plugins.Spiros.Port 
  spirosGlobals
 
-newSpirosGlobals :: IO VGlobals  -- TODO rename Spiros to my 
-newSpirosGlobals = do
+newVGlobals :: IO VGlobals  -- TODO rename Spiros to my 
+newVGlobals = do
  vResponse <- atomically (newTVar emptyDNSResponse) 
+ vMode <- atomically (newTVar RecognitionMode) 
  return VGlobals{..} 
 
 spirosDnsOptimizationSettings :: DnsOptimizationSettings
@@ -231,12 +216,17 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
 
  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
- liftIO$ workflowIO 
+
+ liftIO$ (atomically$ getMode (vSettings&vGlobals)) >>= \case 
+   RecognitionMode -> workflowIO 
+   CorrectionMode  -> workflowIO 
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
 
  -- magic actions, TODO replace with a free monad
- shouldExecute <- liftIO$ serverMagic theHandlers theAmbiguousParser theRanking ws value
+ shouldPrint <- liftIO$ (atomically$ getMode (vSettings&vGlobals)) >>= \case 
+  RecognitionMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
+  CorrectionMode  -> return False 
 
  t2<- liftIO$ getTime theClock 
 
@@ -244,8 +234,11 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
  let d2 = diffTimeSpecAsMilliseconds t2 t1 
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
- when shouldExecute $ liftIO$ do
-     replicateM_ 3 (putStrLn"")
+ when shouldPrint $ liftIO$ do  -- TODO don't print but still log? 
+     printHeader 
+     putStrLn$ "MODE:"
+     print =<< do atomically$ getMode (vSettings&vGlobals)
+     putStrLn ""
      putStrLn$ "WORKFLOW:"
      putStr  $ OSX.showWorkflow workflow
      putStrLn ""
@@ -263,8 +256,7 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
      putStrLn$ "WORDS:"
      putStrLn$ showWords ws
 
-     -- performMinorGC
-     performMajorGC                -- TODO other thread and delayed 
+ liftIO$ performMajorGC                -- TODO other thread and delayed ?
 
  dnsRespond vSettings
 
@@ -277,7 +269,7 @@ spirosHypotheses
  -> HypothesesRequest 
  -> Response DNSResponse
 spirosHypotheses vSettings = \hypotheses -> do
- liftIO$ handleHypotheses (vSettings&vUIAddress) hypotheses
+ liftIO$ handleHypotheses (vSettings&vUIAddress) (vSettings&vGlobals) hypotheses
  dnsRespond vSettings
 
 
@@ -286,7 +278,7 @@ spirosCorrection
  -> CorrectionRequest 
  -> Response DNSResponse 
 spirosCorrection vSettings = \(CorrectionRequest correction) -> do
- liftIO$ handleCorrection correction
+ liftIO$ handleCorrection' correction
  dnsRespond vSettings
 
 
@@ -394,26 +386,24 @@ handleParses theParser theRanking ws = do
   ]
 
 
-handleHypotheses :: Address -> HypothesesRequest -> IO ()
-handleHypotheses _address hypotheses@(HypothesesRequest hs) = do 
+handleHypotheses :: Address -> VGlobals -> HypothesesRequest -> IO ()
+handleHypotheses _address globals hypotheses@(HypothesesRequest hs) = do 
+ printHeader 
  printMessage $ hypothesesMessage 
 
- theCorrection <- promptCorrection hypotheses
+ _ <- forkIO$ do                                -- TODO should be singleton. use some thread manager? 
+     atomically$ setMode globals CorrectionMode  -- TODO  bracket
+     OSX.runWorkflow$ reachCorrectionUi
+     promptCorrection hypotheses >>= handleCorrection globals -- ignoring control C ? ask 
+     OSX.runWorkflow$ unreachCorrectionUi
+     atomically$ setMode globals RecognitionMode 
 
- printMessage $ correctionMessage theCorrection
-
+ return() 
+ 
  where 
 
- correctionMessage c =
-  [ "" 
-  , "" 
-  , "CORRECTION:"
-  ] <> [displayDictation c]
-
  hypothesesMessage =
-  [ "" 
-  , "" 
-  , "HYPOTHESES:"
+  [ "HYPOTHESES:"
   , "" 
   ] <> showHypotheses hs 
 
@@ -428,13 +418,43 @@ handleHypotheses _address hypotheses@(HypothesesRequest hs) = do
   show index_ <> ". " <> T.unpack (T.intercalate " " hypothesis) 
 
 
-handleCorrection :: [Text] -> IO ()
-handleCorrection _correction = do 
- return()                       -- TODO 
+handleCorrection' :: [Text] -> IO ()
+handleCorrection' _correction = do    -- TODO 
+ return()                    
+
+
+handleCorrection :: VGlobals -> Dictation -> IO ()
+handleCorrection globals theCorrection = do 
+ let theResponse = (ForeignResultsObject 0 , (\(Dictation ws) -> fmap T.pack ws) theCorrection) -- TODO ForeignResultsObject 
+ atomically$ writeCorrection globals (CorrectionResponse theResponse)
+ printHeader 
+ printMessage$ correctionMessage 
+
+ where 
+
+ correctionMessage =
+  [ "CORRECTION:"
+  ] <> [displayDictation theCorrection]
 
 
 writeCorrection :: VGlobals -> CorrectionResponse -> STM () 
 writeCorrection VGlobals{..} correction = do
  modifyTVar (vResponse) $ set (responseCorrection) (Just correction) 
 
+setMode :: VGlobals -> VMode -> STM ()  
+setMode VGlobals{..} mode = do 
+ modifyTVar (vMode) $ set id mode 
+
+getMode :: VGlobals -> STM VMode
+getMode VGlobals{..} = readTVar vMode
+
+dnsRespond :: (forall r. RULED (VSettings m) r a) -> Response DNSResponse
+dnsRespond vSettings = do
+ liftIO $ atomically $ do
+   swapTVar (vSettings&vGlobals&vResponse) emptyDNSResponse
+
+printHeader :: IO ()
+printHeader = do 
+ putStrLn"--------------------------------------------------------------------------------" 
+ replicateM_ 3 (putStrLn"")
 
