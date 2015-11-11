@@ -198,10 +198,21 @@ def print_hypotheses(hypotheses):
         print "hypothesis %d = %s" % (index, from_dragon_recognition(hypothesis))
 
 # the microphone state changes independently of the "command mode".  
-def is_mode_awake(grammar):
-    return not (grammar.current_mode in [Mode.Sleeping, Mode.Off])
+def is_mode_awake(mode):
+    return not (mode in [Mode.Sleeping, Mode.Off])
 
+# 
+def synchronize_microphone(self):  
+#     if is_mode_awake(self.current_mode):# TODO 
+#         set_microphone(Microphone.On)
 
+    if not is_mode_awake(self.current_mode): 
+
+        if get_microphone() == Microphone.On: 
+            self.current_mode = Mode.Normal     # the mode change is safe, is the previous value is not awake 
+
+        if get_microphone() == Microphone.Sleeping: 
+            self.current_mode = Mode.Sleeping 
 
 
 
@@ -230,9 +241,16 @@ H_SERVER_PORT = {__serverPort__}
 server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 
 # see handle_microphone(...)
-# "wake up" is somewhat redundant with "mike on", but necessary because when the Dragon microphone puts itself to sleep, only "wake up" will wake it back up, and we handle that recognition to enable any disabled grammars in handle_microphone().
+# "wake up" is somewhat redundant with ACTIVATE_MICROPHONE, but necessary because when the Dragon microphone puts itself to sleep, only "wake up" will wake it back up, and we handle that recognition to enable any disabled grammars in handle_microphone().
+ACTIVATE_MICROPHONE = "activate the microphone"
+#  or an even longer and/or rarer phrase 
 microphone_export = "microphone"
-microphone_rule = '''<microphone> exported = wake up | mike on | mike off | go to sleep | mike dead ;'''
+microphone_rule = '''<microphone> exported
+ = wake up | \{_activate_microphone_}
+ | mike off | go to sleep 
+ | mike dead
+ ;'''
+microphone_lists = dict(_activate_microphone_=[ACTIVATE_MICROPHONE]) 
 
 # see handle_dnsmode(...)
 dnsmode_export = "dnsmode"
@@ -265,7 +283,7 @@ active_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,
 
 all_exports =           [microphone_export, dnsmode_export, correctable_export, correcting_export, reading_export, readable_export, H_EXPORT]
 all_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   correcting_rule,   reading_rule,   readable_rule, H_RULES]) 
-all_lists   = merge_dicts(H_LISTS, reading_lists, mode_lists)
+all_lists   = merge_dicts(H_LISTS, mode_lists, microphone_lists, reading_lists)
 
 # TODO re-factor the microphone/dnsmode/correct/correcting grammars into their own grammar objects (GrammarBase)
 
@@ -358,20 +376,10 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
             # the microphone falls asleep during silence,
             # but doesn't wake up when a command is uttered. 
             # we turn the microphone back on, as long as it should be on. 
-            if is_mode_awake(self):
-                set_microphone(Microphone.On)
-
-            # the microphone may have been toggled manually by the GUI,
-            # or fallen asleep automatically. 
-            if self.current_mode == Mode.Sleeping or self.current_mode == Mode.Off: 
-                if get_microphone() == Microphone.On: 
-                    should_change_microphone_mode = handle_microphone(self,"mike on")
-                    if should_change_microphone_mode:
-                        self.current_mode = should_change_microphone_mode
-                if get_microphone() == Microphone.Sleeping: 
-                    should_change_microphone_mode = handle_microphone(self,"mike off")
-                    if should_change_microphone_mode:
-                        self.current_mode = should_change_microphone_mode
+            # 
+            # the microphone may have been toggled manually (by the GUI),
+            # or fallen asleep automatically (during silence). 
+            synchronize_microphone(self) 
 
             print "current_mode   =", self.current_mode
             print "should_request =", self.should_request
@@ -578,11 +586,11 @@ def handle_dnsmode(grammar,datum):
 def handle_microphone(grammar,datum): # TODO 
 
 # def read_microphone(datum):   
-    if  datum == "wake up" or datum == "mike on":
+    if  datum in ["wake up", ACTIVATE_MICROPHONE]:
         set_mode(grammar, Mode.Normal ) 
         return True 
 
-    elif datum == "go to sleep" or datum == "mike off":
+    elif datum in ["go to sleep", "mike off"]:
         set_mode(grammar, Mode.Sleeping ) 
         return True 
 
@@ -639,7 +647,7 @@ def set_mode(grammar, mode):
 
     elif mode == Mode.Off : 
         set_microphone(Microphone.Off)
-        grammar.activateSet([microphone_export],exclusive=1)
+        # grammar.activateSet([microphone_export],exclusive=1)
 
     elif mode == Mode.Reading : 
         grammar.activateSet([reading_export],exclusive=1) 
@@ -685,7 +693,9 @@ def should_request_in_mode(mode):
     else: 
         raise TypeError("should_request_from_mode", mode)
 
-
+# 
+def dragon_callback(): # TODO read from socket or something 
+    print "dragon_callback" 
 
 
 
@@ -700,6 +710,7 @@ def load():
     global GRAMMAR
     # automatically reload on file change (not only when microphone toggles on)
     natlinkmain.setCheckForGrammarChanges(1)
+    # natlink.setTimerCallback(dragon_callback,1000)
     GRAMMAR = NarcissisticGrammar()
     GRAMMAR.initialize()
 
