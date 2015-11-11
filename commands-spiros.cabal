@@ -90,6 +90,10 @@ library
         Commands.Plugins.Spiros.Chrome
         Commands.Plugins.Spiros.Chrome.Gmail
 
+        Commands.Plugins.Spiros.IntelliJ
+        Commands.Plugins.Spiros.IntelliJ.Grammar
+        Commands.Plugins.Spiros.IntelliJ.Run
+
 
     build-depends:
         -- cabal sandbox add-source ~/s-expression
