@@ -109,5 +109,6 @@ insertGiven context s = do
 
 insertDefault = insert 
 
-insertEmacs = insertHighlighting
+insertEmacs = insertMarking 
+-- insertEmacs = insertHighlighting
 

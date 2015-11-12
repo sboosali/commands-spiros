@@ -39,6 +39,7 @@ import qualified Data.List as List
 import System.Exit
 import Control.Concurrent.STM
 import Control.Concurrent
+-- import Control.Exception 
 
 
 -- ================================================================ --

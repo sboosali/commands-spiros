@@ -48,7 +48,6 @@ globalShortcuts = shortcuts
  , "no"-: "M-z"
  , "undo"-: "M-z"
  , "salt"-: "M-a"
- , "yank"-: "M-v"              --
  , "pasting"-: "M-v"              -- "paste" is mis-recognized "eighth"
  , "copying"-: "M-c"               -- 
  , "cutting"-: "M-x"                -- 
@@ -79,9 +78,12 @@ emacsShortcuts = shortcuts
  [ "stop"-: "C-g"
  -- , "check"-: "M-u"
  -- , "comment"-: "M-;"
+ , "yank"-: "C-y"              --
+ , "undo"-: "C-/"
+ , "redo"-: "C-?"               -- NOTE undo-tree-mode
+ , "mark"-: "C-<spc>"
  , "new file"-: "C-\\"
  , "replace"-: "M-r"
- , "mark"-: "C-<spc>"
  , "close buffer"-: "C-x k"
  , "buffers"-: "C-x b"
  , "close"-: "C-c C-c"
@@ -89,8 +91,6 @@ emacsShortcuts = shortcuts
  , "split screen"-: "C-x 2"
  , "other buffer"-: "C-x b <ret>"
  , "other window"-: "C-x o"
- , "undo"-: "C-/"
- , "redo"-: "C-?"               -- NOTE undo-tree-mode
  , "evil toggle"-: "C-z"
  , "divider"-: "M--"                -- (it parses) 
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
@@ -119,7 +119,7 @@ magitShortcuts = shortcuts
  , "amend"-: "c a"
  , "difference"-: "d <ret>"
  , "push"-: "S-p S-p"
- , ""-: ""
+ , "chunks"-: "<tab>"           -- nonstandard 
  , ""-: ""
  , ""-: ""
  ]
@@ -161,5 +161,4 @@ chromeShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
  ]
-
 

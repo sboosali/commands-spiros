@@ -290,8 +290,8 @@ myMacros0_ =  vocabMacro
  , "open maps"-: do
    openURL "https://www.google.com/maps" 
 
- , ""-: do
-   nothing  
+ , "highlight"-: do
+   activate_mark
 
  , ""-: do
    nothing

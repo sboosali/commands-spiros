@@ -53,6 +53,11 @@ myBuffers = vocab
 
 -- ================================================================ --
 
+insertMarking :: MonadWorkflow m => String -> m() 
+insertMarking s = do 
+ mark
+ insert s 
+
 insertHighlighting :: MonadWorkflow m => String -> m() 
 insertHighlighting s = do 
  mark
