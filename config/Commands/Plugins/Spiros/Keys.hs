@@ -13,12 +13,12 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 
 
-keyriff :: R z KeyRiff
+keyriff :: R KeyRiff
 keyriff = 'keyriff
  <=> (keychord-++)
 
 -- | the terminals in key and modifier should be disjoint; otherwise, there is ambiguity.
-keychord :: R z KeyChord
+keychord :: R KeyChord
 keychord = 'keychord
  <=> moveShift <$ "press" <*> (modifier-*)  <*> key      -- zero or more modifiers (prefixed) 
  <|> moveShift <$>            (modifier-++) <*> key      -- one or more modifiers (not prefixed) 
@@ -42,7 +42,7 @@ modifier = 'modifier
 so we can't embed the one into the other, but we'll just keep things simple with duplication.
 
 -}
-key :: R z KeyChord
+key :: R KeyChord
 key = 'key
  <=> ((either __BUG__ id) . char2keypress) <$> (__inlineRHS__(character))
   -- inlined to trigger vocabulary optimization, the right-hand side which must have only tokens
@@ -100,7 +100,7 @@ key = 'key
 --  <|> "eff twenty" $> KeyChord [] F20Key
 
 -- | an ordinal numeral
-ordinal :: R z Integer
+ordinal :: R Integer
 ordinal = 'ordinal
  <=> unOrdinal <$> (__inlineRHS__(ordinalDigit))
  <|> vocab
@@ -118,7 +118,7 @@ ordinal = 'ordinal
   ]
 
 -- | an ordinal numeral, between 0 (zeroth) and 9 (ninth) inclusive
-ordinalDigit :: R z Ordinal
+ordinalDigit :: R Ordinal
 ordinalDigit = 'ordinalDigit <=> vocab dictOrdinalDigit
 
 dictOrdinalDigit :: [(String, Ordinal)]

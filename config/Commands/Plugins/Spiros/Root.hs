@@ -24,31 +24,28 @@ import           Commands.Plugins.Spiros.Edit
 import  Commands.Plugins.Spiros.Keys
 
 import           Commands.Mixins.DNS13OSX9
+import           Commands.Parsers.Earley              (EarleyParser(..))
+import Data.Text.Lazy (Text) 
 
 import           Control.Applicative
-import           Control.Monad.ST.Unsafe
-import           System.IO.Unsafe
 import           GHC.Exts                        (IsString(..))
 
 
 rootsCommand = Command roots bestRoots runRoots -- TODO is this the right place? 
 
-rootsParser :: RULED EarleyParser s Roots
-rootsParser = EarleyParser rootsProd bestRoots
-
-rootsProd :: RULED EarleyProd s Roots
-rootsProd = unsafePerformIO$ unsafeSTToIO$ de'deriveParserObservedSharing roots -- TODO lol 
+rootsParser :: EarleyParser s r String Text Roots
+rootsParser = EarleyParser (unsafeEarleyProd roots) bestRoots -- TODO rankRoots 
 
 
 -- ================================================================ --
 
-roots :: R z Roots
+roots :: R Roots
 roots = 'roots <=> empty
  <|> freezeRoot
  <|> Ambiguous <$ (fromString RootsAmbiguousPrefix) <*> root --TODO recursion
  <|> Root_ <$> root
 
-freezeRoot :: R z Roots 
+freezeRoot :: R Roots 
 freezeRoot = 'freezeRoot <=> empty --TODO recursion
  <|> Frozen [RawStage]    <$ (fromString RootsFrozenPrefix) <* "raw"   <*> root -- TODO doesn't work 
  <|> Frozen [ParseStage]  <$ (fromString RootsFrozenPrefix) <* "parse" <*> root -- TODO doesn't work 
@@ -57,7 +54,7 @@ freezeRoot = 'freezeRoot <=> empty --TODO recursion
 pattern RootsAmbiguousPrefix = "explicate"
 pattern RootsFrozenPrefix    = "freeze" 
 
-root :: R z Root
+root :: R Root
 root = 'root <=> empty
  <|> Acts_      <$> (acts-++)
  <|> Emacs_     <$> (number-?-1) <*> emacs

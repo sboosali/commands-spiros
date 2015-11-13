@@ -12,7 +12,7 @@ import Control.Applicative
 
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
-myShortcuts :: R z Shortcut 
+myShortcuts :: R Shortcut 
 myShortcuts = 'myShortcuts
  <=> globalShortcuts
  <|> emacsShortcuts
@@ -22,7 +22,7 @@ myShortcuts = 'myShortcuts
  <|> gmailShortcuts
 
 
-globalShortcuts :: R z Shortcut  
+globalShortcuts :: R Shortcut  
 globalShortcuts = shortcuts
  -- keys
  [ "space"-: "<spc>"
@@ -73,7 +73,7 @@ globalShortcuts = shortcuts
  ]
 
 
-emacsShortcuts :: R z Shortcut 
+emacsShortcuts :: R Shortcut 
 emacsShortcuts = shortcuts 
  [ "stop"-: "C-g"
  -- , "check"-: "M-u"
@@ -109,7 +109,7 @@ emacsShortcuts = shortcuts
  ]
 
 
-magitShortcuts :: R z Shortcut 
+magitShortcuts :: R Shortcut 
 magitShortcuts = shortcuts 
  [ "stage"-: "s"
  , "stage all"-: "S-s"
@@ -124,7 +124,7 @@ magitShortcuts = shortcuts
  , ""-: ""
  ]
 
-haskellShortcuts :: R z Shortcut 
+haskellShortcuts :: R Shortcut 
 haskellShortcuts = shortcuts 
  [ ""-: ""
  , "type"-: "C-c C-t" 
@@ -142,7 +142,7 @@ haskellShortcuts = shortcuts
  , ""-: "" 
  ] 
 
-chromeShortcuts :: R z Shortcut 
+chromeShortcuts :: R Shortcut 
 chromeShortcuts = shortcuts
  [ "new tab"-: "M-t"
  , "close tab"-: "M-w"

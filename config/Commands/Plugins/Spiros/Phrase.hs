@@ -19,6 +19,7 @@ import           Commands.Extra
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
 import qualified Commands.Backends.OSX            as OSX
+import           Commands.Parsers.Earley as CP
 
 import qualified Data.Text.Lazy                   as T
 
@@ -26,7 +27,7 @@ import           Control.Applicative
 import           Data.Char
 
 
-phraseCommand :: DNSEarleyCommand z Phrase
+phraseCommand :: DNSEarleyCommand Phrase
 phraseCommand = Command phrase bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)
@@ -36,7 +37,7 @@ phraseCommand = Command phrase bestPhrase $ \_ p -> do
 -- -- | transforms "token"s from 'phrase' into an "s-expression" with 'pPhrase'.
 -- phrase = pPhrase <$> phrase
 
-phrase :: DNSEarleyRHS z Phrase
+phrase :: DNSEarleyRHS Phrase
 phrase = Phrase <$> complexGrammar 'phrase
  -- NOTE phrase is still a NonTerminal, given instance Applicative RHS, because:
  -- either: (f <$> NonTerminal ...) is (fmap f (NonTerminal ...)) is (NonTerminal ... ) 
@@ -54,7 +55,7 @@ phrase = Phrase <$> complexGrammar 'phrase
 --
 -- this ordering prioritizes the escaping Escaped_/Quoted_ over the
 -- escaped, e.g. "quote greater equal unquote".
-phraseA :: DNSEarleyRHS z Phrase_
+phraseA :: DNSEarleyRHS Phrase_
 phraseA = 'phraseA <=> empty
  <|> pasted 
  <|> Blank_      <$ "blank"
@@ -68,7 +69,7 @@ phraseA = 'phraseA <=> empty
  <|> Splitted_   <$> splitter 
 
 -- | a sub-phrase where a phrase to the right is possible.
-phraseB :: DNSEarleyRHS z Phrase_
+phraseB :: DNSEarleyRHS Phrase_
 phraseB = 'phraseB <=> empty
  <|> Escaped_  <$ "litter"            <*> keyword         -- abbreviation for "literally" 
  <|> Quoted_   <$ "quote"             <*> dictation <* "unquote"
@@ -87,18 +88,18 @@ phraseB = 'phraseB <=> empty
  -- <|> Spelled_  <$ "spell" <*> letters -- only, not characters
 
 -- | a sub-phrase where a phrase to the right is impossible.
-phraseC :: DNSEarleyRHS z Phrase_
+phraseC :: DNSEarleyRHS Phrase_
 phraseC = 'phraseC <=> Dictated_ <$ "say" <*> dictation
 
 -- | injects word_ into phrase
-phraseW :: DNSEarleyRHS z Phrase_
+phraseW :: DNSEarleyRHS Phrase_
 phraseW = 'phraseW <=> word2phrase_ <$> word_
 
 -- | injects dictation into phrase_
-phraseD :: DNSEarleyRHS z Phrase_
+phraseD :: DNSEarleyRHS Phrase_
 phraseD = 'phraseD <=> Dictated_ <$> dictation
 
-pasted :: DNSEarleyRHS z Phrase_ 
+pasted :: DNSEarleyRHS Phrase_ 
 pasted = 'pasted 
  <=> Pasted_     <$ "pasted"    -- "yank" 
  <|> Clipboard_  <$ "clip"    -- 
@@ -139,14 +140,14 @@ splitter = 'splitter
 -- e.g. "split reach_YouTube" -> "reach you tube"  
 
 -- disjoint vocabulary ("effects"), possibly overlapping parses ("results")
-character :: DNSEarleyRHS z Char
+character :: DNSEarleyRHS Char
 character = 'character <=> empty
  <|> punctuationRHS
  <|> englishNumericRHS
  <|> literalNumericRHS
  <|> phoneticAlphabetRHS
 
-punctuationRHS :: DNSEarleyRHS z Char
+punctuationRHS :: DNSEarleyRHS Char
 punctuationRHS = vocab
  [ "grave"-: '`'
  , "till"-: '~'
@@ -195,10 +196,10 @@ punctuationRHS = vocab
 @
 
 -}
-literalNumericRHS :: DNSEarleyRHS z Char
+literalNumericRHS :: DNSEarleyRHS Char
 literalNumericRHS = foldMap (\c -> c <$ token [c]) ['0'..'9']
 
-phoneticAlphabetRHS :: DNSEarleyRHS z Char
+phoneticAlphabetRHS :: DNSEarleyRHS Char
 phoneticAlphabetRHS = vocab phoneticAlphabet
 
 phoneticAlphabet :: [(String, Char)] 
@@ -248,26 +249,26 @@ phoneticAlphabet =
 @
 
 -}
-literalAlphabetRHS :: DNSEarleyRHS z Char
+literalAlphabetRHS :: DNSEarleyRHS Char
 literalAlphabetRHS = foldMap (\c -> (c <$ token [c]) <|> (c <$ token [toUpper c])) ['a'..'z'] -- TODO What will we get back from Dragon anyway?
 
-dictation :: R z Dictation 
+dictation :: R Dictation 
 dictation = dragonGrammar 'dictation
- ((Dictation . fmap T.unpack) <$> some anyWord)
+ ((Dictation . fmap T.unpack) <$> UnsafeEarleyProduction (some CP.anyWord))
  (DGNDictation)
 {-# NOINLINE dictation #-} --TODO doesn't help with the unshared <dictation__4>/<dictation__14>/<dictation__16>
 
-word_ :: R z String
+word_ :: R String
 word_ = dragonGrammar 'word_
- (T.unpack <$> anyWord)
+ (T.unpack <$> UnsafeEarleyProduction CP.anyWord)
  (DGNWords)
 
-letters :: R z Letters              -- TODO rename to dgnletters, but then must be qualified when serialized to avoid conflict 
+letters :: R Letters              -- TODO rename to dgnletters, but then must be qualified when serialized to avoid conflict 
 letters = simpleGrammar 'letters
- ((Letters . T.unpack) <$> anyLetters)
+ ((Letters . T.unpack) <$> UnsafeEarleyProduction CP.anyLetters)
  ((SomeDNSNonTerminal . DNSBuiltinRule) DGNLetters)
 
-keyword :: R z Keyword 
+keyword :: R Keyword 
 keyword = 'keyword
  <=> (Keyword . T.unpack) <$> terminals
 

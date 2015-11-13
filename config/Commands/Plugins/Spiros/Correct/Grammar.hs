@@ -13,7 +13,7 @@ import Commands.Mixins.DNS13OSX9
 import Control.Applicative
 
 
-correctionGrammar :: R z Correction -- TODO, upon grammatical contexts  
+correctionGrammar :: R Correction -- TODO, upon grammatical contexts  
 correctionGrammar = 'correctionGrammar <=> empty
  <|> Left <$> digit_
  <|> (Right . letters2dictation) <$ "spell" <*> letters

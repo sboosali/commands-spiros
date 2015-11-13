@@ -9,7 +9,7 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 
 
-englishNumericRHS :: DNSEarleyRHS z Char
+englishNumericRHS :: DNSEarleyRHS Char
 englishNumericRHS = vocab
  [ "zero"-: '0'
  , "one"-: '1'
@@ -24,13 +24,13 @@ englishNumericRHS = vocab
  ]
 
 -- | @('read' <$> digits :: R_ 'Int')@ is total.
-digits :: R z String
+digits :: R String
 digits = 'digits <=> (digit-++) -- TODO 
 
-digit :: R z Char
+digit :: R Char
 digit = 'digit <=> (head . show) <$> digitRHS -- TODO 
 
-digitRHS :: (Num a) => R z a
+digitRHS :: (Num a) => R a
 digitRHS = vocab
  [ "nil"   -: 0                  -- monosyllabic
  , "zero"  -: 0                 -- disyllabic
@@ -46,10 +46,10 @@ digitRHS = vocab
  , "nine"  -: 9
  ]
 
-number :: R z Number
+number :: R Number
 number = 'number <=> numberRHS
 
-numberRHS :: (Num a) => R z a
+numberRHS :: (Num a) => R a
 numberRHS = digitRHS <|> vocab
  [ "ten"-: 10
  , "eleven"-: 11

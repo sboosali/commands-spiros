@@ -6,10 +6,10 @@ import           Commands.Mixins.DNS13OSX9
 import Control.Arrow ((&&&))
 
 
-immutableVocabulary :: [String] -> DNSEarleyRHS z String
+immutableVocabulary :: [String] -> DNSEarleyRHS String
 immutableVocabulary = vocab . fmap (id &&& id) 
 
-interactive :: DNSEarleyRHS z String
+interactive :: DNSEarleyRHS String
 interactive = 'interactive <=> immutableVocabulary
  [ "" 
  , "magit status"

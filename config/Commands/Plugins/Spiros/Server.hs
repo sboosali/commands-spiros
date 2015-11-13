@@ -12,9 +12,10 @@ import           Commands.Plugins.Spiros.Server.Types
 import           Commands.Plugins.Spiros.Server.Workflow 
 import           Commands.Plugins.Spiros.Correct 
 
+import           Commands.Parsers.Earley (EarleyParser(..), bestParse, eachParse) 
 import qualified Commands.Backends.OSX         as OSX
 import           Commands.Frontends.Dragon13
-import           Commands.Mixins.DNS13OSX9
+import           Commands.Mixins.DNS13OSX9 -- (unsafeDNSGrammar, unsafeEarleyProd) 
 import           Commands.Servers.Servant
 
 import           Control.Lens 
@@ -24,17 +25,15 @@ import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import           Servant
 import System.Clock 
-import Data.List.NonEmpty (nonEmpty) 
+import           Data.List.NonEmpty              (NonEmpty (..))
 import Control.Monad.Free.Church (fromF) 
 
 import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
-import           Control.Monad.ST.Unsafe
-import           System.IO.Unsafe
+
 import System.IO
 import System.Mem
-import Control.Arrow ((&&&)) 
 import qualified Data.List as List 
 import System.Exit
 import Control.Concurrent.STM
@@ -75,8 +74,8 @@ spirosTest = do
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings
  :: VGlobals
- -> RULED DNSEarleyCommand r SpirosType
- -> RULED (VSettings OSX.CWorkflow) r SpirosType
+ -> DNSEarleyCommand SpirosType
+ -> VSettings OSX.CWorkflow SpirosType
 spirosSettings spirosGlobals command = VSettings
  8888
  (spirosSetup )
@@ -119,20 +118,17 @@ spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
 spirosUpdateConfig
  :: DnsOptimizationSettings
  -- -> RULED (VSettings OSX.CWorkflow) r a
- -> RULED DNSEarleyCommand r a
- -> RULED (VConfig OSX.CWorkflow) r a
-spirosUpdateConfig dnsSettings command = unsafePerformIO$ do
- vGrammar <- de'deriveGrammarObservedSharing dnsSettings (command&_cRHS)
- -- let eProd = runST$ de'deriveParserObservedSharing (command&_cRHS)
- eProd <- unsafeSTToIO$ de'deriveParserObservedSharing (command&_cRHS) --TODO runST, but input is not rank2
- let vParser = EarleyParser eProd (command&_cBest)
- let vDesugar = (command&_cDesugar)
- return VConfig{..}
+ -> DNSEarleyCommand a
+ -> VConfig OSX.CWorkflow a
+spirosUpdateConfig dnsSettings command = VConfig
+ (unsafeDNSGrammar dnsSettings (command&_cRHS))
+ (EarleyParser (unsafeEarleyProd (command&_cRHS)) (command&_cBest))
+ (command&_cDesugar)
 {-# NOINLINE spirosUpdateConfig #-}
 
 
 spirosSetup
- :: RULED (VSettings OSX.CWorkflow) r a
+ :: VSettings OSX.CWorkflow a
  -> IO (Either VError ())
 spirosSetup vSettings = do
  hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
@@ -185,14 +181,14 @@ spirosInterpret
  :: (Show a)
  => ServerMagic a
  -> Ranking a
- -> (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ -> VSettings OSX.CWorkflow a
  -> RecognitionRequest 
  -> Response (DNSResponse)
 spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
 
  t0<- liftIO$ getTime theClock 
 
- !value <- case e'ParseBest (vSettings&vConfig&vParser) ws of
+ !value <- case bestParse (vSettings&vConfig&vParser) ws of
   -- for thunk for accurate profiling 
   Right x -> return x
   Left e -> do
@@ -209,11 +205,11 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
 
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
- let hParse = either2maybe . (e'ParseBest (vSettings&vConfig&vParser))
+ let hParse = either2maybe . (bestParse (vSettings&vConfig&vParser))
  let hDesugar = fromF . ((vSettings&vConfig&vDesugar) context)
  let theHandlers = CommandsHandlers{..}
 
- let theAmbiguousParser theWords = ((fmap (vSettings&vConfig&vParser&pBest) . nonEmpty) &&& id) (e'ParseList (vSettings&vConfig&vParser&pProd) theWords)
+ let theAmbiguousParser theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((vSettings&vConfig&vParser&pBest) (x:|xs)), (x:xs))) (eachParse (vSettings&vConfig&vParser&pProd) theWords) -- TODO 
 
  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
@@ -266,7 +262,7 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
 
 
 spirosHypotheses
- :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ :: VSettings OSX.CWorkflow a
  -> HypothesesRequest 
  -> Response DNSResponse
 spirosHypotheses vSettings = \hypotheses -> do
@@ -275,7 +271,7 @@ spirosHypotheses vSettings = \hypotheses -> do
 
 
 spirosCorrection
- :: (forall r. RULED (VSettings OSX.CWorkflow) r a)
+ :: VSettings OSX.CWorkflow a
  -> CorrectionRequest 
  -> Response DNSResponse 
 spirosCorrection vSettings = \(CorrectionRequest correction) -> do
@@ -449,7 +445,7 @@ setMode VGlobals{..} mode = do
 getMode :: VGlobals -> STM VMode
 getMode VGlobals{..} = readTVar vMode
 
-dnsRespond :: (forall r. RULED (VSettings m) r a) -> Response DNSResponse
+dnsRespond :: VSettings m a -> Response DNSResponse
 dnsRespond vSettings = do
  liftIO $ atomically $ do
    swapTVar (vSettings&vGlobals&vResponse) emptyDNSResponse

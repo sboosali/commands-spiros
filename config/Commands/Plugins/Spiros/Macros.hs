@@ -26,7 +26,7 @@ import Control.Monad (replicateM_)
 
 
 -- | all macros (should be a VocabularyList)
-myMacros :: R z Macro
+myMacros :: R Macro
 myMacros = 'myMacros <=> empty 
  <|> myMacrosN
  <|> myMacros0
@@ -96,7 +96,7 @@ global_reach_voice_app = do
 -- ================================================================ --
 
 -- | all macros without arguments (should be a VocabularyList)
-myMacros0 :: R z Macro 
+myMacros0 :: R Macro 
 myMacros0 = 'myMacros0
  <=> myMacros0_
  <|> myAliases
@@ -104,7 +104,7 @@ myMacros0 = 'myMacros0
  <|> myOrdinals
 
 -- | macros without arguments
-myMacros0_ :: R z Macro 
+myMacros0_ :: R Macro 
 myMacros0_ =  vocabMacro
  [ "test"-: return()            -- NOTE a recognition without a workflow: for triggering the (callback-driven) Python client 
 
@@ -311,7 +311,7 @@ myMacros0_ =  vocabMacro
  ]
 
 -- | macros without arguments
-myAliases :: R z Macro
+myAliases :: R Macro
 myAliases = aliasMacro sendText myAliasesList -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner 
 
 myAliasesList = 
@@ -332,7 +332,7 @@ myAliasesList =
  , ""-: ""
  ]
 
-myApps :: R z Macro
+myApps :: R Macro
 myApps = aliasMacro openApplication myAppsList  -- TODO make less stringly-typed
 
 myAppsList = 
@@ -352,7 +352,7 @@ myAppsList =
  , ""         -: ""
  ]
 
-myOrdinals :: R z Macro 
+myOrdinals :: R Macro 
 myOrdinals = aliasMacro runOrdinalAsSelect dictOrdinalDigit
  -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
  -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
@@ -383,7 +383,7 @@ digit2select
 -- ================================================================ --
 
 -- | macros with arguments (should be a VocabularyList)
-myMacrosN :: R z Macro 
+myMacrosN :: R Macro 
 myMacrosN = fmap Macro $ empty
 
  <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase

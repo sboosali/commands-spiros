@@ -34,7 +34,7 @@ parseDigit = \case
 
 -- TODO use digits everywhere, ordinal grammars and cardinal garments  
 
-digit_ :: R z Digit 
+digit_ :: R Digit 
 digit_ = vocabWith Digit 
  [ "zero"  -: 0                -- disyllabic
  , "one"   -: 1

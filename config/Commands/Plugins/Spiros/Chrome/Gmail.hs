@@ -10,7 +10,7 @@ import Commands.Mixins.DNS13OSX9
 
 
 -- NOTE implicit dependency: enable with "Settings > Keyboard shortcuts > Keyboard shortcuts on." 
-gmailShortcuts :: R z Shortcut 
+gmailShortcuts :: R Shortcut 
 gmailShortcuts = shortcuts
  [ "compose mail"-: "c" 
  , "reply mail"-: "a"
