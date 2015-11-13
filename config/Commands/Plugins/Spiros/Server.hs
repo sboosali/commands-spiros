@@ -67,9 +67,17 @@ spirosServer = do
 spirosTest :: IO () 
 spirosTest = do 
  globals <- newVGlobals
- status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
- -- spirosInterpret spirosMagic rankRoots (spirosSettings globals rootsCommand) (RecognitionRequest ["test"]) -- TODO give name to"test" 
- exitWith status 
+
+ setupStatus     <- either2bool <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
+
+ let _runInterpret = runEitherT (spirosInterpret spirosMagic rankRoots (spirosSettings globals rootsCommand) (RecognitionRequest ["test"]))   -- NOTE it's a NULLOP.  TODO give name to"test" testInterpret 
+ let _handleInterpret = \case; Left e -> (do print e >> return (Left e)); Right x -> (do print x >> return (Right x)) 
+ interpretStatus <- either2bool <$> (_runInterpret >>= _handleInterpret)
+
+ let theStatus = (setupStatus && interpretStatus) 
+ printHeader 
+ if theStatus then putStrLn "spirosTest: Success" else putStrLn "spirosTest: FAILURE" 
+ exitWith (bool2exitcode theStatus) 
 
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
