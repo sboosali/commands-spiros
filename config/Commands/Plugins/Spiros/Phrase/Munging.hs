@@ -252,4 +252,3 @@ mergeSpelled = foldr' go []
  go (Spelled_ xs) (Spelled_ ys : ps) = (Spelled_ $ xs <> ys) : ps
  go p ps = p:ps
 
-
