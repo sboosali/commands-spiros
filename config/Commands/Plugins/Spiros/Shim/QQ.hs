@@ -203,13 +203,14 @@ def is_mode_awake(mode):
 
 # 
 def synchronize_microphone(self):  
-#     if is_mode_awake(self.current_mode):# TODO 
-#         set_microphone(Microphone.On)
 
-    if not is_mode_awake(self.current_mode): 
+    if is_mode_awake(self.current_mode):
+         set_microphone(Microphone.On)
+
+    else: 
 
         if get_microphone() == Microphone.On: 
-            self.current_mode = Mode.Normal     # the mode change is safe, is the previous value is not awake 
+            self.current_mode = Mode.Normal     # the mode change is safe, since the mode is not awake 
 
         if get_microphone() == Microphone.Sleeping: 
             self.current_mode = Mode.Sleeping 
