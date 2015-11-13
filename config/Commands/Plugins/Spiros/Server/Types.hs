@@ -1,10 +1,14 @@
 module Commands.Plugins.Spiros.Server.Types where 
 import           Commands.Plugins.Spiros.Extra
+import           Commands.Plugins.Spiros.Types (SpirosContext) 
 
 import qualified Commands.Backends.OSX         as OSX
+import           Commands.Servers.Servant (VSettings) 
 
 import Data.Text.Lazy (Text) 
 
+
+type SpirosSettings = VSettings OSX.CWorkflow SpirosContext  
 
 type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> Ranking a -> [Text] -> a -> IO Bool -- TODO
 

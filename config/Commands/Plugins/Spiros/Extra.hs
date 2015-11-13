@@ -313,3 +313,21 @@ strip = rstrip . lstrip
  lstrip = dropWhile (`elem` (" \t\n\r"::String))
  rstrip = reverse . lstrip . reverse
 
+{-| inputs milliseconds, outputs microseconds (which can be given to threadDelay).   
+
+>>> milliseconds 10
+10000
+
+-}
+milliseconds :: Int -> Int
+milliseconds = (*1000)
+
+{-| inputs seconds, outputs microseconds (which can be given to threadDelay).   
+
+>>> seconds 1
+1000000
+
+-}
+seconds :: Int -> Int
+seconds = (*1000000) 
+

@@ -1,11 +1,8 @@
 {-# LANGUAGE ExtendedDefaultRules, FlexibleContexts, NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 module Commands.Plugins.Spiros.Emacs.Config where
--- import           Commands.Plugins.Spiros.Keys
 
 import           Commands.Sugar.Keys
-
-import qualified System.FilePath.Posix as FilePath
 
 import Control.Monad
 
@@ -13,11 +10,6 @@ import Control.Monad
 
 
 emacsDelay = 10 :: Int                 -- milliseconds
-
-isEmacs :: FilePath -> Maybe FilePath
-isEmacs fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
- then Just fp
- else Nothing
 
 -- TODO read application from environment, which determines the keyboard shortcut
 -- an application is defined by the keyboard shortcuts it supports?

@@ -5,6 +5,7 @@
 -}
 module Commands.Plugins.Spiros.Server where 
 import           Commands.Plugins.Spiros.Extra
+import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (getShim)
@@ -45,7 +46,8 @@ import Control.Concurrent
 
 spirosServer :: IO ()
 spirosServer = do
- globals <- newVGlobals
+ globals <- newVGlobals GlobalContext 
+ _theContextThread <- forkContextWorker globals  -- TODO manage threads 
  serveNatlink (spirosSettings globals rootsCommand)
 -- spirosServer = spirosServe rootCommand
 -- spirosServer = spirosServe rootPlugin
@@ -66,7 +68,9 @@ spirosServer = do
 
 spirosTest :: IO () 
 spirosTest = do 
- globals <- newVGlobals
+ globals <- newVGlobals GlobalContext 
+
+ _theContextThread <- forkContextWorker globals  -- TODO manage threads 
 
  setupStatus     <- either2bool <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
 
@@ -82,9 +86,9 @@ spirosTest = do
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings
- :: VGlobals
+ :: VGlobals SpirosContext 
  -> DNSEarleyCommand SpirosType
- -> VSettings OSX.CWorkflow SpirosType
+ -> SpirosSettings SpirosType
 spirosSettings spirosGlobals command = VSettings
  8888
  (spirosSetup )
@@ -95,10 +99,11 @@ spirosSettings spirosGlobals command = VSettings
  (Address localhost (Port 8889))       -- TODO Commands.Plugins.Spiros.Port 
  spirosGlobals
 
-newVGlobals :: IO VGlobals  -- TODO rename Spiros to my 
-newVGlobals = do
- vResponse <- atomically (newTVar emptyDNSResponse) 
- vMode <- atomically (newTVar RecognitionMode) 
+newVGlobals :: c -> IO (VGlobals c)
+newVGlobals c = atomically$ do
+ vResponse <- newTVar emptyDNSResponse 
+ vMode <- newTVar RecognitionMode
+ vContext <- newTVar c 
  return VGlobals{..} 
 
 spirosDnsOptimizationSettings :: DnsOptimizationSettings
@@ -126,7 +131,7 @@ spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
 -- spirosUpdateConfig :: VPlugin (E.Rule r Root) Root -> IO (VConfig (E.Rule r Root) Root)
 spirosUpdateConfig
  :: DnsOptimizationSettings
- -- -> RULED (VSettings OSX.CWorkflow) r a
+ -- -> RULED (SpirosSettings) r a
  -> DNSEarleyCommand a
  -> VConfig OSX.CWorkflow a
 spirosUpdateConfig dnsSettings command = VConfig
@@ -137,7 +142,7 @@ spirosUpdateConfig dnsSettings command = VConfig
 
 
 spirosSetup
- :: VSettings OSX.CWorkflow a
+ :: SpirosSettings a
  -> IO (Either VError ())
 spirosSetup vSettings = do
  hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
@@ -190,7 +195,7 @@ spirosInterpret
  :: (Show a)
  => ServerMagic a
  -> Ranking a
- -> VSettings OSX.CWorkflow a
+ -> SpirosSettings a
  -> RecognitionRequest 
  -> Response (DNSResponse)
 spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
@@ -254,6 +259,9 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
      putStrLn$ show d3 ++ "ms"
      putStrLn ""
      putStrLn$ "CONTEXT:"
+     print =<< do atomically$ getContext (vSettings&vGlobals)
+     putStrLn ""
+     putStrLn$ "APPLICATION:"
      print context
      putStrLn ""
      putStrLn$ "VALUE:"
@@ -269,9 +277,8 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
  where 
  theClock = Realtime
 
-
 spirosHypotheses
- :: VSettings OSX.CWorkflow a
+ :: SpirosSettings a
  -> HypothesesRequest 
  -> Response DNSResponse
 spirosHypotheses vSettings = \hypotheses -> do
@@ -280,7 +287,7 @@ spirosHypotheses vSettings = \hypotheses -> do
 
 
 spirosCorrection
- :: VSettings OSX.CWorkflow a
+ :: SpirosSettings a
  -> CorrectionRequest 
  -> Response DNSResponse 
 spirosCorrection vSettings = \(CorrectionRequest correction) -> do
@@ -392,7 +399,7 @@ handleParses theParser theRanking ws = do
   ]
 
 
-handleHypotheses :: Address -> VGlobals -> HypothesesRequest -> IO ()
+handleHypotheses :: Address -> VGlobals c -> HypothesesRequest -> IO ()
 handleHypotheses _address globals hypotheses@(HypothesesRequest hs) = do 
  printHeader 
  printMessage $ hypothesesMessage 
@@ -429,7 +436,7 @@ handleCorrection' _correction = do    -- TODO
  return()                    
 
 
-handleCorrection :: VGlobals -> Dictation -> IO ()
+handleCorrection :: VGlobals c -> Dictation -> IO ()
 handleCorrection globals theCorrection = do 
  let theResponse = (ForeignResultsObject 0 , (\(Dictation ws) -> fmap T.pack ws) theCorrection) -- TODO ForeignResultsObject 
  atomically$ writeCorrection globals (CorrectionResponse theResponse)
@@ -443,18 +450,25 @@ handleCorrection globals theCorrection = do
   ] <> [displayDictation theCorrection]
 
 
-writeCorrection :: VGlobals -> CorrectionResponse -> STM () 
+writeCorrection :: VGlobals c -> CorrectionResponse -> STM () 
 writeCorrection VGlobals{..} correction = do
  modifyTVar (vResponse) $ set (responseCorrection) (Just correction) 
 
-setMode :: VGlobals -> VMode -> STM ()  
+setMode :: VGlobals c -> VMode -> STM ()  
 setMode VGlobals{..} mode = do 
  modifyTVar (vMode) $ set id mode 
 
-getMode :: VGlobals -> STM VMode
+getMode :: VGlobals c -> STM VMode
 getMode VGlobals{..} = readTVar vMode
 
-dnsRespond :: VSettings m a -> Response DNSResponse
+setContext :: VGlobals c -> c -> STM ()  
+setContext VGlobals{..} c = do 
+ modifyTVar (vContext) $ set id c 
+
+getContext :: VGlobals c -> STM c 
+getContext VGlobals{..} = readTVar vContext 
+
+dnsRespond :: VSettings m c a -> Response DNSResponse
 dnsRespond vSettings = do
  liftIO $ atomically $ do
    swapTVar (vSettings&vGlobals&vResponse) emptyDNSResponse
@@ -463,4 +477,28 @@ printHeader :: IO ()
 printHeader = do 
  putStrLn"--------------------------------------------------------------------------------" 
  replicateM_ 3 (putStrLn"")
+
+
+
+-- ================================================================ --
+
+type Worker = (Int, IO())          -- TODO 
+
+forkContextWorker :: VGlobals SpirosContext -> IO ThreadId 
+forkContextWorker globals = forkIO$ forever$ runWorker (loadContextWorker globals) 
+
+runWorker :: Worker -> IO ()
+runWorker (_delay, _action) = _action >> threadDelay _delay 
+
+loadContextWorker :: VGlobals SpirosContext -> Worker 
+loadContextWorker globals = (loadContextDelay, loadContext globals) 
+
+loadContextDelay :: Int 
+loadContextDelay = milliseconds 10
+
+loadContext :: VGlobals SpirosContext -> IO ()
+loadContext globals = do 
+ theApplication <- OSX.runWorkflow OSX.currentApplication 
+ let theContext = readSpirosContext theApplication
+ atomically$ setContext globals theContext 
 
