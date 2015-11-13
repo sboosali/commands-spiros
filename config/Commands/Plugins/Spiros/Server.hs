@@ -68,6 +68,7 @@ spirosTest :: IO ()
 spirosTest = do 
  globals <- newVGlobals
  status <- (bool2exitcode . either2bool) <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
+ -- spirosInterpret spirosMagic rankRoots (spirosSettings globals rootsCommand) (RecognitionRequest ["test"]) -- TODO give name to"test" 
  exitWith status 
 
 
@@ -186,6 +187,11 @@ spirosInterpret
  -> Response (DNSResponse)
 spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
 
+ let printCurrentApplication = OSX.runWorkflow OSX.currentApplication >>= print  
+
+ threadA <- liftIO$ forkIO$ forever (putStr "A: " >> printCurrentApplication)
+ threadB <- liftIO$ forkIO$ forever (putStr "B: " >> printCurrentApplication)
+
  t0<- liftIO$ getTime theClock 
 
  !value <- case bestParse (vSettings&vConfig&vParser) ws of
@@ -254,6 +260,10 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
      putStrLn$ showWords ws
 
  liftIO$ performMajorGC                -- TODO other thread and delayed ?
+
+ liftIO$ do                     -- TODO test 
+  killThread threadA
+  killThread threadB
 
  dnsRespond vSettings
 
