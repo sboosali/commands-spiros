@@ -335,7 +335,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
     # def gotHypothesis(self, words):
 
 
-    # (this callback is where most of the work is done)
+    # 
     # 
     # recognitionType = self | reject | other 
     def gotResultsObject(self, recognitionType, resultsObject):
@@ -515,8 +515,7 @@ def try_magic_handlers(grammar,words):
 
 # 
 def is_recognition_good(data, datum): # TODO speed up 
-    return (    True
-            and     data 
+    return (        data 
             and     is_unicode(data)
             and not is_noise(datum)
             and not is_abrogation(data)
@@ -553,8 +552,7 @@ def is_noise(data):
 # truthy if the recognition has been handled "magically"
 # by the client, and shouldn't be handled by the server TODO make this API explicit in servant
 def handle_everything(grammar,datum):
-    return (   False 
-            or handle_microphone(grammar,datum) 
+    return (   handle_microphone(grammar,datum) 
             or handle_dnsmode(grammar,datum)
             or handle_correctable(grammar,datum)
            )

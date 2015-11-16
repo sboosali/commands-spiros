@@ -293,8 +293,8 @@ myMacros0_ =  vocabMacro
  , "highlight"-: do
    activate_mark
 
- , ""-: do
-   nothing
+ , "hibernate"-: do
+   slot_alfred "sleep" 
 
  , ""-: do
    nothing
@@ -492,6 +492,10 @@ query_alfred p = do
  toggle_alfred 
  delay 500
  maybe nothing insertP p
+
+slot_alfred p = do
+ query_alfred (Just p)
+ press "<ret>"
 
 switch_tab p = do
  press "A-t"                    -- needs Tab Ahead chrome extension 
