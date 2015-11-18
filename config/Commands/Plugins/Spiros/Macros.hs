@@ -14,7 +14,6 @@ import Commands.Plugins.Spiros.Keys
 import  Commands.Plugins.Spiros.Template
 
 import Commands.Sugar.Keys
-import Commands.RHS.Types 
 import Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
 

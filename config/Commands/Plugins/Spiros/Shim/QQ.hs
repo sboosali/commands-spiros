@@ -710,6 +710,7 @@ def load():
     # automatically reload on file change (not only when microphone toggles on)
     natlinkmain.setCheckForGrammarChanges(1)
     # natlink.setTimerCallback(dragon_callback,1000)
+    # natlink.setTimerCallback(None,1000)
     GRAMMAR = NarcissisticGrammar()
     GRAMMAR.initialize()
 
