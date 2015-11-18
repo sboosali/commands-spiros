@@ -106,7 +106,7 @@ library
         containers -any,
         mtl -any,
         wl-pprint-text -any,
-        Earley ==0.9.*,
+        Earley ==0.10.1.0,
         text -any,
         semigroups -any,
         lens -any,
