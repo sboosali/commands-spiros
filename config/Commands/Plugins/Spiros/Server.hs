@@ -88,7 +88,7 @@ spirosTest = do
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 spirosSettings
  :: VGlobals SpirosContext 
- -> DNSEarleyCommand SpirosType
+ -> DNSEarleyCommand SpirosContext SpirosType
  -> SpirosSettings SpirosType
 spirosSettings spirosGlobals command = VSettings
  8888
@@ -133,8 +133,8 @@ spirosDnsOptimizationSettings = defaultDnsOptimizationSettings
 spirosUpdateConfig
  :: DnsOptimizationSettings
  -- -> RULED (SpirosSettings) r a
- -> DNSEarleyCommand a
- -> VConfig OSX.CWorkflow a
+ -> DNSEarleyCommand SpirosContext a
+ -> VConfig OSX.CWorkflow SpirosContext a
 spirosUpdateConfig dnsSettings command = VConfig
  (unsafeDNSGrammar dnsSettings (command&_cRHS))
  (EarleyParser (unsafeEarleyProd (command&_cRHS)) (command&_cBest))
@@ -203,8 +203,8 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
 
  t0<- getTime_ 
 
- !value <- force <$> case bestParse (vSettings&vConfig&vParser) ws of
-  -- for thunk for accurate profiling 
+ !(force -> value) <- case bestParse (vSettings&vConfig&vParser) ws of
+  -- {force} turns WHNF (the bang pattern) into NF
   Right x -> return x 
   Left e -> do
    liftIO$ do
@@ -218,7 +218,7 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
 
  t1<- getTime_ 
 
- context <- liftIO$ OSX.runWorkflow OSX.currentApplication
+ context <- liftIO$ readSpirosContext <$> OSX.runWorkflow OSX.currentApplication
 
  let hParse = either2maybe . (bestParse (vSettings&vConfig&vParser))
  let hDesugar = fromF . ((vSettings&vConfig&vDesugar) context)

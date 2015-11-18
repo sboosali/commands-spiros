@@ -9,6 +9,7 @@ module Commands.Plugins.Spiros.Phrase
  , module Commands.Plugins.Spiros.Phrase.Spacing
  , module Commands.Plugins.Spiros.Number 
  ) where
+import           Commands.Plugins.Spiros.Types
 import           Commands.Plugins.Spiros.Phrase.Types
 import           Commands.Plugins.Spiros.Number 
 import           Commands.Plugins.Spiros.Phrase.Run
@@ -27,7 +28,7 @@ import           Control.Applicative
 import           Data.Char
 
 
-phraseCommand :: DNSEarleyCommand Phrase
+phraseCommand :: DNSEarleyCommand SpirosContext Phrase
 phraseCommand = Command phrase bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)

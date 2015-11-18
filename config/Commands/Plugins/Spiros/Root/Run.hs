@@ -8,7 +8,7 @@
 module Commands.Plugins.Spiros.Root.Run where 
 import           Commands.Plugins.Spiros.Root.Types 
 import           Commands.Plugins.Spiros.Extra
-import           Commands.Plugins.Spiros.Types (isEmacs) 
+import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros.Types
 import           Commands.Plugins.Spiros.Phrase
@@ -19,8 +19,10 @@ import           Commands.Plugins.Spiros.Shortcut.Types
 import           Commands.Backends.OSX
 import Commands.Sugar.Keys
 
+import Control.Monad.Free.Church (F)
+import Control.Lens((^?))
+
 -- import           Control.Parallel
-import           Data.Maybe 
 
 
 bestRoots = argmax rankRoots
@@ -56,6 +58,7 @@ rankAct = \case
 
 -- ================================================================ --
 
+runRoots :: SpirosContext -> Roots -> F WorkflowF ()
 runRoots context = \case
  Frozen _ _ -> nothing           -- TODO needs magic server actions , which needs a more general monad stack 
  Ambiguous _ -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 
@@ -68,14 +71,14 @@ runRoot context = \case
  Acts_ ass     -> traverse_ (runActs context) ass      -- no delay 
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
  Shell_ s      -> runShell s
- Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 
+ Emacs_ n e   -> whenJust (context ^? _EmacsContext) $ runRepeat emacsDelay n (runEmacs_ e) 
  Letters_ l   -> runLetters l
  Dictation_ d -> runDictationTop context d 
  Phrase_ p    -> runPhraseTop context p
 
 contextualDelay = \case
- (isEmacs   -> Just{}) -> emacsDelay
- (isBrowser -> Just{}) -> browserDelay
+ EmacsContext -> emacsDelay
+ ChromeContext -> browserDelay
  _                     -> defaultDelay
 
 runActs context = \case
@@ -84,8 +87,8 @@ runActs context = \case
 runAct context = \case
  KeyRiff_ kr -> runKeyRiff kr
  --TODO Click_ _c   -> nothing
- Edit_ a     -> onlyWhen isEmacs context $ editEmacs a
- Move_ a     -> onlyWhen isEmacs context $ moveEmacs a
+ Edit_ a     -> whenJust (context ^? _EmacsContext) $ editEmacs a
+ Move_ a     -> whenJust (context ^? _EmacsContext) $ moveEmacs a
 
 -- | 
 runPhraseByClipboard _context p = do
@@ -104,9 +107,7 @@ runDictationTop context d = do
 
 -- | 
 insertGiven context s = do 
- if (isJust . isEmacs) context 
- then insertEmacs s
- else insertDefault s
+ ifJust (context ^? _EmacsContext) (insertEmacs s) (insertDefault s)
 
 insertDefault = insert 
 

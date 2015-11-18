@@ -1,11 +1,9 @@
-{-# LANGUAGE LambdaCase, GeneralizedNewtypeDeriving, ViewPatterns  #-}
+{-# LANGUAGE TemplateHaskell, LambdaCase, GeneralizedNewtypeDeriving, ViewPatterns  #-}
 module Commands.Plugins.Spiros.Types where
 import Commands.Plugins.Spiros.Extra.Types 
 
 import qualified System.FilePath.Posix as FilePath
-
-import           Data.Data    (Data) 
-import           GHC.Generics (Generic)
+import Control.Lens 
 
 
 -- | an ordinal number. i.e. "first", "second", "third", "fourth", et cetera  
@@ -22,13 +20,16 @@ instance NFData SpirosContext
 
 readSpirosContext :: String -> SpirosContext 
 readSpirosContext = \case 
- (isEmacs -> Just{}) -> EmacsContext 
+ (isEmacsApp -> Just{}) -> EmacsContext 
  "Google Chrome" -> ChromeContext 
  "IntelliJ" -> IntelliJContext 
  _ -> GlobalContext 
 
-isEmacs :: FilePath -> Maybe FilePath
-isEmacs fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
+isEmacsApp :: FilePath -> Maybe FilePath
+isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
  then Just fp
  else Nothing
 
+-- ================================================================ --
+
+makePrisms ''SpirosContext 

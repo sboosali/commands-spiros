@@ -32,6 +32,16 @@ import Text.Printf (printf)
 import System.IO
 
 
+nothing :: (Monad m) => m ()
+nothing = return ()
+
+whenJust :: (Monad m) => Maybe a -> (m () -> m ())
+whenJust condition_ action_ = maybe nothing (const action_) condition_
+
+ifJust :: (Monad m) => Maybe b -> m a -> m a -> m a
+ifJust condition_ action1_ action2_ = maybe (action1_) (const action2_) condition_
+
+
 -- ================================================================ --
 -- debugging 
 
@@ -129,12 +139,6 @@ type Number = Int
 safeAverage :: Foldable t => t Int -> Int
 safeAverage (toList -> []) = 0
 safeAverage xs = sum xs `div` length xs
-
-nothing :: (Monad m) => m ()
-nothing = return ()
-
-onlyWhen :: (Monad m) => (b -> Maybe b) -> b -> (m () -> m ())
-onlyWhen predicate_ question_ action_ = maybe nothing (const action_) (predicate_ question_)
 
 -- slot :: MonadWorkflow m => String -> m () 
 slot s = do
