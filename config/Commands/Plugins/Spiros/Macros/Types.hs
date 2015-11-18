@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RankNTypes, TypeOperators, LambdaCase, FlexibleInstances, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving, OverloadedStrings, RankNTypes, TypeOperators, LambdaCase, FlexibleInstances, FlexibleContexts, ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances, GADTs, TypeFamilies, ConstraintKinds, DataKinds #-}
 
 module Commands.Plugins.Spiros.Macros.Types where
@@ -16,6 +16,7 @@ import Control.Arrow (second)
 
 
 newtype Macro = Macro (Apply IsMacroArgument CWorkflow_)
+ deriving (NFData)
 
 instance Eq  Macro where (==)    = (==)    `on` getMacroName -- TODO lawless 
 instance Ord Macro where compare = compare `on` getMacroName -- TODO lawless 

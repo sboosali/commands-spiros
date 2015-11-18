@@ -43,6 +43,8 @@ roots :: R Roots
 roots = 'roots <=> empty
  <|> freezeRoot
  <|> Ambiguous <$ (fromString RootsAmbiguousPrefix) <*> root --TODO recursion
+ <|> Macro_     <$> (number-?-1) <*> myMacros
+ <|> Macro_ 1   <$  "my"    <*> myAliases -- TODO
  <|> Root_ <$> root
 
 freezeRoot :: R Roots 
@@ -59,9 +61,7 @@ root = 'root <=> empty
  <|> Acts_      <$> (acts-++)
  <|> Emacs_     <$> (number-?-1) <*> emacs
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
- <|> Macro_     <$> (number-?-1) <*> myMacros
  <|> Shell_     <$>                  shell
- <|> Macro_ 1   <$  "my"    <*> myAliases
  <|> Dictation_ <$  "say"   <*> dictation
  <|> Letters_   <$  "spell" <*> letters
  <|> (Dictation_ . digit2dictation) <$> digit_

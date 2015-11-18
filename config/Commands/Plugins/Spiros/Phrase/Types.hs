@@ -1,11 +1,10 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, TypeFamilies, StandaloneDeriving          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeFamilies, StandaloneDeriving #-}
 module Commands.Plugins.Spiros.Phrase.Types where
+import Commands.Plugins.Spiros.Extra.Types 
 
 import           Data.Sexp
-import           Commands.Extra
 
 import           Data.List.NonEmpty               (NonEmpty)
-import           Data.Semigroup (Semigroup) 
 
 import           GHC.Exts                         (IsString (..),IsList (..))
 
@@ -14,8 +13,7 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 -- "static" phrase
 
 newtype Phrase = Phrase [Phrase_] 
- deriving(Show,Read,Eq,Ord,Monoid,Data,Generic)
-deriving instance Semigroup Phrase 
+ deriving(Show,Read,Eq,Ord,Data,Generic,NFData,Monoid,Semigroup)
 
 instance IsString Phrase where
  fromString = word2phrase
@@ -44,26 +42,31 @@ data Phrase_
  | Capped_   [Char]     -- ^ atom-like.
  | Symbol_   [Char]     -- ^ atom-like.
  | Dictated_ Dictation  -- ^ list-like.
- deriving (Show,Read,Eq,Ord,Data,Generic)
+ deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData Phrase_ 
 
 instance IsString Phrase_ where
  fromString = word2phrase_
 
-data Casing = UpperCase | LowerCase | CapCase deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+data Casing = UpperCase | LowerCase | CapCase deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)
+instance NFData Casing 
 
-data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Read,Eq,Ord,Data,Generic)
+data Joiner = Joiner String | CamelJoiner | ClassJoiner | ShrinkJoiner deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData Joiner 
 
-data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Data,Generic)
+data Brackets = Brackets String String deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData Brackets 
 
-data Splitter = Splitter deriving (Show,Read,Eq,Ord,Data,Generic)
+data Splitter = Splitter deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData Splitter
 
-newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
+newtype Separator = Separator String  deriving (Show,Read,Eq,Ord,Generic,Data,NFData,Semigroup,Monoid)
 
-newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
+newtype Keyword = Keyword String  deriving (Show,Read,Eq,Ord,Generic,Data,NFData,Semigroup,Monoid)
 
-newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
+newtype Dictation = Dictation [String] deriving (Show,Read,Eq,Ord,Generic,Data,NFData,Semigroup,Monoid)
 
-newtype Letters = Letters [Char] deriving (Show,Read,Eq,Ord,Data,Generic,Semigroup,Monoid)
+newtype Letters = Letters [Char] deriving (Show,Read,Eq,Ord,Generic,Data,NFData,Semigroup,Monoid)
 
 instance IsString Dictation where
  fromString = words2dictation 
@@ -99,7 +102,8 @@ data PFunc
  | Joined     Joiner
  | Surrounded Brackets
  | Splitted   Splitter 
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData PFunc 
 
 -- | "Phrase Atom".
 --
@@ -109,7 +113,8 @@ data PAtom
  = PWord String                 -- ^ a word without spaces 
  | PText String                 -- ^ a word with spaces (ignored by "Commands.Plugins.Spiros.Phrase.Munging.applyPFunc") 
  | PAcronym Bool [Char]         -- ^ whether the acronym will be uppercased
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData PAtom 
 
 -- | for doctest
 instance IsString PAtom where fromString = PWord
@@ -125,7 +130,8 @@ the Bool enables munging.
 @'Pasted' 'False'@ means that the clipboard contents will be inserted literally. 
 
 -}
-data Pasted = Pasted Bool deriving (Show,Read,Eq,Ord)
+data Pasted = Pasted Bool deriving (Show,Read,Eq,Ord,Generic,Data)
+instance NFData Pasted 
 
 -- | used by 'pPhrase'.
 type PStack = NonEmpty PItem

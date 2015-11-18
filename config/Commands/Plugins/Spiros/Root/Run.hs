@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable, DeriveFunctor, ImplicitParams, LambdaCase  #-}
+{-# LANGUAGE ImplicitParams, LambdaCase #-}
 {-# LANGUAGE LiberalTypeSynonyms, NamedFieldPuns, PartialTypeSignatures     #-}
 {-# LANGUAGE PatternSynonyms, PostfixOperators, RankNTypes, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, TemplateHaskell, OverloadedStrings, TupleSections            #-}
@@ -28,6 +28,7 @@ bestRoots = argmax rankRoots
 rankRoots = \case                --TODO fold over every field of every case, normalizing each case
  Frozen _ r -> highRank + rankRoot r
  Ambiguous r -> highRank + rankRoot r
+ Macro_ _i m        -> 3 * highRank + rankMacro m
  Root_ r   -> rankRoot r
 
 -- prioritize Action over Macro
@@ -35,7 +36,6 @@ rankRoots = \case                --TODO fold over every field of every case, nor
 rankRoot = \case
  Acts_ ass            -> 4 * highRank + safeAverage (fmap rankActs ass)
    -- NOTE "google word" now matches the Action, not the Macro 
- Macro_ _i m        -> 3 * highRank + rankMacro m
  Shortcut_ _i _s    -> 3 * highRank
  Shell_ s           -> highRank + rankShell s
  Emacs_ _i e        -> highRank + rankEmacs e
@@ -59,13 +59,13 @@ rankAct = \case
 runRoots context = \case
  Frozen _ _ -> nothing           -- TODO needs magic server actions , which needs a more general monad stack 
  Ambiguous _ -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 
+ Macro_ n f    -> runRepeat (contextualDelay context) n (runMacro f)
  Root_ r  -> runRoot context r
 --    _ -> pretty print the tree of commands, both as a tree and as the flat recognition,
 --  (inverse of parsing), rather than executing. For debugging/practicing, and maybe for batching.
 
 runRoot context = \case
  Acts_ ass     -> traverse_ (runActs context) ass      -- no delay 
- Macro_ n f    -> runRepeat (contextualDelay context) n (runMacro f)
  Shortcut_ n s -> runRepeat (contextualDelay context) n (runShortcut s) 
  Shell_ s      -> runShell s
  Emacs_ n e   -> onlyWhen isEmacs context $ runRepeat emacsDelay n (runEmacs_ e) 

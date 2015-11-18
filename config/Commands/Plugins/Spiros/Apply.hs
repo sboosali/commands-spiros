@@ -4,6 +4,8 @@ module Commands.Plugins.Spiros.Apply where
 import Commands.Plugins.Spiros.TypeLevel
 import Commands.Plugins.Spiros.Extra
 
+import Control.DeepSeq (NFData(..)) 
+
 import Language.Haskell.TH.Syntax (Name)
 
 
@@ -22,6 +24,13 @@ data Apply constraints r where
     => Name -> (a -> b -> c -> d -> r) -> a -> b -> c -> d  -> Apply constraints r
 
 instance Functor (Apply constraints) where fmap = mapApply
+instance NFData (Apply constraints r) where -- TODO should be: instance (NFData \in constraints) => NFData (Apply constraints r)
+ rnf = \case 
+  A0 n x         -> n `seq` x `seq` () 
+  A1 n f a       -> n `seq` f `seq` a `seq` () 
+  A2 n f a b     -> n `seq` f `seq` a `seq` b `seq` () 
+  A3 n f a b c   -> n `seq` f `seq` a `seq` b `seq` c `seq` () 
+  A4 n f a b c d -> n `seq` f `seq` a `seq` b `seq` c `seq` d `seq` () 
 
 mapApply :: (a -> b) -> (Apply constraints a -> Apply constraints b)
 mapApply g = \case

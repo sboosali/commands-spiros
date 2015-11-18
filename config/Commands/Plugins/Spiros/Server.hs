@@ -28,6 +28,7 @@ import           Servant
 import System.Clock 
 import           Data.List.NonEmpty              (NonEmpty (..))
 import Control.Monad.Free.Church (fromF) 
+import Control.DeepSeq(force) 
 
 import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
@@ -192,7 +193,7 @@ spirosSetup vSettings = do
 
 -}
 spirosInterpret
- :: (Show a)
+ :: (NFData a, Show a)
  => ServerMagic a
  -> Ranking a
  -> SpirosSettings a
@@ -200,11 +201,11 @@ spirosInterpret
  -> Response (DNSResponse)
 spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> do
 
- t0<- liftIO$ getTime theClock 
+ t0<- getTime_ 
 
- !value <- case bestParse (vSettings&vConfig&vParser) ws of
+ !value <- force <$> case bestParse (vSettings&vConfig&vParser) ws of
   -- for thunk for accurate profiling 
-  Right x -> return x
+  Right x -> return x 
   Left e -> do
    liftIO$ do
     replicateM_ 3 (putStrLn"")
@@ -215,7 +216,7 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
     hFlush stdout
    left$ err400{errBody = BSC.pack (show e)}
 
- t1<- liftIO$ getTime theClock 
+ t1<- getTime_ 
 
  context <- liftIO$ OSX.runWorkflow OSX.currentApplication
 
@@ -239,7 +240,7 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
   RecognitionMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
   CorrectionMode  -> return False 
 
- t2<- liftIO$ getTime theClock 
+ t2<- getTime_
 
  let d1 = diffTimeSpecAsMilliseconds t1 t0 
  let d2 = diffTimeSpecAsMilliseconds t2 t1 
@@ -275,7 +276,8 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
  dnsRespond vSettings
 
  where 
- theClock = Realtime
+ getTime_ = liftIO$ getTime Realtime
+
 
 spirosHypotheses
  :: SpirosSettings a

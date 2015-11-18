@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass, LambdaCase, TemplateHaskell, PostfixOperators, FlexibleContexts, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Emacs
@@ -23,7 +23,7 @@ data Emacs
  = EmacsFunction (Maybe Phrase)
  | EmacsExpression (Maybe Phrase)
  -- TODO | EmacsKeyriff Keyriff
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 
 -- ================================================================ --

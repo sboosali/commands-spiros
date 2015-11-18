@@ -1,4 +1,4 @@
-{-# LANGUAGE AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveAnyClass, DeriveFunctor, DeriveFoldable,DeriveTraversable #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE LambdaCase, RankNTypes, RecordWildCards, DataKinds, TypeOperators  #-}
 {-| 
 

@@ -1,6 +1,7 @@
-{-# LANGUAGE LambdaCase, TypeFamilies, ViewPatterns, FlexibleContexts  #-}
+{-# LANGUAGE DeriveAnyClass, LambdaCase, TypeFamilies, ViewPatterns, FlexibleContexts  #-}
 module Commands.Plugins.Spiros.Template.Types where
 import Commands.Plugins.Spiros.Extra (insertByClipboard) 
+import Commands.Plugins.Spiros.Extra.Types 
 
 import           Commands.Backends.OSX
 import Commands.Sugar.Keys
@@ -21,7 +22,7 @@ data Template
  = TemplateCursor 
  | TemplateText String 
  | TemplateList [Template] 
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 {- | when constructed with 'mappend', a @Template@ is always flat (see 'flattenTemplate'). 
 

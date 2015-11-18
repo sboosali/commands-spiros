@@ -2,11 +2,13 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
+ , module Commands.Plugins.Spiros.Extra.Types 
  , module Commands.Extra
  , module Data.Semigroup
  ) where
 
 import Commands.Plugins.Spiros.Types
+import Commands.Plugins.Spiros.Extra.Types 
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX

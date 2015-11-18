@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 module Commands.Plugins.Spiros.Server.Types where 
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Types (SpirosContext) 
@@ -34,5 +35,5 @@ data Mode
  | ModeSleeping 
  | ModeOff 
  | ModeReading
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data,NFData)
 

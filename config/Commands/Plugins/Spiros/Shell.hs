@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, PostfixOperators, LambdaCase, OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass, TemplateHaskell, PostfixOperators, LambdaCase, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shell where 
@@ -14,11 +14,11 @@ data Safety
             -- (it writes to the history, but that's a benign side effect). 
             --   or can be easily undone, e.g. "git stash". 
  | Unsafe   -- ^ e.g. "rm"  
- deriving (Show,Read,Eq,Ord,Bounded,Enum)
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Generic,Data,NFData)
 
 data Shell                     
  = Shell Safety String Phrase -- TODO "safety" depends on options/subcommands, not just the command itself 
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 shell = 'shell <=> foldMap go shellCommands
  where

@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, LambdaCase #-}
 module Commands.Plugins.Spiros.Digit where 
 import Commands.Plugins.Spiros.Extra
 
@@ -6,7 +6,7 @@ import Commands.Mixins.DNS13OSX9 -- TODO shorter module name
 
 
 newtype Digit = Digit Int       -- TODO modular arithmetic: type Digit = Natural `Mod` 10
- deriving (Show,Read,Eq,Ord)
+ deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 instance Bounded Digit where 
  minBound = Digit 0

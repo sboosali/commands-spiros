@@ -385,7 +385,7 @@ digit2select
 myMacrosN :: R Macro 
 myMacrosN = fmap Macro $ empty
 
- <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase
+ -- <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase
 
  <|>  A1  'replace_with_something   replace_with_something     <$           "replace"   <*>  phrase
  <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
