@@ -17,6 +17,7 @@ myShortcuts = 'myShortcuts
  <=> globalShortcuts
  <|> emacsShortcuts
  <|> magitShortcuts
+ <|> tagsShortcuts 
  <|> haskellShortcuts
  <|> chromeShortcuts 
  <|> gmailShortcuts
@@ -101,13 +102,17 @@ emacsShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
- , ""-: ""
- , ""-: ""
+ ]
+
+tagsShortcuts = shortcuts             -- TAGS 
+ [ ""-: ""
+ , "definition"-: "M-."
+ , "jump def"-: "M-."
+ , "jump back"-: "M-*"
  , ""-: ""
  , ""-: ""
  , ""-: ""
  ]
-
 
 magitShortcuts :: R Shortcut 
 magitShortcuts = shortcuts 
