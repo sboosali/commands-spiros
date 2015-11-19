@@ -36,10 +36,10 @@ nothing :: (Monad m) => m ()
 nothing = return ()
 
 whenJust :: (Monad m) => Maybe a -> (m () -> m ())
-whenJust condition_ action_ = maybe nothing (const action_) condition_
+whenJust condition_ action_ = ifJust condition_ action_ nothing 
 
 ifJust :: (Monad m) => Maybe b -> m a -> m a -> m a
-ifJust condition_ action1_ action2_ = maybe (action1_) (const action2_) condition_
+ifJust condition_ actionTrue_ actionFalse_ = maybe (actionFalse_) (const actionTrue_) condition_
 
 
 -- ================================================================ --
