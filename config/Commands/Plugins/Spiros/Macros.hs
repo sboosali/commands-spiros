@@ -287,7 +287,7 @@ myMacros0_ =  vocabMacro
    slot $ ":m +" <> selection 
 
  , "open maps"-: do
-   openURL "https://www.google.com/maps" 
+   openURL "https://www.google.com/maps" -- TODO https://www.google.com/maps/dir/638+Pine+St,+Redwood+City,+CA+94063,+USA/901+Marshall+Street,+Redwood+City,+CA+94063-2026,+USA/
 
  , "highlight"-: do
    activate_mark

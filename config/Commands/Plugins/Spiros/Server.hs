@@ -216,18 +216,18 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
     hFlush stdout
    left$ err400{errBody = BSC.pack (show e)}
 
- t1<- getTime_ 
-
  context <- liftIO$ readSpirosContext <$> OSX.runWorkflow OSX.currentApplication
 
  let hParse = either2maybe . (bestParse (vSettings&vConfig&vParser))
  let hDesugar = fromF . ((vSettings&vConfig&vDesugar) context)
  let theHandlers = CommandsHandlers{..}
 
- let theAmbiguousParser theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((vSettings&vConfig&vParser&pBest) (x:|xs)), (x:xs))) (eachParse (vSettings&vConfig&vParser&pProd) theWords) -- TODO 
+ let theAmbiguousParser = makeAmbiguousParser (vSettings&vConfig&vParser)
 
  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
+
+ t2<- getTime_
 
  liftIO$ (atomically$ getMode (vSettings&vGlobals)) >>= \case 
    RecognitionMode -> workflowIO 
@@ -240,10 +240,6 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
   RecognitionMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
   CorrectionMode  -> return False 
 
- t2<- getTime_
-
- let d1 = diffTimeSpecAsMilliseconds t1 t0 
- let d2 = diffTimeSpecAsMilliseconds t2 t1 
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
  when shouldPrint $ liftIO$ do  -- TODO don't print but still log? 
@@ -255,8 +251,6 @@ spirosInterpret serverMagic theRanking vSettings = \(RecognitionRequest ws) -> d
      putStr  $ OSX.showWorkflow workflow
      putStrLn ""
      putStrLn$ "TIMES:"
-     putStrLn$ show d1 ++ "ms"
-     putStrLn$ show d2 ++ "ms"
      putStrLn$ show d3 ++ "ms"
      putStrLn ""
      putStrLn$ "CONTEXT:"
@@ -504,3 +498,23 @@ loadContext globals = do
  let theContext = readSpirosContext theApplication
  atomically$ setContext globals theContext 
 
+makeAmbiguousParser :: (forall s r. EarleyParser s r e t a) -> [t] -> (Maybe a, [a])
+makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((p&pBest) (x:|xs)), (x:xs))) (eachParse (p&pProd) theWords) -- TODO 
+
+-- spirosInterpreter :: (forall s r. EarleyParser s r e t a) -> [t] -> Either e a 
+-- spirosInterpreter d p ws = do 
+--  !(force -> value) <- bestParse p ws 
+--   -- {force} turns WHNF (from the bang pattern) into NF
+
+--  context <- liftIO$ readSpirosContext <$> OSX.runWorkflow OSX.currentApplication
+
+--  let hParse = either2maybe . (bestParse p)
+--  let hDesugar = fromF . (d context)
+--  let theHandlers = CommandsHandlers{..}
+
+--  let theAmbiguousParser = makeAmbiguousParser p
+
+--  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
+--  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
+
+--  return workflowIO 

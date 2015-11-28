@@ -68,6 +68,7 @@ root = 'root <=> empty
  -- <|> Correction_ <$ correction 
  --TODO <|> Phrase_    <$  (token"pray") <*> phrase
  <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
+ -- <|> Click_ <$> click
 
 acts = 'acts
  <=> ActsRW <$> (number-?-1) <*> act
@@ -91,10 +92,10 @@ act = 'act <=> empty     -- boilerplate (mostly)
 -- actRW = 'actRW <=> empty
 --  <|> act
 
-click = 'click <=>
- Click <$> (times-?-Single) <*> (button-?-LeftButton) <$ "click"
+click = 'click <=> empty
+ <|> Click <$> (times-?-Single) <*> (button-?-LeftButton) <* "click"
 
-times = enumGrammar
+times = enumGrammar 
 
-button = qualifiedGrammar
+button = qualifiedGrammar 
 

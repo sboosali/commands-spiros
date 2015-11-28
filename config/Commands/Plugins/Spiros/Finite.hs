@@ -1,14 +1,26 @@
-{-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, ExistentialQuantification  #-}
+{-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, ExistentialQuantification, ViewPatterns  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Commands.Plugins.Spiros.Finite where 
 import Commands.Plugins.Spiros.Extra
 import Commands.Plugins.Spiros.Edit 
+import Commands.Plugins.Spiros.Root (click) 
 
 import           Commands.Mixins.DNS13OSX9
 
 import qualified Data.Text.Lazy as T
 
 
+printClick = do
+ 
+ let (gClick, pClick) = test_observeParserAndGrammar click
+ putStrLn""
+ print$ pClick "click"
+ print$ pClick "double click"
+ print$ pClick "middle click"
+ print$ pClick "triple right click"
+ print$ pClick "quadruple outer click"
+ putStrLn""
+ putStrLn$ gClick
 
 printFinite = do
  putStrLn""

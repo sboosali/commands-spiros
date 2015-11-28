@@ -13,5 +13,7 @@ mainWith = \case
 
  ["finite"] -> printFinite
 
+ ["derive"] -> printClick
+
  _ -> return() 
 
