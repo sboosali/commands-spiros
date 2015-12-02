@@ -9,7 +9,7 @@ import           Commands.Plugins.Spiros.Types
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (getShim)
-import           Commands.Plugins.Spiros.Windows (myBatchScript) 
+import           Commands.Plugins.Spiros.Windows 
 import           Commands.Plugins.Spiros.Server.Types 
 import           Commands.Plugins.Spiros.Server.Workflow 
 import           Commands.Plugins.Spiros.Correct 
@@ -153,13 +153,16 @@ spirosSetup vSettings = do
  let address = Address (Host "192.168.56.1") (Port (vSettings&vPort))
 
  do   
-   T.putStrLn$ displayAddress address
    putStrLn ""
+   T.putStrLn$ displayAddress address
 
  do
-   putStrLn myBatchScript
    putStrLn ""
-   setClipboardIO myBatchScript
+   putStrLn (getBatchScript myBatchScriptR)
+   setClipboardIO (getBatchScript myBatchScriptR)
+   putStrLn ""
+   putStrLn (getBatchScriptPath myBatchScriptR)
+   writeBatchScript myBatchScriptR 
 
  let theShim = applyShim getShim address (vSettings&vConfig&vGrammar)
 

@@ -1,20 +1,11 @@
-{-# LANGUAGE QuasiQuotes, DeriveFunctor, RecordWildCards #-}
--- | (you shouldcan read the source for documentation: just think of this module as a config file)
+{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
+-- | (you can read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Windows.QQ where
-import Commands.Plugins.Spiros.Extra (Generic, Data, CanInterpolate) 
+import Commands.Plugins.Spiros.Extra (CanInterpolate) 
+import Commands.Plugins.Spiros.Windows.Types
 
 import           Text.InterpolatedString.Perl6
 
-
-{-| 
-
--}
-data BatchScriptR t = BatchScriptR 
- { __sourceDirectory__      :: t 
- , __destinationDirectory__ :: t 
- , __shimFile__             :: t 
- -- , :: t 
- } deriving (Show,Eq,Ord,Functor,Data,Generic)
 
 getBatchScript :: (CanInterpolate t) => BatchScriptR t -> t
 getBatchScript BatchScriptR{..} = [qc|
@@ -28,9 +19,9 @@ taskkill /IM ISUSPM.exe /F
 taskkill /IM dnsspserver.exe /F 
 :: taskkill /IM dgnuiasvr_x64.exe /F 
 
-SET SOURCE={__sourceDirectory__} 
-SET DESTINATION={__destinationDirectory__} 
-SET FILE={__shimFile__} 
+SET SOURCE={__guestDirectory__} 
+SET DESTINATION={__natlinkDirectory__} 
+SET FILE={__natlinkFile__} 
 
 ECHO %SOURCE% 
 ECHO %DESTINATION% 

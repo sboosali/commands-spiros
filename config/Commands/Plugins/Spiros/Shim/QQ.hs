@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, QuasiQuotes, RecordWildCards #-}
--- | (you should read the source for documentation: just think of this module as a config file)
+-- | (you can read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Shim.QQ where
 import Commands.Plugins.Spiros.Extra (CanInterpolate) 
 
@@ -45,6 +45,9 @@ noise_recognitions = set(["the",
                           "a",
                           "she", 
                          ])
+
+
+
 
 
 
@@ -133,6 +136,29 @@ def timeit(message, callback, *args, **kwargs):
     after = time.clock()
     print message, ': ', (after - before) * 1000, 'ms'
     return result
+
+# :: a -> Either Exception a 
+def __NOTHROW__(thunk): 
+    try: 
+        return (True, thunk()) 
+    except Exception as e: 
+        return (False, (traceback, e))
+
+# 
+def __NOTHROW_PRINTING__(thunk): 
+    (the_tag, the_either) = __NOTHROW__(thunk)
+
+    if the_tag:  
+        the_result = the_either 
+        print the_result 
+        return the_result 
+
+    else:
+        (the_traceback, the_exception) = the_either 
+        print the_exception 
+        the_traceback.format_exc()
+        return None 
+
 
 
 
@@ -466,6 +492,28 @@ def post_hypotheses(identifier, hypotheses):
     return (response, data) 
 
 # 
+def post_initialize():
+    url      = "%s/initialize/" % (server_address,)        # TODO parameterize API
+    data     = json.dumps([])
+    request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
+    print 'url   =', url
+    print 'data  =', data 
+    response = urllib2.urlopen(request)
+    data = json.load(response) 
+    if DEBUG: print 'data  =', data 
+    return (response, data) 
+
+# 
+def send_json(host, port, path, input_data):
+    url           = "%s:%s/%s" % (host, port, path)
+    request_data  = json.dumps(input_data)
+    request       = urllib2.Request(url, data, \{"Content-Type": "application/json"})
+
+    response_data = urllib2.urlopen(request)
+    output_data   = json.load(response_data) 
+    return (response_data, output_data)
+
+# 
 def handle_response(self, data):
 
     x = validate_correction(data) 
@@ -692,27 +740,48 @@ def should_request_in_mode(mode):
     else: 
         raise TypeError("should_request_from_mode", mode)
 
-# 
+
+
+
+
+
+
+# callback 
+
+# import time 
+
+dragon_interval = 1000 
+
+# this callback is executed by natlink.setTimerCallback(), i.e. non-concurrently.  
 def dragon_callback(): # TODO read from socket or something 
     print "dragon_callback" 
+    # time.sleep() 
 
 
 
 
 
 
-# boilerplate
+
+
+# initialization 
 
 GRAMMAR = None # mutable global
 
 def load():
     global GRAMMAR
+
     # automatically reload on file change (not only when microphone toggles on)
     natlinkmain.setCheckForGrammarChanges(1)
-    # natlink.setTimerCallback(dragon_callback,1000)
-    # natlink.setTimerCallback(None,1000)
+
+    # natlink.setTimerCallback(dragon_callback,dragon_interval)
+    natlink.setTimerCallback(None,dragon_interval)
+
     GRAMMAR = NarcissisticGrammar()
     GRAMMAR.initialize()
+
+    # 
+    __NOTHROW_PRINTING__(post_initialize)  
 
 def unload():
     global GRAMMAR
