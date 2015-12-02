@@ -126,7 +126,6 @@ magitShortcuts = shortcuts
  , "push"-: "S-p S-p"
  , "chunks"-: "<tab>"           -- nonstandard 
  , ""-: ""
- , ""-: ""
  ]
 
 haskellShortcuts :: R Shortcut 

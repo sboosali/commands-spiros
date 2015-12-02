@@ -5,9 +5,16 @@ import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Edit (Move(..), Direction(..), Region(..), moveEmacs)
 import           Commands.Plugins.Spiros.Phrase (word2phrase) 
 import           Commands.Plugins.Spiros.Macros (reverse_search_regexp)  
+import Commands.Plugins.Spiros.Windows (BatchScriptR,getBatchScriptPath) 
 
 import           Commands.Sugar.Keys (press) 
 import qualified Commands.Backends.OSX         as OSX
+import Commands.Frontends.Dragon13.Shim.Types (PythonFile(..))
+
+import qualified Data.Text.Lazy                as T
+import Data.Text.Lazy (Text) 
+
+import           Data.Function                   ((&))
 
 
 setClipboardIO :: String -> IO ()
@@ -45,4 +52,10 @@ unreachCorrectionUi = do
 openPreviousApplication = do 
  press "M-<tab>"
  press "<ret>" 
+
+copyShim :: PythonFile -> IO ()
+copyShim s = setClipboardIO (s&getPythonFile&T.unpack)
+
+writeShim :: BatchScriptR Text -> PythonFile -> IO ()
+writeShim aBatchScript aPythonFile = writeFile (aBatchScript&getBatchScriptPath) (aPythonFile&getPythonFile&T.unpack) 
 

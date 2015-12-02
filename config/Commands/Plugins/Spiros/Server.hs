@@ -8,7 +8,7 @@ import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
-import           Commands.Plugins.Spiros.Shim (getShim)
+import           Commands.Plugins.Spiros.Shim (cleanShim, getShim)
 import           Commands.Plugins.Spiros.Windows 
 import           Commands.Plugins.Spiros.Server.Types 
 import           Commands.Plugins.Spiros.Server.Workflow 
@@ -31,7 +31,6 @@ import           Data.List.NonEmpty              (NonEmpty (..))
 import Control.Monad.Free.Church (fromF) 
 import Control.DeepSeq(force) 
 
-import Data.Char
 import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
 
@@ -158,13 +157,12 @@ spirosSetup vSettings = do
 
  do
    putStrLn ""
-   putStrLn (getBatchScript myBatchScriptR)
-   setClipboardIO (getBatchScript myBatchScriptR)
+   T.putStrLn$ getBatchScript myBatchScriptR
+   setClipboardIO$ T.unpack (getBatchScript myBatchScriptR)
    putStrLn ""
-   putStrLn (getBatchScriptPath myBatchScriptR)
-   writeBatchScript myBatchScriptR 
+   putStrLn$ getBatchScriptPath myBatchScriptR
 
- let theShim = applyShim getShim address (vSettings&vConfig&vGrammar)
+ let theShim = fmap (over _PythonFile cleanShim) $ applyShim getShim address $ (vSettings&vConfig&vGrammar) -- TODO is this the right place? 
 
  case theShim of 
 
@@ -181,7 +179,7 @@ spirosSetup vSettings = do
    putStrLn "SHIM PARSING FAILURE" -- TODO logging
    return$ Left(VError "")
 
-  Right (PythonFile shim) -> do
+  Right myShim -> do
 
    -- putStrLn$ T.unpack shim  -- too long (5k lines)
    putStrLn ""
@@ -190,7 +188,8 @@ spirosSetup vSettings = do
    -- 1. when pasting into an editor in virtual box, the clipboard contents are often trailed by Unicode garbage
    -- 2. which is why the shim ends in a comment 
    -- 3. but Unicode characters can have nonlocal effects on other characters, like on previous lines   
-   setClipboardIO (T.unpack (T.filter isAscii shim))
+   copyShim myShim
+   writeShim myBatchScriptR myShim -- TODO its own function 
 
    putStrLn "SHIM PARSING SUCCESS" -- TODO logging
 

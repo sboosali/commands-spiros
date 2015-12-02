@@ -8,23 +8,26 @@ module Commands.Plugins.Spiros.Windows
 import Commands.Plugins.Spiros.Windows.Types
 import Commands.Plugins.Spiros.Windows.QQ
 
+import qualified Data.Text.Lazy                as T
+import Data.Text.Lazy (Text) 
+
 import System.FilePath ((</>))
 
 
-writeBatchScript :: BatchScriptR String -> IO ()
-writeBatchScript s = writeFile (getBatchScriptPath s) (getBatchScript s)
+writeBatchScript :: BatchScriptR Text -> IO ()
+writeBatchScript s = writeFile (getBatchScriptPath s) (T.unpack (getBatchScript s))
 
-getBatchScriptPath :: BatchScriptR FilePath -> FilePath 
+getBatchScriptPath :: BatchScriptR Text -> FilePath 
 -- getBatchScriptPath :: (CanInterpolate t) => BatchScriptR t -> t 
-getBatchScriptPath BatchScriptR{..} = (__hostDirectory__ </> __natlinkFile__)
+getBatchScriptPath BatchScriptR{..} = (T.unpack __hostDirectory__ </> T.unpack __natlinkFile__)
 
 
-myBatchScriptR :: BatchScriptR String 
+myBatchScriptR :: BatchScriptR Text 
 myBatchScriptR = BatchScriptR{..} -- TODO separate library from configuration {-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
 
  where 
  __hostDirectory__    = "/Users/sboosalis/Desktop" 
- __guestDirectory__   = "E:\\" 
- __natlinkDirectory__ = "C:\\NatLink\\NatLink\\MacroSystem\\" 
+ __guestDirectory__   = "E:" 
+ __natlinkDirectory__ = "C:\\NatLink\\NatLink\\MacroSystem" 
  __natlinkFile__      = "_commands.py" 
 
