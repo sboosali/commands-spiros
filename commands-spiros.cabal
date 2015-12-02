@@ -58,6 +58,9 @@ library
         Commands.Plugins.Spiros.Template.Types 
         Commands.Plugins.Spiros.Template.QQ 
 
+        Commands.Plugins.Spiros.Windows 
+        Commands.Plugins.Spiros.Windows.QQ
+
         -- grammars 
 
         Commands.Plugins.Spiros.Root

@@ -10,6 +10,9 @@ import           Commands.Sugar.Keys (press)
 import qualified Commands.Backends.OSX         as OSX
 
 
+setClipboardIO :: String -> IO ()
+setClipboardIO = OSX.runWorkflow . OSX.setClipboard 
+
 printWorkflow :: OSX.Workflow_ -> IO ()
 printWorkflow = putStrLn . OSX.showWorkflow
 

@@ -9,6 +9,7 @@ import           Commands.Plugins.Spiros.Types
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (getShim)
+import           Commands.Plugins.Spiros.Windows (myBatchScript) 
 import           Commands.Plugins.Spiros.Server.Types 
 import           Commands.Plugins.Spiros.Server.Workflow 
 import           Commands.Plugins.Spiros.Correct 
@@ -75,6 +76,7 @@ spirosTest = do
 
  setupStatus     <- either2bool <$> spirosSetup (spirosSettings globals rootsCommand) -- lazy 
 
+ printHeader 
  let _runInterpret = runEitherT (spirosInterpret spirosMagic rankRoots (spirosSettings globals rootsCommand) (RecognitionRequest ["test"]))   -- NOTE it's a NULLOP.  TODO give name to"test" testInterpret 
  let _handleInterpret = \case; Left e -> (do print e >> return (Left e)); Right x -> (do print x >> return (Right x)) 
  interpretStatus <- either2bool <$> (_runInterpret >>= _handleInterpret)
@@ -150,6 +152,15 @@ spirosSetup vSettings = do
 
  let address = Address (Host "192.168.56.1") (Port (vSettings&vPort))
 
+ do   
+   T.putStrLn$ displayAddress address
+   putStrLn ""
+
+ do
+   putStrLn myBatchScript
+   putStrLn ""
+   setClipboardIO myBatchScript
+
  let theShim = applyShim getShim address (vSettings&vConfig&vGrammar)
 
  case theShim of 
@@ -176,10 +187,7 @@ spirosSetup vSettings = do
    -- 1. when pasting into an editor in virtual box, the clipboard contents are often trailed by Unicode garbage
    -- 2. which is why the shim ends in a comment 
    -- 3. but Unicode characters can have nonlocal effects on other characters, like on previous lines   
-   OSX.runWorkflow$ OSX.setClipboard (T.unpack (T.filter isAscii shim))
-
-   T.putStrLn$ displayAddress address
-   putStrLn ""
+   setClipboardIO (T.unpack (T.filter isAscii shim))
 
    putStrLn "SHIM PARSING SUCCESS" -- TODO logging
 
