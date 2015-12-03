@@ -153,6 +153,7 @@ spirosSetup vSettings = do
  hSetBuffering stdout LineBuffering  -- a parser failure would exit in (EitherT IO), not printing the tokens or the error message
 
  let address = Address (Host "192.168.56.1") (Port (vSettings&vPort))
+ let theConfig = NatLinkConfig address "E:/commands/log.txt" "E:/commands/context.json" -- TODO 
 
  do   
    putStrLn ""
@@ -166,7 +167,7 @@ spirosSetup vSettings = do
    putStrLn ""
    putStrLn$ getBatchScriptPath myBatchScriptR
 
- let theShim = fmap (over _PythonFile cleanShim) $ applyShim getShim address $ (vSettings&vConfig&vGrammar) -- TODO is this the right place? 
+ let theShim = fmap (over _PythonFile cleanShim) $ applyShim getShim theConfig $ (vSettings&vConfig&vGrammar) -- TODO is this the right place? 
 
  case theShim of 
 
@@ -502,7 +503,12 @@ writeCorrection :: VGlobals c -> CorrectionResponse -> STM ()
 writeCorrection VGlobals{..} correction = do
  modifyTVar (vResponse) $ set (responseCorrection) (Just correction) 
 
-setMode :: VGlobals c -> VMode -> STM ()  
+writeContext :: (Show c) => VGlobals c -> STM ()           -- TODO 
+writeContext globals@VGlobals{..} = do
+ newContext <- show <$> getContext globals 
+ modifyTVar vResponse $ set (responseContext) (Just newContext) 
+
+setMode :: VGlobals c -> VMode -> STM () 
 setMode VGlobals{..} mode = do 
  modifyTVar (vMode) $ set id mode 
 
@@ -549,6 +555,7 @@ loadContext globals = do
  theApplication <- OSX.runWorkflow OSX.currentApplication 
  let theContext = readSpirosContext theApplication
  atomically$ setContext globals theContext 
+ atomically$ writeContext globals -- hacky 
 
 makeAmbiguousParser :: (forall s r. EarleyParser s r e t a) -> [t] -> (Maybe a, [a])
 makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((p&pBest) (x:|xs)), (x:xs))) (eachParse (p&pProd) theWords) -- TODO 
