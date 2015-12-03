@@ -34,7 +34,7 @@ import traceback
 
 # globals 
 
-DEBUG = False # True 
+DEBUG = False     # True 
 
 #TODO hack, noise tends to be recognized as these short single words
 noise_recognitions = set(["the",
@@ -43,7 +43,7 @@ noise_recognitions = set(["the",
                           "A",
                           "that",
                           "a",
-                          "she", 
+                          "she", "and",  
                          ])
 
 
@@ -109,7 +109,7 @@ CorrectionStatus = enum("CorrectionStatus", "Success Heterophonic InvalidWord")
 
 Microphone = enum("Microphone", "On Sleeping Off")
 
-
+Context = enum("Context", "Emacs Chrome Global") 
 
 
 
@@ -259,12 +259,20 @@ H_LISTS  = {__lists__}
 H_SERVER_HOST = {__serverHost__}  
 H_SERVER_PORT = {__serverPort__}
 
-# e.g. for debugging
+# H_LOG_FILE     = open({__logFile__})
+# H_CONTEXT_FILE = {__contextFile__}
+
+# sys.stdout = H_LOG_FILE
+# sys.stderr = H_LOG_FILE
+
+# e.g. for documentation and for debugging
 # H_EXPORT = 'test'
 # H_RULES  = '''<test> exported = \{test};'''
 # H_LISTS  = \{'test', ['upcase region']}
 # H_SERVER_HOST = "192.168.56.1"
 # H_SERVER_PORT = '8666'
+# H_CONTEXT_FILE = "E:/commands/context.json"
+# H_LOG_FILE     = open("E:/commands/log.txt")
 
 server_address = "http://%s:%s/" % (H_SERVER_HOST, H_SERVER_PORT)
 
@@ -339,23 +347,26 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
     '''
 
 
-    gramSpec = None        # initialized in set_rules(...) 
-    should_request = True
-    previous_results = None        # set by recognition, initialized during first call to gotResultsObject()
-    correcting_results = None        # set by "correcting", must be None otherwise 
-    current_mode = Mode.Normal 
+    gramSpec           = None           # initialized in set_rules(...) 
+    should_request     = True
+    previous_results   = None           # set by recognition, initialized during first call to gotResultsObject()
+    correcting_results = None           # set by "correcting", must be None otherwise 
+    current_mode       = Mode.Normal 
+    current_context    = Context.Global # 
 
 
     def initialize(self):
-        self.set_rules  (all_rules)
+        self.set_rules  (all_rules, hypothesis=1)
         self.set_exports(active_exports, exclusive=1)
         self.set_lists  (all_lists)
         self.doOnlyGotResultsObject = True   # when True, aborts all processing after calling gotResultsObject
 
 
-    # called when speech is detected before recognition begins.
-    # moduleInfo is just the current window in Windows
-    # def gotBegin(self, moduleInfo):
+    # called when speech is detected, before recognition begins.
+    def gotBegin(self, current_window):
+        print "---------- gotBegin         ----------"
+        # the_context = get_context()        if not DEBUG else timeit("get_context", get_context) 
+        # self.current_context = the_context 
 
 
     # called several times as speech is being detected 
@@ -409,8 +420,9 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
             # or fallen asleep automatically (during silence). 
             synchronize_microphone(self) 
 
-            print "current_mode   =", self.current_mode
-            print "should_request =", self.should_request
+            print "current_mode    =", self.current_mode
+            print "current_context =", self.current_context 
+            print "should_request  =", self.should_request
 
             response = None 
             if self.should_request:
@@ -447,9 +459,9 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
 
     # TODO    must it reload the grammar?
-    def set_rules(self, rules):
+    def set_rules(self, rules, hypothesis=1):
         self.gramSpec = rules
-        self.load(rules, allResults=1, hypothesis=1)
+        self.load(rules, allResults=1, hypothesis=hypothesis)
 
 
     # activateSet is idempotent, unlike activate
@@ -466,14 +478,22 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
 
 # API
+# e.g. response:
+# e.g. \{\"_responseCorrection\":[0,[\"some\",\"words\"]],\"_responseMicrophoneState\":null,\"_responseContext\":\"EmacsContext\",\"_responseDNSMode\":null}
+
+# 
+def get_context():  
+    (_, data) = post_context() 
+    # data = json.load(open(H_CONTEXT_FILE))   
+    return data.get("_responseContext", None) 
 
 # recognition :: [String] 
 def post_recognition(recognition, mode): 
     url      = "%s/recognition/" % (server_address,)        # TODO parameterize API
     data     = json.dumps(recognition) 
     request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
-    print 'url   =', url
-    print 'data  =', data 
+    if DEBUG: print 'url   =', url
+    if DEBUG: print 'data  =', data 
     response = urllib2.urlopen(request)
     data = json.load(response) 
     if DEBUG: print 'data  =', data 
@@ -505,6 +525,18 @@ def post_reload():
     return (response, data) 
 
 # 
+def post_context():
+    url      = "%s/context/" % (server_address,)        # TODO parameterize API
+    data     = json.dumps([])
+    request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
+    print 'url   =', url
+    print 'data  =', data 
+    response = urllib2.urlopen(request)
+    data = json.load(response) 
+    if DEBUG: print 'data  =', data 
+    return (response, data) 
+
+# 
 def send_json(host, port, path, input_data):
     url           = "%s:%s/%s" % (host, port, path)
     request_data  = json.dumps(input_data)
@@ -516,6 +548,12 @@ def send_json(host, port, path, input_data):
 
 # 
 def handle_response(self, data):
+    correctionStatus = handle_response_correction(self, data)  
+    handle_response_context(self, data) 
+    return correctionStatus 
+
+# 
+def handle_response_correction(self, data):
 
     x = validate_correction(data) 
     if x: 
@@ -528,14 +566,32 @@ def handle_response(self, data):
         self.correcting_results = None 
         return correctionStatus
 
-# e.g. data = \{\"_responseCorrection\":[0,[\"some\",\"words\"]],\"_responseMicrophoneState\":null,\"_responseDNSMode\":null}
+# 
+def handle_response_context(self, data):
+    x = validate_context(data) 
+    if x:
+       context = x 
+       if self.current_context != context: 
+           self.current_context = context 
+
+# 
 def validate_correction(data):
     try: 
         if DEBUG: print "VALIDATING CORRECTION" 
         (identifier, correction) = data["_responseCorrection"] 
         return (identifier, correction) 
     except (ValueError, IndexError, TypeError) as e:  
-        if DEBUG: print "  error = " , e 
+        # if DEBUG: print "  error = " , e 
+        return None 
+
+# 
+def validate_context(data):
+    try: 
+        if DEBUG: print "VALIDATING CONTEXT" 
+        context = data["_responseContext"] 
+        return context 
+    except (ValueError, IndexError, TypeError) as e:  
+        # if DEBUG: print "  error = " , e 
         return None 
 
 
@@ -767,6 +823,12 @@ def dragon_callback(): # TODO read from socket or something
 
 # initialization 
 
+def initialization():  
+    import os 
+    os.system('cls')
+    import sys
+    sys.stdout.flush()
+
 GRAMMAR = None # mutable global
 
 def load():
@@ -784,11 +846,15 @@ def load():
     # 
     __NOTHROW_PRINTING__(post_reload)  
 
+    # 
+    initialization() 
+
 def unload():
     global GRAMMAR
     if GRAMMAR:
         GRAMMAR.unload()
     GRAMMAR = None
+    H_LOG_FILE.close()  
 
 load()
 #|] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
