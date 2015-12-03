@@ -102,15 +102,17 @@ library
         Commands.Plugins.Spiros.IntelliJ.Grammar
         Commands.Plugins.Spiros.IntelliJ.Run
 
-
     build-depends:
-        -- cabal sandbox add-source ~/s-expression
+
+        commands-core ==0.0.0, 
+        -- cabal sandbox add-source ~/commands-core
         s-expression ==0.0.0, 
-        -- cabal sandbox add-source ~/enumerate 
+        -- cabal sandbox add-source ~/s-expression
         enumerate ==0.0.0,
+        -- cabal sandbox add-source ~/enumerate 
 
         haskell-src-meta ==0.6.*,
-        commands-core -any,
+        process >= 1.2.3.0, 
         containers -any,
         mtl -any,
         wl-pprint-text -any,

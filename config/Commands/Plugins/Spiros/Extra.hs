@@ -30,6 +30,7 @@ import System.Exit(ExitCode(..))
 import           GHC.Exts                        (IsString)
 import Text.Printf (printf) 
 import System.IO
+import System.Process 
 
 
 nothing :: (Monad m) => m ()
@@ -336,4 +337,11 @@ milliseconds = (*1000)
 -}
 seconds :: Int -> Int
 seconds = (*1000000) 
+
+{-| 
+
+-}
+readCommand aCommand someArguments = do 
+ (exitCode, standardInput, standardError) <- readProcessWithExitCode aCommand someArguments "" 
+ return (exitCode, lines standardInput, lines standardError)
 

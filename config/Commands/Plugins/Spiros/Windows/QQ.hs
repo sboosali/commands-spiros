@@ -33,7 +33,6 @@ set DIFFERENCE=0
 
 :: synchronize every second, updating the timestamp, and skating if the source file hasn't changed 
 FOR /L %%N IN (0,0,1) DO (
- timeout /nobreak /t 10
  echo( 
  echo( 
  echo( 
@@ -54,6 +53,7 @@ FOR /L %%N IN (0,0,1) DO (
       ) ELSE ( 
            echo "not updating." 
       )
+  timeout /nobreak /t 10
 )
 
 |] 

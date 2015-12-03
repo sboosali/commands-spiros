@@ -409,6 +409,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
  <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation 
  <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation 
+ <|>  A1  'insert_readonly          insert_readonly            <$           "insert"   <*>  phrase 
 
 -- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
 -- "<\\$" "<\\*>"
@@ -548,3 +549,7 @@ insert_grammar_module d = do
  valueName <- munge $ Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier 
  insertTemplate (grammarModuleTemplate typeName valueName)
 
+insert_readonly p = do 
+ press "C-x C-q"                -- toggle buffer writeability TODO set to read/write 
+ insertP p 
+ press "C-x C-q"                -- toggle buffer writeability TODO set to read-only 
