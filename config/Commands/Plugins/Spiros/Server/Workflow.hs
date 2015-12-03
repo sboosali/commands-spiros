@@ -49,6 +49,9 @@ reachCorrectionUi = do          -- TODO configurable. and maybe related to versi
 unreachCorrectionUi = do 
  openPreviousApplication 
 
+reachLoggingUi = do          -- TODO configurable. and maybe related to version control and relaunching. 
+ OSX.openApplication "Terminal" 
+
 openPreviousApplication = do 
  press "M-<tab>"
  press "<ret>" 

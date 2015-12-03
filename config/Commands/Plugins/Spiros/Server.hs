@@ -12,6 +12,7 @@ import           Commands.Plugins.Spiros.Shim (cleanShim, getShim)
 import           Commands.Plugins.Spiros.Windows 
 import           Commands.Plugins.Spiros.Server.Types 
 import           Commands.Plugins.Spiros.Server.Workflow 
+import           Commands.Plugins.Spiros.Server.QQ
 import           Commands.Plugins.Spiros.Correct 
 
 import           Commands.Parsers.Earley (EarleyParser(..), bestParse, eachParse) 
@@ -97,6 +98,8 @@ spirosSettings spirosGlobals command = VSettings
  (spirosInterpret spirosMagic rankRoots)
  (spirosHypotheses ) 
  (spirosCorrection ) 
+ (spirosReload  ) 
+ (spirosContext  ) 
  (spirosUpdateConfig spirosDnsOptimizationSettings command)
  (Address localhost (Port 8889))       -- TODO Commands.Plugins.Spiros.Port 
  spirosGlobals
@@ -154,6 +157,7 @@ spirosSetup vSettings = do
  do   
    putStrLn ""
    T.putStrLn$ displayAddress address
+   T.putStrLn$ curl_ExampleRequest address 
 
  do
    putStrLn ""
@@ -298,6 +302,24 @@ spirosCorrection
  -> Response DNSResponse 
 spirosCorrection vSettings = \(CorrectionRequest correction) -> do
  liftIO$ handleCorrection' correction
+ dnsRespond vSettings
+
+
+spirosReload
+ :: SpirosSettings a
+ -> ReloadRequest 
+ -> Response DNSResponse 
+spirosReload vSettings = \() -> do
+ liftIO$ handleReload
+ dnsRespond vSettings
+
+
+spirosContext
+ :: SpirosSettings a
+ -> ContextRequest 
+ -> Response DNSResponse 
+spirosContext vSettings = \() -> do
+ liftIO$ handleContext
  dnsRespond vSettings
 
 
@@ -454,6 +476,26 @@ handleCorrection globals theCorrection = do
  correctionMessage =
   [ "CORRECTION:"
   ] <> [displayDictation theCorrection]
+
+
+{-| 
+an invasive but simple way to signal to the user that the client has been reloaded. 
+assumes that the "/context" endpoint is only called on module reloading. 
+
+-}
+handleReload :: IO ()
+handleReload = do    -- TODO 
+ OSX.runWorkflow$ reachLoggingUi
+ printHeader 
+ putStrLn "RELOADED" 
+ return()                    
+
+
+{-| 
+-}
+handleContext :: IO ()
+handleContext = do    -- TODO 
+ return()                    
 
 
 writeCorrection :: VGlobals c -> CorrectionResponse -> STM () 

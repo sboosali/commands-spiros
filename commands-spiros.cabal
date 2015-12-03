@@ -46,6 +46,7 @@ library
         Commands.Plugins.Spiros.Server 
         Commands.Plugins.Spiros.Server.Types
         Commands.Plugins.Spiros.Server.Workflow
+        Commands.Plugins.Spiros.Server.QQ 
 
         Commands.Plugins.Spiros.Correct 
         Commands.Plugins.Spiros.Correct.Grammar 

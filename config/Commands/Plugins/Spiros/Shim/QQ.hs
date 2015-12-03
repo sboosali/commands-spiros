@@ -142,7 +142,7 @@ def __NOTHROW__(thunk):
     try: 
         return (True, thunk()) 
     except Exception as e: 
-        return (False, (traceback, e))
+        return (False, (e, traceback.format_exc()))
 
 # 
 def __NOTHROW_PRINTING__(thunk): 
@@ -154,9 +154,10 @@ def __NOTHROW_PRINTING__(thunk):
         return the_result 
 
     else:
-        (the_traceback, the_exception) = the_either 
+        (the_exception, the_traceback) = the_either 
+        print "__NOTHROW_PRINTING__" 
         print the_exception 
-        the_traceback.format_exc()
+        print the_traceback
         return None 
 
 
@@ -492,8 +493,8 @@ def post_hypotheses(identifier, hypotheses):
     return (response, data) 
 
 # 
-def post_initialize():
-    url      = "%s/initialize/" % (server_address,)        # TODO parameterize API
+def post_reload():
+    url      = "%s/reload/" % (server_address,)        # TODO parameterize API
     data     = json.dumps([])
     request  = urllib2.Request(url, data, \{"Content-Type": "application/json"})
     print 'url   =', url
@@ -781,7 +782,7 @@ def load():
     GRAMMAR.initialize()
 
     # 
-    __NOTHROW_PRINTING__(post_initialize)  
+    __NOTHROW_PRINTING__(post_reload)  
 
 def unload():
     global GRAMMAR
