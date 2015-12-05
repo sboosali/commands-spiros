@@ -13,8 +13,6 @@ import Commands.Backends.OSX (KeyRiff)
 import Control.DeepSeq (NFData(..), deepseq) 
 
 
-type SpirosType = Roots
-
 data Roots
  = Frozen [Stage] Root
  | Ambiguous Root
