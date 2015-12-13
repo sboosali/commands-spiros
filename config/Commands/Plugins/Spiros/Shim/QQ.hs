@@ -92,6 +92,8 @@ print Numbers.TWO != int(Numbers.TWO)
 # True 
 print Numbers.TWO is Numbers.TWO
 # True 
+print getattr(Numbers,"TWO")
+# Numbers.TWO
 '''
 
 
@@ -159,6 +161,10 @@ def __NOTHROW_PRINTING__(thunk):
         print the_exception 
         print the_traceback
         return None 
+
+def open_json_file(name): 
+    with open(name) as f: 
+        return json.load(f) 
 
 
 
@@ -484,7 +490,7 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 # 
 def get_context():  
     (_, data) = post_context() 
-    # data = json.load(open(H_CONTEXT_FILE))   
+    # data = open_json_file(H_CONTEXT_FILE)
     return data.get("_responseContext", None) 
 
 # recognition :: [String] 
@@ -575,6 +581,13 @@ def handle_response_context(self, data):
            self.current_context = context 
 
 # 
+def handle_response_mode(self, data):
+    x = validate_mode(data) 
+    if x:
+       mode = parse_mode(x) 
+       set_mode(self, mode)            # TODO NOTE only this should change away from correcting mode 
+
+# 
 def validate_correction(data):
     try: 
         if DEBUG: print "VALIDATING CORRECTION" 
@@ -594,6 +607,20 @@ def validate_context(data):
         # if DEBUG: print "  error = " , e 
         return None 
 
+# 
+def validate_mode(data):
+    try: 
+        mode = data["_responseDNSMode"] 
+        return mode 
+    except (ValueError, IndexError, TypeError) as e:  
+        return None 
+
+# NOTE the corresponding Haskell constructors must be consistent with the Python enum
+# 
+# TODO automate this 
+def parse_mode(s):
+    x = s.rstrip("Mode")
+    return getattr(Mode,x)
 
 
 
@@ -854,7 +881,7 @@ def unload():
     if GRAMMAR:
         GRAMMAR.unload()
     GRAMMAR = None
-    H_LOG_FILE.close()  
+    # H_LOG_FILE.close()  
 
 load()
 #|] -- trailing comment is a hack, which comments out the Unicode garbage that trails the clipboard contents
