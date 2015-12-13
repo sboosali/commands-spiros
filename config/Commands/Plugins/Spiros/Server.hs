@@ -33,7 +33,6 @@ import Control.DeepSeq(force)
 
 -- import           Control.Monad.IO.Class        (liftIO)
 import           Control.Monad
-
 import System.IO
 import System.Mem
 import qualified Data.List as List 
@@ -42,6 +41,7 @@ import Control.Concurrent.STM
 import Control.Concurrent
 import           Control.Monad.Reader 
 import           Control.Monad.Except 
+import           Control.Exception(bracket_) 
 
 
 -- ================================================================ --
@@ -119,7 +119,7 @@ makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
 newVGlobals :: c -> IO (VGlobals c)
 newVGlobals c = atomically$ do
  vResponse <- newTVar emptyDNSResponse 
- vMode <- newTVar RecognitionMode
+ vMode <- newTVar NormalMode
  vContext <- newTVar c 
  return VGlobals{..} 
 
@@ -262,15 +262,15 @@ spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
  t2<- getTime_
 
  liftIO$ (atomically$ getMode (eConfig&vGlobals)) >>= \case 
-   RecognitionMode -> workflowIO 
-   CorrectionMode  -> workflowIO 
+   NormalMode -> workflowIO 
+   CorrectingMode  -> workflowIO 
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
 
  -- magic actions, TODO replace with a free monad
  shouldPrint <- liftIO$ (atomically$ getMode (eConfig&vGlobals)) >>= \case 
-  RecognitionMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
-  CorrectionMode  -> return False 
+  NormalMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
+  CorrectingMode  -> return False 
 
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
@@ -455,15 +455,22 @@ handleHypotheses globals hypotheses@(HypothesesRequest hs) = do
  printMessage $ hypothesesMessage 
 
  _ <- forkIO$ do                                -- TODO should be singleton. use some thread manager? 
-     atomically$ setMode globals CorrectionMode  -- TODO  bracket
-     OSX.runWorkflow$ reachCorrectionUi
-     promptCorrection hypotheses >>= handleCorrection globals -- ignoring control C ? ask 
-     OSX.runWorkflow$ unreachCorrectionUi
-     atomically$ setMode globals RecognitionMode 
+     bracket_ openCorrection closeCorrection useCorrection 
 
  return() 
  
  where 
+
+ openCorrection = do 
+  atomically$ setMode globals CorrectingMode
+  OSX.runWorkflow$ reachCorrectionUi
+
+ closeCorrection = do 
+  atomically$ setMode globals NormalMode
+  OSX.runWorkflow$ unreachCorrectionUi
+
+ useCorrection = do 
+  promptCorrection hypotheses >>= handleCorrection globals -- ignoring control C ? ask 
 
  hypothesesMessage =
   [ "HYPOTHESES:"
