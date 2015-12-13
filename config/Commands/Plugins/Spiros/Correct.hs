@@ -9,6 +9,7 @@ import Commands.Plugins.Spiros.Phrase.Types (Dictation(..), words2dictation)
 
 import Commands.Servers.Servant.Types (HypothesesRequest(..)) 
 import qualified Data.List.NonEmpty as NonEmpty
+import System.Console.Haskeline
 
 import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
@@ -24,12 +25,18 @@ it can be rejected if it sounds too different from the recognition being correct
 -}
 type Correction = Either Digit Dictation
 
+-- | uses Haskeline, for navigation by arrow keys.  
 promptCorrection :: HypothesesRequest -> IO Dictation 
-promptCorrection hypotheses = do 
- line <- prompt "correction> " 
- case getCorrection hypotheses line of 
-  Nothing -> promptCorrection hypotheses 
-  Just d -> return d 
+promptCorrection hypotheses = runInputT defaultSettings loop
+ where 
+ loop :: InputT IO Dictation 
+ loop = do 
+  getInputLine "correction> " >>= \case
+      Nothing   -> error "promptCorrection"  -- NOTE "if the user pressed Ctrl-D when the input text was empty" 
+      Just line -> case getCorrection hypotheses line of 
+          Nothing -> loop 
+          Just d -> return d 
+
 
 {-| 
 

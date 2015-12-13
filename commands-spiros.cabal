@@ -144,6 +144,9 @@ library
         stm ==2.4.*,  
         deepseq == 1.4.*, 
 
+--         vty, 
+        haskeline, 
+
         ghc-prim==0.4.*, 
         base ==4.8.*
 
