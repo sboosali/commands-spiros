@@ -3,7 +3,7 @@ module Commands.Plugins.Spiros.Extra.Types
  ) where 
 
 import Control.DeepSeq (NFData) 
-import Data.Semigroup (Semigroup,Monoid) 
+import Data.Semigroup (Semigroup) 
 
 import GHC.Generics(Generic) 
 import Data.Data(Data)

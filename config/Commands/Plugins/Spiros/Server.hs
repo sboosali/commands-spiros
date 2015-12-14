@@ -1,5 +1,5 @@
 {-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns, OverloadedStrings                         #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns, OverloadedStrings, TupleSections                          #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
 {-| (very hacky for now) 
 
@@ -51,6 +51,7 @@ spirosServer = do
  (settings, globals, _reference) <- newSpirosSettings rootsCommand
 
  _theContextThread <- forkContextWorker globals  -- TODO manage threads 
+ _theModeThread <- forkModeWorker globals        -- TODO pipes-mvc? 
 
  natlinkIO settings 
 
@@ -263,19 +264,24 @@ spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
 
  liftIO$ (atomically$ getMode (eConfig&vGlobals)) >>= \case 
    NormalMode -> workflowIO 
-   CorrectingMode  -> workflowIO 
+   CorrectingMode -> workflowIO 
+   m -> print m 
   -- delay in milliseconds
   -- the Objective-C bindings print out which functions are called
 
  -- magic actions, TODO replace with a free monad
  shouldPrint <- liftIO$ (atomically$ getMode (eConfig&vGlobals)) >>= \case 
-  NormalMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
-  CorrectingMode  -> return False 
+   NormalMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
+   CorrectingMode  -> return False 
+   _ -> return True 
 
  let d3 = diffTimeSpecAsMilliseconds t2 t0
 
  when shouldPrint $ liftIO$ do  -- TODO don't print but still log? 
      printHeader 
+     putStrLn$ "RESPONSE:" 
+     print =<< do atomically$ readTVar (eConfig&vGlobals&vResponse) -- TODO not exactly the same as dnsRespond. should be constant throughout request?  
+     putStrLn ""
      putStrLn$ "MODE:"
      print =<< do atomically$ getMode (eConfig&vGlobals)
      putStrLn ""
@@ -536,6 +542,11 @@ writeContext globals@VGlobals{..} = do
  newContext <- show <$> getContext globals 
  modifyTVar vResponse $ set (responseContext) (Just newContext) 
 
+writeMode :: VGlobals c -> STM ()           -- TODO 
+writeMode globals@VGlobals{..} = do
+ newMode <- getMode globals 
+ modifyTVar vResponse $ set (responseVMode) (Just newMode) 
+
 setMode :: VGlobals c -> VMode -> STM () 
 setMode VGlobals{..} mode = do 
  modifyTVar (vMode) $ set id mode 
@@ -567,17 +578,18 @@ printHeader = do
 
 type Worker = (Int, IO())          -- TODO 
 
-forkContextWorker :: SpirosGlobals -> IO ThreadId 
-forkContextWorker globals = forkIO$ forever$ runWorker (loadContextWorker globals) 
+forkWorker :: Worker -> IO ThreadId 
+forkWorker = forkIO . forever . runWorker
 
-runWorker :: Worker -> IO ()
+runWorker :: Worker -> IO () 
 runWorker (_delay, _action) = _action >> threadDelay _delay 
 
-loadContextWorker :: SpirosGlobals -> Worker 
-loadContextWorker globals = (loadContextDelay, loadContext globals) 
 
-loadContextDelay :: Int 
-loadContextDelay = milliseconds 10
+forkContextWorker :: SpirosGlobals -> IO ThreadId 
+forkContextWorker globals = forkWorker (loadContextWorker globals) 
+ 
+loadContextWorker :: SpirosGlobals -> Worker 
+loadContextWorker globals = (milliseconds 10, loadContext globals) 
 
 loadContext :: SpirosGlobals -> IO ()
 loadContext globals = do 
@@ -585,6 +597,20 @@ loadContext globals = do
  let theContext = readSpirosContext theApplication
  atomically$ setContext globals theContext 
  atomically$ writeContext globals -- hacky 
+
+
+forkModeWorker :: SpirosGlobals -> IO ThreadId 
+forkModeWorker globals = forkWorker (loadModeWorker globals) 
+
+loadModeWorker :: SpirosGlobals -> Worker 
+loadModeWorker = (milliseconds 10,) . loadMode
+
+loadMode :: SpirosGlobals -> IO ()
+loadMode globals = do 
+ atomically$ writeMode globals -- hacky 
+
+
+-- ================================================================ --
 
 makeAmbiguousParser :: (forall s r. EarleyParser s r e t a) -> [t] -> (Maybe a, [a])
 makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((p&pBest) (x:|xs)), (x:xs))) (eachParse (p&pProd) theWords) -- TODO 
