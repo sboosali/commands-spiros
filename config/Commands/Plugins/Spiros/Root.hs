@@ -66,9 +66,12 @@ root = 'root <=> empty
  <|> Letters_   <$  "spell" <*> letters
  <|> (Dictation_ . digit2dictation) <$> digit_
  -- <|> Correction_ <$ correction 
- --TODO <|> Phrase_    <$  (token"pray") <*> phrase
- <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
  -- <|> Click_ <$> click
+
+ --TODO 
+ -- <|> Phrase_    <$  "pray" <*> phrase
+ <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
+
 
 acts = 'acts
  <=> ActsRW <$> (number-?-1) <*> act

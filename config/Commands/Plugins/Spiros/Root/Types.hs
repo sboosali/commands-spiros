@@ -37,7 +37,7 @@ data Root
  | Letters_    Letters       -- ^ 
  | Dictation_  Dictation     -- ^ 
  | Phrase_     Phrase        -- ^ 
- | Click_ Click
+ -- TODO | Click_ Click
  deriving (Show,Eq,Ord,Generic,Data,NFData)  -- TODO no instance for ,Generic,Data, because Macro is a GADT 
 
 data Acts

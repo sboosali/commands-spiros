@@ -31,7 +31,11 @@ import           GHC.Exts                        (IsString)
 import Text.Printf (printf) 
 import System.IO
 import System.Process 
+import Control.Concurrent (ThreadId, threadDelay, forkIO) 
+import Control.Monad (forever) 
 
+
+-- ================================================================ --
 
 nothing :: (Monad m) => m ()
 nothing = return ()
@@ -42,6 +46,15 @@ whenJust condition_ action_ = ifJust condition_ action_ nothing
 ifJust :: (Monad m) => Maybe b -> m a -> m a -> m a
 ifJust condition_ actionTrue_ actionFalse_ = maybe (actionFalse_) (const actionTrue_) condition_
 
+-- ================================================================ --
+
+type Worker = (Int, IO())          -- TODO 
+
+forkWorker :: Worker -> IO ThreadId 
+forkWorker = forkIO . forever . runWorker
+
+runWorker :: Worker -> IO () 
+runWorker (_delay, _action) = _action >> threadDelay _delay 
 
 -- ================================================================ --
 -- debugging 

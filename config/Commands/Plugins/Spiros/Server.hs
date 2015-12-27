@@ -576,14 +576,6 @@ printHeader = do
 
 -- ================================================================ --
 
-type Worker = (Int, IO())          -- TODO 
-
-forkWorker :: Worker -> IO ThreadId 
-forkWorker = forkIO . forever . runWorker
-
-runWorker :: Worker -> IO () 
-runWorker (_delay, _action) = _action >> threadDelay _delay 
-
 
 forkContextWorker :: SpirosGlobals -> IO ThreadId 
 forkContextWorker globals = forkWorker (loadContextWorker globals) 
@@ -598,6 +590,8 @@ loadContext globals = do
  atomically$ setContext globals theContext 
  atomically$ writeContext globals -- hacky 
 
+
+-- ================================================================ --
 
 forkModeWorker :: SpirosGlobals -> IO ThreadId 
 forkModeWorker globals = forkWorker (loadModeWorker globals) 
