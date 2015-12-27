@@ -12,7 +12,7 @@ import Data.Text.Lazy (Text)
 
 getBatchScript :: BatchScriptR Text -> Text 
 getBatchScript BatchScriptR{..} = [qc|
-:: C:\Users\sboosalis\Desktop\test.bat 
+:: {__batchFilePath__}
 
 @echo off
 setlocal enableextensions enabledelayedexpansion

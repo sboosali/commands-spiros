@@ -12,6 +12,7 @@ data BatchScriptR t = BatchScriptR
  , __guestDirectory__   :: t 
  , __natlinkDirectory__ :: t 
  , __natlinkFile__      :: t 
+ , __batchFilePath__    :: t 
  -- , :: t 
  } deriving (Show,Eq,Ord,Functor,Data,Generic)
 

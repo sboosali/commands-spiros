@@ -178,11 +178,16 @@ spirosSetup environment = do
    T.putStrLn$ curl_ExampleRequest address 
 
  do
+   let myBatchScript = getBatchScript myBatchScriptR 
+
    putStrLn ""
-   T.putStrLn$ getBatchScript myBatchScriptR
-   setClipboardIO$ T.unpack (getBatchScript myBatchScriptR)
+   T.putStrLn$ myBatchScript
+   setClipboardIO$ T.unpack myBatchScript
+
    putStrLn ""
    putStrLn$ getBatchScriptPath myBatchScriptR
+
+   setClipboardIO$ T.unpack (myBatchScriptR&__batchFilePath__)
 
  let theShim = fmap (over _PythonFile cleanShim) $ applyShim getShim theConfig theGrammar  -- TODO is this the right place? 
 

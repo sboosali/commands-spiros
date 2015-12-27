@@ -30,4 +30,4 @@ myBatchScriptR = BatchScriptR{..} -- TODO separate library from configuration {-
  __guestDirectory__   = "E:" 
  __natlinkDirectory__ = "C:\\NatLink\\NatLink\\MacroSystem" 
  __natlinkFile__      = "_commands.py" 
-
+ __batchFilePath__    = "C:\\Users\\sboosalis\\Desktop\\update.bat" 
