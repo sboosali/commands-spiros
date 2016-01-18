@@ -105,7 +105,7 @@ print getattr(Numbers,"TWO")
 
 # types 
 
-Mode = enum("Mode", "Normal Correcting Dictating Sleeping Off Reading")
+Mode = enum("Mode", "Normal Correcting DragonNaturallySpeaking Sleeping Off Reading")
 
 CorrectionStatus = enum("CorrectionStatus", "Success Heterophonic InvalidWord")
 
@@ -296,7 +296,7 @@ microphone_lists = dict(_activate_microphone_=[ACTIVATE_MICROPHONE])
 
 # see handle_dnsmode(...)
 dnsmode_export = "dnsmode"
-dnsmode_rule = '''<dnsmode> exported = dictating | \{_modes_};'''
+dnsmode_rule = '''<dnsmode> exported = Dragon NaturallySpeaking | \{_modes_};'''
 
 # see handle_correctable(...)
 correctable_export = "correctable"
@@ -699,8 +699,8 @@ def handle_dnsmode(grammar,datum):
         set_mode(grammar, Mode.Normal ) 
         return True 
 
-    elif datum == "dictating":
-        set_mode(grammar, Mode.Dictating ) 
+    elif datum == "Dragon NaturallySpeaking":
+        set_mode(grammar, Mode.DragonNaturallySpeaking ) 
         return True 
 
     elif datum == "reading":
@@ -766,7 +766,7 @@ def set_mode(grammar, mode):
     elif mode == Mode.Correcting : 
         grammar.activateSet([correcting_export],exclusive=1)
 
-    elif mode == Mode.Dictating : 
+    elif mode == Mode.DragonNaturallySpeaking : 
         grammar.activateSet([dnsmode_export],exclusive=0)     # NOTE nonexclusive, enables dragons built-in commands 
         natlinkmain.recognitionMimic(["Dictation","mode"]) 
 
@@ -819,7 +819,7 @@ def get_microphone():
 def should_request_in_mode(mode): 
     if   mode in [Mode.Normal, Mode.Correcting, Mode.Reading]: 
         return True 
-    elif mode in [Mode.Dictating, Mode.Sleeping, Mode.Off]: 
+    elif mode in [Mode.DragonNaturallySpeaking, Mode.Sleeping, Mode.Off]: 
         return False 
     else: 
         raise TypeError("should_request_from_mode", mode)
