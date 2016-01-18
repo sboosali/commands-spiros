@@ -316,7 +316,8 @@ readable_rule = '''<readable> exported = reading ;'''
 
 reading_export = "reading"
 reading_rule = '''<reading> exported = \{_reading_} | \{_modes_} ;'''
-reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"])
+# reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"]+["copying","pasting"]+["up","down","left","right","twist]+["return","space","delete""])
+reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"]+["copying","pasting"]+["twist"]+["return","space","delete"])
 
 mode_lists = dict(_modes_=["speaking"])
 
@@ -328,7 +329,7 @@ all_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   
 all_lists   = merge_dicts(H_LISTS, mode_lists, microphone_lists, reading_lists)
 
 # TODO re-factor the microphone/dnsmode/correct/correcting grammars into their own grammar objects (GrammarBase)
-
+ 
 
 
 
@@ -652,7 +653,6 @@ def is_recognition_good(data, datum): # TODO speed up
             and not is_noise(datum)
             and not is_abrogation(data)
            )
-
 
 # you can abort any recognition by saying "abrogate". as a rare word, it will rarely be dictated (except for bootstrapping). if you must say it, it supports the "say" prefix (i.e. recognize literally everything after it). 
 def is_abrogation(data):

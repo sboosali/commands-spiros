@@ -1,4 +1,4 @@
-{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds            #-}
+{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
@@ -295,8 +295,12 @@ myMacros0_ =  vocabMacro
  , "hibernate"-: do
    slot_alfred "sleep" 
 
- , ""-: do
-   nothing
+ , "remove bookmark"-: do
+    press "M-d"
+    delay 1000
+    replicateM_ 2 $ press "<tab>" -- TODO interleaving delay within a list of actions 
+    delay chromeDelay 
+    press "<ret>" 
 
  , ""-: do
    nothing
@@ -553,3 +557,4 @@ insert_readonly p = do
  press "C-x C-q"                -- toggle buffer writeability TODO set to read/write 
  insertP p 
  press "C-x C-q"                -- toggle buffer writeability TODO set to read-only 
+

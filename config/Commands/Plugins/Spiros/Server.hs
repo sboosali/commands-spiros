@@ -122,6 +122,7 @@ newVGlobals c = atomically$ do
  vResponse <- newTVar emptyDNSResponse 
  vMode <- newTVar NormalMode
  vContext <- newTVar c 
+ vHypotheses <- newTVar Nothing 
  return VGlobals{..} 
 
 
