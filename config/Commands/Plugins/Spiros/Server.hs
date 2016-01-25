@@ -109,13 +109,18 @@ makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
  (VConfig spirosSettings_ spirosBackend spirosGlobals)
  spirosPluginReference
 
- (spirosInterpret spirosMagic rankRoots)
+ (spirosInterpret spirosInterpreterSettings)  
  (spirosHypotheses ) 
  (spirosCorrection ) 
  (spirosReload  ) 
  (spirosContext  ) 
 
-
+spirosInterpreterSettings :: SpirosInterpreterSettings 
+spirosInterpreterSettings = InterpreterSettings{..} 
+ where
+ iExecute = OSX.runWorkflowWithDelay 5
+ iRanking = rankRoots
+ iMagic   = spirosMagic 
 
 newVGlobals :: c -> IO (VGlobals c)
 newVGlobals c = atomically$ do
@@ -130,7 +135,7 @@ newVPlugin :: VPlugin m c v -> IO (TVar (VPlugin m c v))
 newVPlugin x = atomically$ newTVar x
 
 
-spirosBackend = VBackend{..} 
+spirosBackend = VBackend{..}    -- TODO rm  
  where
  vExecute = fromF >>> OSX.runWorkflowWithDelay 5 
 
@@ -157,10 +162,11 @@ spirosUpdate
  -- -> RULED (SpirosSettings) r a
  -> SpirosCommand
  -> SpirosPlugin 
-spirosUpdate dnsSettings command = VPlugin
-  (unsafeDNSGrammar dnsSettings (command&_cRHS))
-  (EarleyParser (unsafeEarleyProd (command&_cRHS)) (command&_cBest))
-  (command&_cDesugar)
+spirosUpdate dnsSettings command = VPlugin g p d 
+ where 
+ g = (unsafeDNSGrammar dnsSettings (command&_cRHS))
+ p = (EarleyParser (unsafeEarleyProd (command&_cRHS)) (command&_cBest))
+ d = (command&_cDesugar)
 {-# NOINLINE spirosUpdate #-}
 
 
@@ -236,7 +242,7 @@ spirosSetup environment = do
 --  -> Ranking a
 --  -> RecognitionRequest 
 --  -> SpirosResponse 
-spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
+spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
 
  VEnvironment{..} <- ask 
 
@@ -255,7 +261,7 @@ spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
     hFlush stdout
    throwError$ VError (show e) 
 
- context <- liftIO$ readSpirosContext <$> OSX.runWorkflow OSX.currentApplication
+ context <- liftIO$ readSpirosContext <$> iExecute OSX.currentApplication
 
  let hParse = either2maybe . (bestParse (ePlugin&vParser))
  let hDesugar = fromF . ((ePlugin&vDesugar) context)
@@ -264,7 +270,7 @@ spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
  let theAmbiguousParser = makeAmbiguousParser (ePlugin&vParser)
 
  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
- let workflowIO = OSX.runWorkflowWithDelay 5 workflow
+ let workflowIO = iExecute workflow -- TODO any executor 
 
  t2<- getTime_
 
@@ -277,7 +283,7 @@ spirosInterpret serverMagic theRanking = \(RecognitionRequest ws) -> do
 
  -- magic actions, TODO replace with a free monad
  shouldPrint <- liftIO$ (atomically$ getMode (eConfig&vGlobals)) >>= \case 
-   NormalMode -> serverMagic theHandlers theAmbiguousParser theRanking ws value
+   NormalMode -> iMagic theHandlers theAmbiguousParser iRanking ws value
    CorrectingMode  -> return False 
    _ -> return True 
 

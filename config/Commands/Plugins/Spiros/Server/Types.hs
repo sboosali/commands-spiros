@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass, TypeOperators, RankNTypes  #-}
 module Commands.Plugins.Spiros.Server.Types where 
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Types (SpirosContext) 
@@ -36,8 +36,18 @@ type SpirosBackend     = OSX.CWorkflow
 
 type SpirosType        = Roots
 
+type SpirosInterpreterSettings = InterpreterSettings SpirosMonad SpirosType
+
+type SpirosMonad    = OSX.Workflow 
+
 
 -- ================================================================ --
+
+data InterpreterSettings m a = InterpreterSettings 
+ { iExecute :: m :~>: IO 
+ , iRanking :: Ranking a 
+ , iMagic   :: ServerMagic a
+ } 
 
 type ServerMagic a = CommandsHandlers a OSX.Workflow_ -> AmbiguousParser a -> Ranking a -> [Text] -> a -> IO Bool -- TODO
 
