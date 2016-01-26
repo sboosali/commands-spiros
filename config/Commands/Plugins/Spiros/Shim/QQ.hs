@@ -296,7 +296,7 @@ microphone_lists = dict(_activate_microphone_=[ACTIVATE_MICROPHONE])
 
 # see handle_dnsmode(...)
 dnsmode_export = "dnsmode"
-dnsmode_rule = '''<dnsmode> exported = Dragon NaturallySpeaking | \{_modes_};'''
+dnsmode_rule = '''<dnsmode> exported = \{_modes_};'''
 
 # see handle_correctable(...)
 correctable_export = "correctable"
@@ -317,9 +317,9 @@ readable_rule = '''<readable> exported = reading ;'''
 reading_export = "reading"
 reading_rule = '''<reading> exported = \{_reading_} | \{_modes_} ;'''
 # reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"]+["copying","pasting"]+["up","down","left","right","twist]+["return","space","delete""])
-reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"]+["copying","pasting"]+["twist"]+["return","space","delete"])
+reading_lists = dict(_reading_=["scroll", "scroll down", "scroll up"]+["copying","pasting"]+["twist"]+["return","space","delete"]+["skip"])
 
-mode_lists = dict(_modes_=["speaking"])
+mode_lists = dict(_modes_=["speaking", "Dragon NaturallySpeaking"])
 
 active_exports =           [microphone_export, dnsmode_export, correctable_export, readable_export, H_EXPORT]
 active_rules   = '\n'.join([microphone_rule,   dnsmode_rule,   correctable_rule,   readable_rule, H_RULES]) 
@@ -387,7 +387,8 @@ class NarcissisticGrammar(natlinkutils.GrammarBase):
 
         print "---------- gotResultsObject ----------"
         print "recognitionType =", recognitionType
-        if not recognitionType: return
+        if not (recognitionType or (self.current_mode == Mode.DragonNaturallySpeaking)):
+            return
 
         raw   = next(get_results(resultsObject), [])
         words = from_dragon_recognition(raw)
@@ -817,9 +818,9 @@ def get_microphone():
 
 # 
 def should_request_in_mode(mode): 
-    if   mode in [Mode.Normal, Mode.Correcting, Mode.Reading]: 
+    if   mode in [Mode.DragonNaturallySpeaking, Mode.Normal, Mode.Correcting, Mode.Reading]: 
         return True 
-    elif mode in [Mode.DragonNaturallySpeaking, Mode.Sleeping, Mode.Off]: 
+    elif mode in [Mode.Sleeping, Mode.Off]: 
         return False 
     else: 
         raise TypeError("should_request_from_mode", mode)

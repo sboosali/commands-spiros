@@ -119,17 +119,17 @@ myMacros0_ =  vocabMacro
  , "voice build"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal build -j4 server"   -- parallel buildis twenty five percent faster 
+   slot "cabal build -j8 server"   -- parallel buildis twenty five percent faster 
 
  , "voice run"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal run -j4 server"  -- TODO isn't this a global flag? 
+   slot "cabal run -j8 server"  -- TODO isn't this a global flag? 
 
  , "voice test"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal run -j4 server -- test" 
+   slot "cd ~/commands-spiros && cabal run -j4 server -- test" 
 
  , "voice shell"-: do   -- for bootstrapping 
    global_reach_voice_app
@@ -302,8 +302,8 @@ myMacros0_ =  vocabMacro
     delay chromeDelay 
     press "<ret>" 
 
- , ""-: do
-   nothing
+ , "skip"-: do
+   press "x z"
 
  , ""-: do
    nothing
@@ -531,6 +531,7 @@ bookmark_it d_ = do
  press "<tab>"
  delay chromeDelay 
  press "<up>"
+ press "M-<up>"
  maybe nothing bookmark_by_name d_
 
  where
