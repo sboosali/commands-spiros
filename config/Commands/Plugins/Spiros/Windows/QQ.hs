@@ -1,12 +1,12 @@
 {-# LANGUAGE QuasiQuotes, RecordWildCards, OverloadedStrings #-}
 -- | (you can read the source for documentation: just think of this module as a config file)
 module Commands.Plugins.Spiros.Windows.QQ where
-import Commands.Plugins.Spiros.Extra ((<>)) 
-import Commands.Plugins.Spiros.Windows.Types
+import           Commands.Plugins.Spiros.Extra ((<>))
+import           Commands.Plugins.Spiros.Windows.Types
 
 import           Text.InterpolatedString.Perl6
-import qualified Data.Text.Lazy                as T
-import Data.Text.Lazy (Text) 
+import qualified Data.Text.Lazy as T
+import           Data.Text.Lazy (Text)
 
 
 
@@ -68,4 +68,46 @@ FOR /L %%N IN (0,0,1) DO (
  where 
  __guestEscaped__ = T.replace "\\" "\\\\" (__guestDirectory__ <> "\\" <> __natlinkFile__)
   -- because the path in batch is under double quotes
+
+
+getUpdateScript :: UpdaterR Text -> Text 
+getUpdateScript UpdaterR{..} = [qc|
+import os 
+import time 
+import shutil 
+
+PREVIOUS_TIMESTAMP = 0
+SOURCE_FILE = "E:/_commands.py"
+DESTINATION_FILE = "C:/NatLink/NatLink/MacroSystem/_commands.py"
+
+def test_file(): 
+    global PREVIOUS_TIMESTAMP 
+    print "PREVIOUS_TIMESTAMP =", PREVIOUS_TIMESTAMP 
+    current_timestamp = int(os.lstat(SOURCE_FILE).st_mtime) 
+    if current_timestamp > PREVIOUS_TIMESTAMP: 
+        copy_file() 
+    PREVIOUS_TIMESTAMP = current_timestamp
+
+def copy_file(): 
+    print "UPDATING"
+    shutil.copyfile(SOURCE_FILE, DESTINATION_FILE)   
+    # os.rename(SOURCE_FILE, DESTINATION_FILE)  
+
+def loop(): 
+    while True: 
+        try: 
+             test_file() 
+        except OSError as e : 
+            print e 
+        time.sleep(1) 
+
+def main(): 
+    print "SOURCE_FILE =", SOURCE_FILE 
+    print "DESTINATION_FILE =", DESTINATION_FILE 
+
+    loop() 
+
+main() 
+
+|] 
 

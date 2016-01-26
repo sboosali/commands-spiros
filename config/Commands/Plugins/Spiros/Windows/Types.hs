@@ -16,3 +16,12 @@ data BatchScriptR t = BatchScriptR
  -- , :: t 
  } deriving (Show,Eq,Ord,Functor,Data,Generic)
 
+data UpdaterR t = UpdaterR
+ { __updaterFilePath__  :: t 
+ -- , __hostDirectory__    :: t 
+ -- , __guestDirectory__   :: t 
+ -- , __natlinkDirectory__ :: t 
+ -- , __natlinkFile__      :: t 
+ -- , :: t 
+ } deriving (Show,Eq,Ord,Functor,Data,Generic)
+
