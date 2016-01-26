@@ -3,6 +3,7 @@
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros where
 import Commands.Plugins.Spiros.Types
+import qualified Commands.Plugins.Spiros.Config as Config 
 import Commands.Plugins.Spiros.Macros.Types
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Apply 
@@ -119,17 +120,17 @@ myMacros0_ =  vocabMacro
  , "voice build"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal build -j8 server"   -- parallel buildis twenty five percent faster 
+   slot $ "cd "<>Config.spirosPath<>" && cabal build -j8 server"   -- parallel buildis twenty five percent faster 
 
  , "voice run"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cabal run -j8 server"  -- TODO isn't this a global flag? 
+   slot $ "cd "<>Config.spirosPath<>" && cabal run -j8 server"  -- TODO isn't this a global flag? 
 
  , "voice test"-: do   -- for bootstrapping 
    global_reach_voice_app
    emacs_reach_shell
-   slot "cd ~/commands-spiros && cabal run -j4 server -- test" 
+   slot $ "cd "<>Config.spirosPath<>" && cabal run -j8 server -- test" 
 
  , "voice shell"-: do   -- for bootstrapping 
    global_reach_voice_app

@@ -23,6 +23,7 @@ source-repository head
     type: git
     location: https://github.com/sboosali/commands-spiros
 
+
 library
     
     if !os(osx)
@@ -37,6 +38,8 @@ library
 
         Commands.Plugins.Spiros.Types 
         Commands.Plugins.Spiros.TypeLevel
+
+        Commands.Plugins.Spiros.Config 
         Commands.Plugins.Spiros.Main 
 
         Commands.Plugins.Spiros.Apply
@@ -160,6 +163,7 @@ library
     hs-source-dirs: config
     ghc-options: -Wall 
 
+
 executable server
     main-is: Main.hs
     hs-source-dirs: .
@@ -169,3 +173,4 @@ executable server
      -threaded 
      -Wall -fno-warn-name-shadowing
 
+ 
