@@ -105,49 +105,54 @@ library
 
     build-depends:
 
+        -- packages:
+        -- cabal sandbox add-source ../
         commands-core ==0.0.0, 
-        -- cabal sandbox add-source ~/commands-core
         s-expression ==0.0.0, 
-        -- cabal sandbox add-source ~/s-expression
         enumerate ==0.0.0,
-        -- cabal sandbox add-source ~/enumerate 
+        workflow-osx ==0.0.1,
 
+        -- extra-deps:  
+        -- not on stack 
+        language-python ==0.5.*, 
+
+        -- on stack 
         haskell-src-meta ==0.6.*,
         process >= 1.2.3.0, 
-        containers -any,
-        mtl -any,
-        wl-pprint-text -any,
+        containers,
+        mtl,
+        wl-pprint-text,
         Earley ==0.10.1.0,
-        text -any,
-        semigroups -any,
-        lens -any,
-        exceptions -any,
-        parallel -any,
-        async -any,
-        either -any,
-        bytestring -any,
-
-        servant-client ==0.4.4.5,
-        servant-server ==0.4.4.5,
-        servant        ==0.4.4.5,
-
-        transformers -any,
-        filepath -any,
+        text,
+        semigroups,
+        lens,
+        exceptions,
+        parallel,
+        async,
+        either,
+        bytestring,
+        transformers,
+        filepath,
         interpolatedstring-perl6 ==1.*,
-        language-python ==0.5.*,
-        split ==0.2.*, 
-        clock ==0.5.*, 
-        free ==4.12.*, 
-        aeson ==0.9.*,
+        split, 
+        clock, 
         template-haskell ==2.10.*, 
-        time -any, 
+        time, 
         stm ==2.4.*,  
         deepseq == 1.4.*, 
+        haskeline, 
+        ghc-prim==0.4.*,
+ 
+        -- shared with command-spiros 
+        aeson,  
+        servant-client ==0.4.4.6,
+        servant-server ==0.4.4.6,
+        servant        ==0.4.4.6,
+
+        -- ekmett 
+        free,  
 
 --         vty, 
-        haskeline, 
-
-        ghc-prim==0.4.*, 
         base ==4.8.*
 
     default-language: Haskell2010
@@ -157,13 +162,9 @@ library
 
 executable server
     main-is: Main.hs
-    build-depends:
-                    base ==4.8.*
-                  , commands-core -any
-                  , commands-spiros -any
-                  , lens -any
-    default-language: Haskell2010
     hs-source-dirs: .
+    default-language: Haskell2010
+    build-depends: base ==4.8.*, commands-spiros
     ghc-options: 
      -threaded 
      -Wall -fno-warn-name-shadowing
