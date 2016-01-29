@@ -1,13 +1,18 @@
-{-# LANGUAGE LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns, OverloadedStrings, TupleSections                          #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures  #-}
+{-# LANGUAGE FlexibleContexts, LambdaCase, LiberalTypeSynonyms, RankNTypes, RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, ViewPatterns, OverloadedStrings, TupleSections#-}
+
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
+
 {-| (very hacky for now) 
 
 -}
 module Commands.Plugins.Spiros.Server where 
+import           Commands.Plugins.Spiros.Module 
+import           Commands.Plugins.Spiros.Config
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Server.Settings 
-import           Commands.Plugins.Spiros.Types 
+-- import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Root
 import           Commands.Plugins.Spiros.Phrase.Types 
 import           Commands.Plugins.Spiros.Shim (cleanShim, getShim)
@@ -28,7 +33,7 @@ import qualified Data.Text.Lazy                as T
 import qualified Data.Text.Lazy.IO             as T
 import System.Clock 
 import           Data.List.NonEmpty              (NonEmpty (..))
-import Control.Monad.Free.Church (fromF) 
+-- TODO import Control.Monad.Free.Church (fromF) 
 import Control.DeepSeq(force) 
 
 -- import           Control.Monad.IO.Class        (liftIO)
@@ -92,7 +97,7 @@ spirosTest = do
  exitWith (bool2exitcode theStatus) 
 
 
--- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
+-- TODO remove all these commented out expressions spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 newSpirosSettings 
  :: SpirosCommand 
  -> IO (SpirosSettings, SpirosGlobals, TVar SpirosPlugin)   
@@ -103,7 +108,7 @@ newSpirosSettings spirosCommand = do
 
  return$ (makeSpirosSettings spirosGlobals spirosPlugin, spirosGlobals, spirosPlugin)  
 
-
+makeSpirosSettings :: _ -> _ -> SpirosSettings
 makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
  (spirosSetup )
  (VConfig spirosSettings_ spirosBackend spirosGlobals)
@@ -118,27 +123,15 @@ makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
 spirosInterpreterSettings :: SpirosInterpreterSettings 
 spirosInterpreterSettings = InterpreterSettings{..} 
  where
- iExecute = OSX.runWorkflowWithDelay 5
+ iExecute = getSpirosMonad >>> OSX.runWorkflowWithDelayT workflowDelay 
+ -- iExecute = OSX.runWorkflowWithDelay 5 
  iRanking = rankRoots
  iMagic   = spirosMagic 
 
-newVGlobals :: c -> IO (VGlobals c)
-newVGlobals c = atomically$ do
- vResponse <- newTVar emptyDNSResponse 
- vMode <- newTVar NormalMode
- vContext <- newTVar c 
- vHypotheses <- newTVar Nothing 
- return VGlobals{..} 
-
-
-newVPlugin :: VPlugin m c v -> IO (TVar (VPlugin m c v))
-newVPlugin x = atomically$ newTVar x
-
-
 spirosBackend = VBackend{..}    -- TODO rm  
  where
- vExecute = fromF >>> OSX.runWorkflowWithDelay 5 
-
+ -- vExecute = fromF >>> OSX.runWorkflowWithDelay 5 
+ vExecute = (spirosInterpreterSettings&iExecute ) 
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
 -- spirosSettings command = VSettings 8888 spirosSetup (spirosInterpret (\_ _ _ -> return())) (spirosUpdate command)
@@ -175,9 +168,9 @@ spirosSetup
  -> IO (Either VError ())
 -- spirosSetup VEnvironment{ePlugin{..},eConfig{..}} = do
 spirosSetup environment = do 
- let theConfig = environment& eConfig&vSettings_&vNatLinkSettings
- let theGrammar = (environment &ePlugin&vGrammar)
- let address = theConfig &nlAddress -- TODO theAddress 
+ let theConfig = environment&eConfig&vSettings_&vNatLinkSettings
+ let theGrammar = (environment&ePlugin&vGrammar)
+ let address = theConfig&nlAddress -- TODO theAddress 
 
  do   
    putStrLn ""
@@ -236,15 +229,10 @@ spirosSetup environment = do
 * executes the compiled actions (in 'IO').
 
 -}
--- spirosInterpret
---  :: (NFData a, Show a)
---  => ServerMagic a
---  -> Ranking a
---  -> RecognitionRequest 
---  -> SpirosResponse 
+spirosInterpret :: SpirosInterpreterSettings -> _ -> SpirosResponse
 spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
 
- VEnvironment{..} <- ask 
+ VEnvironment{..} :: SpirosEnvironment <- ask 
 
  t0<- getTime_ 
 
@@ -264,7 +252,7 @@ spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
  context <- liftIO$ readSpirosContext <$> iExecute OSX.currentApplication
 
  let hParse = either2maybe . (bestParse (ePlugin&vParser))
- let hDesugar = fromF . ((ePlugin&vDesugar) context)
+ let hDesugar = ((ePlugin&vDesugar) context) -- TODO fromF for speed? 
  let theHandlers = CommandsHandlers{..}
 
  let theAmbiguousParser = makeAmbiguousParser (ePlugin&vParser)
@@ -298,7 +286,7 @@ spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
      print =<< do atomically$ getMode (eConfig&vGlobals)
      putStrLn ""
      putStrLn$ "WORKFLOW:"
-     putStr  $ OSX.showWorkflow workflow
+     putStr  $ "" -- TODO OSX.showWorkflow workflow -- arrows? 
      putStrLn ""
      putStrLn$ "TIMES:"
      putStrLn$ show d3 ++ "ms"
@@ -396,7 +384,7 @@ handleRequest CommandsHandlers{..} ws = CommandsResponse{..}
  rDesugared = hDesugar <$> rParsed
 
 
-printStage :: (Show a) => CommandsResponse a OSX.Workflow_ -> Stage -> IO() 
+printStage :: (Show a) => CommandsResponse a SpirosMonad_ -> Stage -> IO() 
 printStage CommandsResponse{..} = \case 
  RawStage   -> do 
   putStrLn ""
@@ -409,10 +397,10 @@ printStage CommandsResponse{..} = \case
  RunStage   -> do 
   putStrLn ""
   putStrLn "WORKFLOW:" 
-  traverse_ printWorkflow rDesugared
+  putStrLn "" -- TODO traverse_ printWorkflow rDesugared
 
 
-handleStage :: (Show a) => CommandsResponse a OSX.Workflow_ -> Stage -> IO ()  
+handleStage :: (Show a) => CommandsResponse a SpirosMonad_ -> Stage -> IO ()  
 handleStage CommandsResponse{..}= \case 
 
          RawStage   -> do 
@@ -428,7 +416,7 @@ handleStage CommandsResponse{..}= \case
          RunStage   -> do 
              putStrLn ""
              putStrLn "WORKFLOW:" 
-             traverse_ (printAndPaste . OSX.showWorkflow) rDesugared 
+             putStrLn "" -- TODO traverse_ (printAndPaste . OSX.showWorkflow) rDesugared 
 
 handleParses
  :: (Show a)
@@ -617,6 +605,14 @@ loadMode globals = do
 
 
 -- ================================================================ --
+
+newVGlobals :: c -> IO (VGlobals c)
+newVGlobals c = atomically$ do
+ vResponse <- newTVar emptyDNSResponse 
+ vMode <- newTVar NormalMode
+ vContext <- newTVar c 
+ vHypotheses <- newTVar Nothing 
+ return VGlobals{..} 
 
 makeAmbiguousParser :: (forall s r. EarleyParser s r e t a) -> [t] -> (Maybe a, [a])
 makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just ((p&pBest) (x:|xs)), (x:xs))) (eachParse (p&pProd) theWords) -- TODO 

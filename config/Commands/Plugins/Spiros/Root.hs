@@ -10,6 +10,7 @@ module Commands.Plugins.Spiros.Root
  , module Commands.Plugins.Spiros.Root.Types
  , module Commands.Plugins.Spiros.Root.Run -- TODO there should be a .Grammar that is imported, rather than vice versa 
  ) where
+import           Commands.Plugins.Spiros.Module (SpirosCommand, SpirosParser) 
 import           Commands.Plugins.Spiros.Root.Types 
 import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Root.Run 
@@ -25,15 +26,19 @@ import  Commands.Plugins.Spiros.Keys
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Parsers.Earley              (EarleyParser(..))
-import Data.Text.Lazy (Text) 
 
 import           Control.Applicative
 import           GHC.Exts                        (IsString(..))
 
 
-rootsCommand = Command roots bestRoots runRoots -- TODO is this the right place? 
+rootsCommand :: SpirosCommand 
+rootsCommand = Command{..} 
+ where 
+ _cRHS     = roots 
+ _cBest    = bestRoots 
+ _cDesugar = runRoots 
 
-rootsParser :: EarleyParser s r String Text Roots
+rootsParser :: SpirosParser s r Roots 
 rootsParser = EarleyParser (unsafeEarleyProd roots) bestRoots -- TODO rankRoots 
 
 

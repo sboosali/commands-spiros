@@ -6,6 +6,7 @@ module Commands.Plugins.Spiros.Macros
  , module Commands.Plugins.Spiros.Macros.Types  
  , module Commands.Plugins.Spiros.Macros.Extra  
 ) where 
+import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Macros.Types
 import Commands.Plugins.Spiros.Macros.Extra 
 import qualified Commands.Plugins.Spiros.Config as Config 
@@ -376,7 +377,7 @@ myOrdinals = aliasMacro runOrdinalAsSelect dictOrdinalDigit
 
 -- | run an ordinal as a keypress.
 -- @runOrdinalAsSelect (Ordinal 3)@ is like @press "M-3"@. 
-runOrdinalAsSelect :: Ordinal -> CWorkflow_
+runOrdinalAsSelect :: Ordinal -> SpirosMonad_
 runOrdinalAsSelect
  = uncurry sendKeyChord
  . digit2select 
@@ -471,13 +472,13 @@ find_text p = do
  delay browserDelay
  insertP p
 
-goto_line :: Int -> CWorkflow_
+goto_line :: Int -> SpirosMonad_
 goto_line n = do
  press "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int) 
  slot (show n)
 
-comment_with :: Maybe Phrase -> CWorkflow_
+comment_with :: Maybe Phrase -> SpirosMonad_
 comment_with p = do
  press "M-;"
  maybe nothing insertP p
@@ -494,7 +495,7 @@ run_shell (Right p) = do
  emacs_reach_shell
  maybe nothing insertP p
 
-query_clipboard_history :: Maybe (Either Ordinal Phrase) -> CWorkflow_
+query_clipboard_history :: Maybe (Either Ordinal Phrase) -> SpirosMonad_
 query_clipboard_history Nothing = do
  toggle_clipboard_history
 query_clipboard_history (Just (Left n)) = do 

@@ -6,9 +6,9 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root.Run where 
+import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Root.Types 
 import           Commands.Plugins.Spiros.Extra
-import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros (rankMacro, runMacro) 
 import           Commands.Plugins.Spiros.Phrase
@@ -19,7 +19,7 @@ import           Commands.Plugins.Spiros.Shortcut.Types
 import           Commands.Backends.OSX
 import Commands.Sugar.Keys
 
-import Control.Monad.Free.Church (F)
+-- import Control.Monad.Free.Church (F)
 import Control.Lens((^?))
 
 -- import           Control.Parallel
@@ -58,7 +58,7 @@ rankAct = \case
 
 -- ================================================================ --
 
-runRoots :: SpirosContext -> Roots -> F WorkflowF ()
+runRoots :: SpirosContext -> Roots -> SpirosMonad_ -- TODO access context from within the SpirosMonad_
 runRoots context = \case
  Frozen _ _ -> nothing           -- TODO needs magic server actions , which needs a more general monad stack 
  Ambiguous _ -> nothing         -- TODO needs magic server actions , which needs a more general monad stack 

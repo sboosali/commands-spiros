@@ -37,7 +37,7 @@ import Control.Concurrent (ThreadId, threadDelay, forkIO)
 import Control.Monad (forever) 
 
 
-type Desugaring a = a -> CWorkflow_ -- TODO 
+type Desugaring a = a -> SpirosMonad_ -- TODO 
 
 -- ================================================================ --
 

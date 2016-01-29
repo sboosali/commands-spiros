@@ -1,43 +1,27 @@
 {-# LANGUAGE TemplateHaskell, LambdaCase, GeneralizedNewtypeDeriving, ViewPatterns  #-}
 module Commands.Plugins.Spiros.Types where
 import Commands.Plugins.Spiros.Extra.Types 
-import Commands.Plugins.Spiros.Root.Types (Roots) 
 
-import           Commands.Mixins.DNS13OSX9 as Dragon
+import qualified Commands.Servers.Servant as Server
 import qualified Commands.Backends.OSX         as OSX
-import           Commands.Servers.Servant (V,VHandler,VSettings,VEnvironment,VPlugin,VConfig,VGlobals, DNSResponse) 
+import           Commands.Parsers.Earley (EarleyParser) 
 
 -- import qualified System.FilePath.Posix as FilePath
-import Control.Lens 
+import Control.Lens (makePrisms) 
+import Data.Text.Lazy (Text) 
 
 import Control.Monad.IO.Class (MonadIO) 
 
 
-type SpirosResponse    = SpirosV DNSResponse
+type SpirosConfig      = Server.VConfig SpirosBackend SpirosContext 
 
-type SpirosV           = V SpirosBackend SpirosContext SpirosType 
+type SpirosGlobals     = Server.VGlobals SpirosContext
 
-type SpirosHandler   i = VHandler SpirosBackend SpirosContext SpirosType i 
+type SpirosBackend     = SpirosMonad -- TODO 
 
-type SpirosSettings    = VSettings SpirosBackend SpirosContext SpirosType  
+type SpirosMonad_      = SpirosMonad () 
 
-type SpirosEnvironment = VEnvironment SpirosBackend SpirosContext SpirosType  
-
-type SpirosPlugin      = VPlugin SpirosBackend SpirosContext SpirosType 
-
-type SpirosConfig      = VConfig SpirosBackend SpirosContext 
-
-type SpirosGlobals     = VGlobals SpirosContext
-
-type SpirosCommand     = Dragon.DNSEarleyCommand SpirosContext SpirosType 
-
-type SpirosBackend     = OSX.CWorkflow 
-
--- type SpirosContext     = 
-
-type SpirosType        = Roots
-
-type SpirosMonad_    = OSX.Workflow 
+type SpirosParser s r  = EarleyParser s r String Text 
 
 newtype SpirosMonad a = SpirosMonad
  { getSpirosMonad :: OSX.WorkflowT IO a
@@ -45,7 +29,7 @@ newtype SpirosMonad a = SpirosMonad
  ( OSX.MonadWorkflow
  -- , MonadNatlink
  -- , MonadVServer
- -- , MonadState VState
+ -- , MonadState Server.VState
  , MonadIO
 
  , Monad
@@ -63,6 +47,7 @@ data SpirosContext
  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 instance NFData SpirosContext 
 
+makePrisms ''SpirosContext 
+
 -- ================================================================ --
 
-makePrisms ''SpirosContext 

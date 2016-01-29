@@ -28,7 +28,7 @@ import           Control.Applicative
 import           Data.Char
 
 
-phraseCommand :: DNSEarleyCommand SpirosContext Phrase
+phraseCommand :: DNSEarleyCommand SpirosContext SpirosMonad_ Phrase
 phraseCommand = Command phrase bestPhrase $ \_ p -> do
  s <- OSX.getClipboard
  OSX.sendText (runPhrase_ defSpacing s p)

@@ -3,3 +3,5 @@ module Commands.Plugins.Spiros.Config where
 
 spirosPath = "/Users/sboosalis/commands-spiros"
 
+workflowDelay = 5 :: Int
+
