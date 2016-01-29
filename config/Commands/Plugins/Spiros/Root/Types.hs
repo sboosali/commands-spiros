@@ -1,10 +1,10 @@
 {-# LANGUAGE DeriveAnyClass, StandaloneDeriving, LambdaCase #-}
 module Commands.Plugins.Spiros.Root.Types where
-import           Commands.Plugins.Spiros.Extra
-import           Commands.Plugins.Spiros.Emacs
+import           Commands.Plugins.Spiros.Extra.Types 
+import           Commands.Plugins.Spiros.Emacs.Types 
 import           Commands.Plugins.Spiros.Macros.Types 
-import           Commands.Plugins.Spiros.Shell
-import           Commands.Plugins.Spiros.Edit
+import           Commands.Plugins.Spiros.Shell.Types 
+import           Commands.Plugins.Spiros.Edit.Types 
 import           Commands.Plugins.Spiros.Shortcut.Types 
 import           Commands.Plugins.Spiros.Phrase.Types 
 

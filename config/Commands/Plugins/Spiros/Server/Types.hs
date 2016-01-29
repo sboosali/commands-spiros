@@ -1,47 +1,14 @@
-{-# LANGUAGE DeriveAnyClass, TypeOperators, RankNTypes  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TypeOperators, RankNTypes  #-}
 module Commands.Plugins.Spiros.Server.Types where 
+import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Extra
-import           Commands.Plugins.Spiros.Types (SpirosContext) 
-import           Commands.Plugins.Spiros.Root.Types(Roots)   
 
-import           Commands.Mixins.DNS13OSX9 as Dragon
 import qualified Commands.Backends.OSX         as OSX
-import           Commands.Servers.Servant
-
 
 import Data.Text.Lazy (Text) 
 
 
-type SpirosResponse    = SpirosV DNSResponse
-
-type SpirosV           = V SpirosBackend SpirosContext SpirosType 
-
-type SpirosHandler   i = VHandler SpirosBackend SpirosContext SpirosType i 
-
-type SpirosSettings    = VSettings SpirosBackend SpirosContext SpirosType  
-
-type SpirosEnvironment = VEnvironment SpirosBackend SpirosContext SpirosType  
-
-type SpirosPlugin      = VPlugin SpirosBackend SpirosContext SpirosType 
-
-type SpirosConfig      = VConfig SpirosBackend SpirosContext 
-
-type SpirosGlobals     = VGlobals SpirosContext
-
-type SpirosCommand     = Dragon.DNSEarleyCommand SpirosContext SpirosType 
-
-type SpirosBackend     = OSX.CWorkflow 
-
--- type SpirosContext     = 
-
-type SpirosType        = Roots
-
-type SpirosInterpreterSettings = InterpreterSettings SpirosMonad SpirosType
-
-type SpirosMonad    = OSX.Workflow 
-
-
--- ================================================================ --
+type SpirosInterpreterSettings = InterpreterSettings SpirosMonad_ SpirosType -- TODO 
 
 data InterpreterSettings m a = InterpreterSettings 
  { iExecute :: m :~>: IO 
@@ -73,5 +40,5 @@ data Mode
  | ModeSleeping 
  | ModeOff 
  | ModeReading
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data,NFData)
-
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)
+instance NFData Mode 

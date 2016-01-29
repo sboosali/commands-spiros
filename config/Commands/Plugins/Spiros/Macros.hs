@@ -1,10 +1,14 @@
 {-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Macros where
-import Commands.Plugins.Spiros.Types
-import qualified Commands.Plugins.Spiros.Config as Config 
+module Commands.Plugins.Spiros.Macros 
+ ( module Commands.Plugins.Spiros.Macros 
+ , module Commands.Plugins.Spiros.Macros.Types  
+ , module Commands.Plugins.Spiros.Macros.Extra  
+) where 
 import Commands.Plugins.Spiros.Macros.Types
+import Commands.Plugins.Spiros.Macros.Extra 
+import qualified Commands.Plugins.Spiros.Config as Config 
 import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Apply 
 import           Commands.Plugins.Spiros.Phrase
@@ -305,6 +309,15 @@ myMacros0_ =  vocabMacro
 
  , "skip"-: do
    press "x z"
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
 
  , ""-: do
    nothing

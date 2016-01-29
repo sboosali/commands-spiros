@@ -1,14 +1,59 @@
 {-# LANGUAGE TemplateHaskell, LambdaCase, GeneralizedNewtypeDeriving, ViewPatterns  #-}
 module Commands.Plugins.Spiros.Types where
 import Commands.Plugins.Spiros.Extra.Types 
+import Commands.Plugins.Spiros.Root.Types (Roots) 
 
-import qualified System.FilePath.Posix as FilePath
+import           Commands.Mixins.DNS13OSX9 as Dragon
+import qualified Commands.Backends.OSX         as OSX
+import           Commands.Servers.Servant (V,VHandler,VSettings,VEnvironment,VPlugin,VConfig,VGlobals, DNSResponse) 
+
+-- import qualified System.FilePath.Posix as FilePath
 import Control.Lens 
 
+import Control.Monad.IO.Class (MonadIO) 
 
--- | an ordinal number. i.e. "first", "second", "third", "fourth", et cetera  
-newtype Ordinal = Ordinal { unOrdinal :: Integer }  -- NOTE a GeneralizedNewtypeDeriving Show, doesn't show field accessories in constructor
- deriving (Show,Read,Eq,Ord,Enum,Num,Integral,Real,Generic,Data,NFData)
+
+type SpirosResponse    = SpirosV DNSResponse
+
+type SpirosV           = V SpirosBackend SpirosContext SpirosType 
+
+type SpirosHandler   i = VHandler SpirosBackend SpirosContext SpirosType i 
+
+type SpirosSettings    = VSettings SpirosBackend SpirosContext SpirosType  
+
+type SpirosEnvironment = VEnvironment SpirosBackend SpirosContext SpirosType  
+
+type SpirosPlugin      = VPlugin SpirosBackend SpirosContext SpirosType 
+
+type SpirosConfig      = VConfig SpirosBackend SpirosContext 
+
+type SpirosGlobals     = VGlobals SpirosContext
+
+type SpirosCommand     = Dragon.DNSEarleyCommand SpirosContext SpirosType 
+
+type SpirosBackend     = OSX.CWorkflow 
+
+-- type SpirosContext     = 
+
+type SpirosType        = Roots
+
+type SpirosMonad_    = OSX.Workflow 
+
+newtype SpirosMonad a = SpirosMonad
+ { getSpirosMonad :: OSX.WorkflowT IO a
+ } deriving
+ ( OSX.MonadWorkflow
+ -- , MonadNatlink
+ -- , MonadVServer
+ -- , MonadState VState
+ , MonadIO
+
+ , Monad
+ , Applicative
+ , Functor 
+ )
+
+-- ================================================================ --
 
 data SpirosContext 
  = GlobalContext 
@@ -17,18 +62,6 @@ data SpirosContext
  | IntelliJContext 
  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 instance NFData SpirosContext 
-
-readSpirosContext :: String -> SpirosContext 
-readSpirosContext = \case 
- (isEmacsApp -> Just{}) -> EmacsContext 
- "Google Chrome" -> ChromeContext 
- "IntelliJ" -> IntelliJContext 
- _ -> GlobalContext 
-
-isEmacsApp :: FilePath -> Maybe FilePath
-isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
- then Just fp
- else Nothing
 
 -- ================================================================ --
 

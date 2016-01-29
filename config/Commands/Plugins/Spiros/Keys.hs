@@ -3,7 +3,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Keys where
-import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Phrase (character)
 

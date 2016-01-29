@@ -3,12 +3,14 @@
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
  , module Commands.Plugins.Spiros.Extra.Types 
+ , module Commands.Plugins.Spiros.Rank 
  , module Commands.Extra
  , module Data.Semigroup
  ) where
 
 import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Extra.Types 
+import Commands.Plugins.Spiros.Rank 
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.OSX
@@ -34,6 +36,8 @@ import System.Process
 import Control.Concurrent (ThreadId, threadDelay, forkIO) 
 import Control.Monad (forever) 
 
+
+type Desugaring a = a -> CWorkflow_ -- TODO 
 
 -- ================================================================ --
 
@@ -147,8 +151,6 @@ toDigits base = reverse . List.unfoldr go
 fromDigits :: forall a. (Integral a) => a -> [a] -> a
 fromDigits base = foldr (+) 0 . zipWith (\i n -> (base^i) * n) [(0::a)..] . reverse
 
-type Number = Int
-
 -- average xs = realToFrac (sum xs) / genericLength xs
 safeAverage :: Foldable t => t Int -> Int
 safeAverage (toList -> []) = 0
@@ -164,44 +166,6 @@ isDefaultBrowser :: MonadWorkflow m => m (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
  x@"Google Chrome" -> return$ Just x
  _                 -> return$ Nothing
-
-type Desugaring a = a -> CWorkflow_
-
-type Ranking a = a -> Int
-
--- lawless, domain-specific, 'Ord'-like typeclass.
--- used by @data Apply@, permitting "ranking a function" by ranking its arguments (before application). 
--- can be derived, avoiding boilerplate. 
-class Rankable a where          -- TODO a ranking that's relative, not absolute.
- rank :: Ranking a
- rank _ = defaultRank
-
-defaultRank :: Int
-defaultRank = 100
-
-highRank :: Int
-highRank = 1000
-
-defaultRankMultiplier :: Int
-defaultRankMultiplier = 1000
-
-rankAtLeast :: Rankable a => Int -> a -> Int
-rankAtLeast i a = min i (rank a) 
-
-instance Rankable Int where rank = const defaultRank
-instance Rankable Ordinal where rank = const defaultRank 
-instance (Rankable a) => Rankable (Maybe a) where rank = rankMaybe
-instance (Rankable a, Rankable b) => Rankable (Either a b) where rank = rankLeftBiased
-
--- instance Rankable (Either Shell Phrase) where rank = rankLeftBiased
--- instance Rankable (Either Ordinal Phrase) where rank = rankLeftBiased
-
-rankMaybe :: (Rankable a) => Ranking (Maybe a)
-rankMaybe = maybe defaultRank rank
-
-rankLeftBiased :: (Rankable a, Rankable b) => Ranking (Either a b)
-rankLeftBiased = either ((*defaultRankMultiplier) . rank) rank -- watch out, the multiplied rank pollutes any parents above it 
--- rankLeftBiased = either rank ((`div` defaultRankMultiplier) . rank)
 
 isBrowser x = if FilePath.takeBaseName x `elem` ["Firefox", "Chrome"]
  then Just x
@@ -253,14 +217,6 @@ either2bool = either (const False) (const True)
 bool2exitcode :: Bool -> ExitCode 
 bool2exitcode False = ExitFailure 1
 bool2exitcode True  = ExitSuccess 
-
-(.!!)   :: (t1 -> t2) -> (a -> b ->           t1) -> (a -> b ->           t2)
-(.!!!)  :: (t1 -> t2) -> (a -> b -> c ->      t1) -> (a -> b -> c ->      t2)
-(.!!!!) :: (t1 -> t2) -> (a -> b -> c -> d -> t1) -> (a -> b -> c -> d -> t2)
-
-(.!!)   f g = \a b     -> f (g a b)
-(.!!!)  f g = \a b c   -> f (g a b c)
-(.!!!!) f g = \a b c d -> f (g a b c d)
 
 {-| a type that supports string interpolation.
 
@@ -357,4 +313,16 @@ seconds = (*1000000)
 readCommand aCommand someArguments = do 
  (exitCode, standardInput, standardError) <- readProcessWithExitCode aCommand someArguments "" 
  return (exitCode, lines standardInput, lines standardError)
+
+readSpirosContext :: String -> SpirosContext 
+readSpirosContext = \case 
+ (isEmacsApp -> Just{}) -> EmacsContext 
+ "Google Chrome" -> ChromeContext 
+ "IntelliJ" -> IntelliJContext 
+ _ -> GlobalContext 
+
+isEmacsApp :: FilePath -> Maybe FilePath
+isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
+ then Just fp
+ else Nothing
 
