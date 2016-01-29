@@ -26,148 +26,159 @@ source-repository head
 
 library
     
-    if !os(osx)
-        buildable: False
+  if !os(osx)
+      buildable: False
 
-    exposed-modules:
+  exposed-modules:
 
-        Commands.Plugins.Spiros
+    Commands.Plugins.Spiros
 
-        Commands.Plugins.Spiros.Extra
-        Commands.Plugins.Spiros.Extra.Types 
-        Commands.Plugins.Spiros.Types 
-        Commands.Plugins.Spiros.TypeLevel
-        Commands.Plugins.Spiros.Rank 
-        Commands.Plugins.Spiros.Config 
-        Commands.Plugins.Spiros.Main 
-        Commands.Plugins.Spiros.Apply
-        Commands.Plugins.Spiros.Apply.Types 
-        Commands.Plugins.Spiros.Finite 
-        Commands.Plugins.Spiros.Digit 
+    Commands.Plugins.Spiros.Extra
+    Commands.Plugins.Spiros.Extra.Types 
+    Commands.Plugins.Spiros.Types 
+    Commands.Plugins.Spiros.Module 
+    Commands.Plugins.Spiros.TypeLevel
+    Commands.Plugins.Spiros.Rank 
+    Commands.Plugins.Spiros.Config 
+    Commands.Plugins.Spiros.Main 
+    Commands.Plugins.Spiros.Apply
+    Commands.Plugins.Spiros.Apply.Types 
+    Commands.Plugins.Spiros.Finite 
+    Commands.Plugins.Spiros.Digit 
 
-        Commands.Plugins.Spiros.Server 
-        Commands.Plugins.Spiros.Server.Types
-        Commands.Plugins.Spiros.Server.Workflow
-        Commands.Plugins.Spiros.Server.Settings 
-        Commands.Plugins.Spiros.Server.QQ 
+    Commands.Plugins.Spiros.Server 
+    Commands.Plugins.Spiros.Server.Types
+    Commands.Plugins.Spiros.Server.Workflow
+    Commands.Plugins.Spiros.Server.Settings 
+    Commands.Plugins.Spiros.Server.QQ 
 
-        Commands.Plugins.Spiros.Correct 
-        Commands.Plugins.Spiros.Correct.Grammar 
+    Commands.Plugins.Spiros.Correct 
+    Commands.Plugins.Spiros.Correct.Grammar 
 
-        Commands.Plugins.Spiros.Shim
-        Commands.Plugins.Spiros.Shim.API 
-        Commands.Plugins.Spiros.Shim.QQ
+    Commands.Plugins.Spiros.Shim
+    Commands.Plugins.Spiros.Shim.API 
+    Commands.Plugins.Spiros.Shim.QQ
 
-        Commands.Plugins.Spiros.Template
-        Commands.Plugins.Spiros.Template.Types 
-        Commands.Plugins.Spiros.Template.QQ 
+    Commands.Plugins.Spiros.Template
+    Commands.Plugins.Spiros.Template.Types 
+    Commands.Plugins.Spiros.Template.QQ 
 
-        Commands.Plugins.Spiros.Windows 
-        Commands.Plugins.Spiros.Windows.Types  
-        Commands.Plugins.Spiros.Windows.QQ
+    Commands.Plugins.Spiros.Windows 
+    Commands.Plugins.Spiros.Windows.Types  
+    Commands.Plugins.Spiros.Windows.QQ
 
-        -- grammars 
+    -- grammars 
 
-        Commands.Plugins.Spiros.Root
-        Commands.Plugins.Spiros.Root.Types 
-        Commands.Plugins.Spiros.Root.Run 
+    Commands.Plugins.Spiros.Root
+    Commands.Plugins.Spiros.Root.Types 
+    Commands.Plugins.Spiros.Root.Run 
 
-        Commands.Plugins.Spiros.Macros
-        Commands.Plugins.Spiros.Macros.Types 
-        Commands.Plugins.Spiros.Macros.Extra 
+    Commands.Plugins.Spiros.Macros
+    Commands.Plugins.Spiros.Macros.Types 
+    Commands.Plugins.Spiros.Macros.Extra 
 
-        Commands.Plugins.Spiros.Shortcut
-        Commands.Plugins.Spiros.Shortcut.Types
+    Commands.Plugins.Spiros.Shortcut
+    Commands.Plugins.Spiros.Shortcut.Types
 
-        Commands.Plugins.Spiros.Shell
-        Commands.Plugins.Spiros.Shell.Types 
-        Commands.Plugins.Spiros.Shell.Grammar 
-        Commands.Plugins.Spiros.Shell.Run 
+    Commands.Plugins.Spiros.Shell
+    Commands.Plugins.Spiros.Shell.Types 
+    Commands.Plugins.Spiros.Shell.Grammar 
+    Commands.Plugins.Spiros.Shell.Run 
 
-        Commands.Plugins.Spiros.Keys
+    Commands.Plugins.Spiros.Keys
 
-        Commands.Plugins.Spiros.Number 
+    Commands.Plugins.Spiros.Number 
 
-        Commands.Plugins.Spiros.Phrase
-        Commands.Plugins.Spiros.Phrase.Types
-        Commands.Plugins.Spiros.Phrase.Run
-        Commands.Plugins.Spiros.Phrase.Munging
-        Commands.Plugins.Spiros.Phrase.Spacing
+    Commands.Plugins.Spiros.Phrase
+    Commands.Plugins.Spiros.Phrase.Types
+    Commands.Plugins.Spiros.Phrase.Run
+    Commands.Plugins.Spiros.Phrase.Munging
+    Commands.Plugins.Spiros.Phrase.Spacing
 
-        Commands.Plugins.Spiros.Edit
-        Commands.Plugins.Spiros.Edit.Types 
-        Commands.Plugins.Spiros.Edit.Run 
+    Commands.Plugins.Spiros.Edit
+    Commands.Plugins.Spiros.Edit.Types 
+    Commands.Plugins.Spiros.Edit.Run 
 
-        Commands.Plugins.Spiros.Emacs
-        Commands.Plugins.Spiros.Emacs.Types 
-        Commands.Plugins.Spiros.Emacs.Grammar
-        Commands.Plugins.Spiros.Emacs.Run 
-        Commands.Plugins.Spiros.Emacs.Config
-        Commands.Plugins.Spiros.Emacs.InteractiveCommands
+    Commands.Plugins.Spiros.Emacs
+    Commands.Plugins.Spiros.Emacs.Types 
+    Commands.Plugins.Spiros.Emacs.Grammar
+    Commands.Plugins.Spiros.Emacs.Run 
+    Commands.Plugins.Spiros.Emacs.Config
+    Commands.Plugins.Spiros.Emacs.InteractiveCommands
 
-        Commands.Plugins.Spiros.Chrome
-        Commands.Plugins.Spiros.Chrome.Gmail
+    Commands.Plugins.Spiros.Chrome
+    Commands.Plugins.Spiros.Chrome.Gmail
 
-        Commands.Plugins.Spiros.IntelliJ
-        Commands.Plugins.Spiros.IntelliJ.Grammar
-        Commands.Plugins.Spiros.IntelliJ.Run
+    Commands.Plugins.Spiros.IntelliJ
+    Commands.Plugins.Spiros.IntelliJ.Grammar
+    Commands.Plugins.Spiros.IntelliJ.Run
 
-    build-depends:
+    -- TODO 
+    Commands.Servers.Servant
+    Commands.Servers.Servant.Types
+    Commands.Servers.Servant.V 
+    Commands.Servers.Servant.API
+    Commands.Servers.Servant.API.Types 
 
-        -- packages:
-        -- cabal sandbox add-source ../
-        commands-core ==0.0.0, 
-        s-expression ==0.0.0, 
-        enumerate ==0.0.0,
-        workflow-osx ==0.0.1,
+  build-depends:
+      base ==4.8.*
 
-        -- extra-deps:  
-        -- not on stack 
-        language-python ==0.5.*, 
+    -- packages:
+    -- cabal sandbox add-source ../
+    , commands-core ==0.0.0
+    , s-expression ==0.0.0
+    , enumerate ==0.0.0
+    , workflow-osx ==0.0.1
 
-        -- on stack 
-        haskell-src-meta ==0.6.*,
-        process >= 1.2.3.0, 
-        containers,
-        mtl,
-        wl-pprint-text,
-        Earley ==0.10.1.0,
-        text,
-        semigroups,
-        lens,
-        exceptions,
-        parallel,
-        async,
-        either,
-        bytestring,
-        transformers,
-        filepath,
-        interpolatedstring-perl6 ==1.*,
-        split, 
-        clock, 
-        template-haskell ==2.10.*, 
-        time, 
-        stm ==2.4.*,  
-        deepseq == 1.4.*, 
-        haskeline, 
-        ghc-prim==0.4.*,
- 
-        -- shared with command-spiros 
-        aeson,  
-        servant-client ==0.4.4.6,
-        servant-server ==0.4.4.6,
-        servant        ==0.4.4.6,
+    -- extra-deps:  
+    -- not on stack 
+    , language-python ==0.5.*
 
-        -- ekmett 
-        free,  
+    -- on stack 
+    , haskell-src-meta ==0.6.*
+    , process >= 1.2.3.0
+    , containers
+    , mtl
+    , wl-pprint-text
+    , Earley ==0.10.1.0
+    , text
+    , semigroups
+    , lens
+    , exceptions
+    , parallel
+    , async
+    , either
+    , bytestring
+    , transformers
+    , filepath
+    , interpolatedstring-perl6 ==1.*
+    , split
+    , clock
+    , template-haskell ==2.10.*
+    , time
+    , stm ==2.4.*
+    , deepseq == 1.4.*
+    , haskeline
+    , ghc-prim==0.4.*
 
---         vty, 
-        base ==4.8.*
+    -- shared with command-spiros 
+    , aeson
+    , servant-client ==0.4.4.6
+    , servant-server ==0.4.4.6
+    , servant        ==0.4.4.6
 
-    default-language: Haskell2010
-    default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable
-    hs-source-dirs: config
-    ghc-options: -Wall 
+    -- ekmett 
+    , free
+
+    -- TODO 
+   , vinyl ==0.5.* 
+   , wai ==3.2.*
+   , warp ==3.2.*
+
+  default-language: Haskell2010
+  default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable
+  hs-source-dirs: config
+  ghc-options: -Wall 
 
 
 executable server
