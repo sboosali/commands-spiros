@@ -4,7 +4,6 @@ import Commands.Plugins.Spiros.Extra (insertByClipboard)
 import Commands.Plugins.Spiros.Extra.Types 
 
 import           Commands.Backends.OSX
-import Commands.Sugar.Keys
 
 import qualified Data.List as List
 import Control.Monad (replicateM_) 

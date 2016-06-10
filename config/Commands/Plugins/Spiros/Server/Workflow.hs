@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Commands.Plugins.Spiros.Server.Workflow where 
 import           Commands.Plugins.Spiros.Extra 
@@ -7,8 +7,8 @@ import           Commands.Plugins.Spiros.Phrase (word2phrase)
 import           Commands.Plugins.Spiros.Macros (reverse_search_regexp)  
 import Commands.Plugins.Spiros.Windows (BatchScriptR,getBatchScriptPath) 
 
-import           Commands.Sugar.Keys (press) 
 import qualified Commands.Backends.OSX         as OSX
+import Commands.Backends.Workflow
 import Commands.Frontends.Dragon13.Shim.Types (PythonFile(..))
 
 import qualified Data.Text.Lazy                as T
@@ -16,15 +16,14 @@ import Data.Text.Lazy (Text)
 
 import           Data.Function                   ((&))
 
-
 setClipboardIO :: String -> IO ()
-setClipboardIO = OSX.runWorkflow . OSX.setClipboard 
+setClipboardIO = runWorkflow' . OSX.setClipboard 
 
-printWorkflow :: OSX.Workflow_ -> IO ()
-printWorkflow = putStrLn . OSX.showWorkflow
+-- printWorkflow :: OSX.Workflow_ -> IO ()
+-- printWorkflow = putStrLn . OSX.showWorkflow
 
 insertByClipboardIO :: String -> IO ()
-insertByClipboardIO s = OSX.runWorkflow $ do
+insertByClipboardIO s = runWorkflow' $ do
  insertByClipboard ("\n" <> s <> "\n")
  OSX.delay 250 
 
@@ -49,7 +48,8 @@ reachCorrectionUi = do          -- TODO configurable. and maybe related to versi
 unreachCorrectionUi = do 
  openPreviousApplication 
 
-reachLoggingUi = do          -- TODO configurable. and maybe related to version control and relaunching. 
+  -- TODO configurable. and maybe related to version control and relaunching. 
+reachLoggingUi = do
  OSX.openApplication "Terminal" 
 
 openPreviousApplication = do 

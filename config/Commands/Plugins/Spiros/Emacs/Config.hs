@@ -2,9 +2,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 module Commands.Plugins.Spiros.Emacs.Config where
 
-import           Commands.Sugar.Keys
-
 import Control.Monad
+import Commands.Backends.OSX (press)
 
 -- default ((), Actions_)
 

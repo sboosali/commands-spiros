@@ -1,0 +1,28 @@
+resolver: lts-5.17
+
+packages:
+- .
+- ../commands-core
+
+- ../workflow-types
+- ../workflow-pure
+- ../workflow-osx
+- ../workflow-extra
+
+- ../enumerate
+- ../derive-monoid
+- ../s-expression
+
+extra-deps:
+- commands-core-0.0.0
+
+- workflow-osx-0.0.1
+- workflow-pure-0.0.0
+- workflow-extra-0.0.0
+
+- enumerate-0.2.1
+- derive-monoid-0.0.0
+- s-expression-0.0.0
+
+- language-python-0.5.2
+- c-storable-deriving-0.1.3

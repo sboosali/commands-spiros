@@ -17,7 +17,6 @@ import           Commands.Plugins.Spiros.Edit
 import           Commands.Plugins.Spiros.Shortcut.Types 
 
 import           Commands.Backends.OSX
-import Commands.Sugar.Keys
 
 -- import Control.Monad.Free.Church (F)
 import Control.Lens((^?))

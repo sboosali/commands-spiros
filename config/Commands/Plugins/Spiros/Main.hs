@@ -4,6 +4,9 @@ module Commands.Plugins.Spiros.Main where
 import Commands.Plugins.Spiros.Server 
 import Commands.Plugins.Spiros.Finite 
 
+import System.Environment (getArgs)
+
+main = mainWith =<< getArgs
 
 mainWith = \case
 
@@ -16,4 +19,3 @@ mainWith = \case
  ["derive"] -> printClick
 
  _ -> return() 
-

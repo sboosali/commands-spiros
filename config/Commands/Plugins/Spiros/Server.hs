@@ -123,7 +123,7 @@ makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
 spirosInterpreterSettings :: SpirosInterpreterSettings 
 spirosInterpreterSettings = InterpreterSettings{..} 
  where
- iExecute = getSpirosMonad >>> OSX.runWorkflowWithDelayT workflowDelay 
+ iExecute = getSpirosMonad >>> OSX.runWorkflowT def{OSX.osxStepDelay = fromIntegral workflowDelay}
  -- iExecute = OSX.runWorkflowWithDelay 5 
  iRanking = rankRoots
  iMagic   = spirosMagic 
@@ -202,7 +202,7 @@ spirosSetup environment = do
    putStrLn ""
    T.putStrLn$ code 
    putStrLn ""
-   OSX.runWorkflow $ findErrorBySearch countWidth marginWidth errorRow errorColumn 
+   OSX.runWorkflowT def $ findErrorBySearch countWidth marginWidth errorRow errorColumn 
    putStrLn "SHIM PARSING FAILURE" -- TODO logging
    return$ Left(VError "")
 
@@ -469,11 +469,11 @@ handleHypotheses globals hypotheses@(HypothesesRequest hs) = do
 
  openCorrection = do 
   atomically$ setMode globals CorrectingMode
-  OSX.runWorkflow$ reachCorrectionUi
+  OSX.runWorkflowT def$ reachCorrectionUi
 
  closeCorrection = do 
   atomically$ setMode globals NormalMode
-  OSX.runWorkflow$ unreachCorrectionUi
+  OSX.runWorkflowT def$ unreachCorrectionUi
 
  useCorrection = do 
   promptCorrection hypotheses >>= handleCorrection globals -- ignoring control C ? ask 
@@ -520,7 +520,7 @@ assumes that the "/context" endpoint is only called on module reloading.
 -}
 handleReload :: IO ()
 handleReload = do    -- TODO 
- OSX.runWorkflow$ reachLoggingUi
+ OSX.runWorkflowT def$ reachLoggingUi
  printHeader 
  putStrLn "RELOADED" 
  return()                    
@@ -585,7 +585,7 @@ loadContextWorker globals = (milliseconds 10, loadContext globals)
 
 loadContext :: SpirosGlobals -> IO ()
 loadContext globals = do 
- theApplication <- OSX.runWorkflow OSX.currentApplication 
+ theApplication <- runWorkflow' OSX.currentApplication 
  let theContext = readSpirosContext theApplication
  atomically$ setContext globals theContext 
  atomically$ writeContext globals -- hacky 
@@ -622,7 +622,7 @@ makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just
 --  !(force -> value) <- bestParse p ws 
 --   -- {force} turns WHNF (from the bang pattern) into NF
 
---  context <- liftIO$ readSpirosContext <$> OSX.runWorkflow OSX.currentApplication
+--  context <- liftIO$ readSpirosContext <$> runWorkflow' OSX.currentApplication
 
 --  let hParse = either2maybe . (bestParse p)
 --  let hDesugar = fromF . (d context)
@@ -631,6 +631,6 @@ makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just
 --  let theAmbiguousParser = makeAmbiguousParser p
 
 --  let workflow = hDesugar value  -- TODO church encoding doesn't accelerate construction
---  let workflowIO = OSX.runWorkflowWithDelay 5 workflow
+--  let workflowIO = runWorkflow'WithDelay 5 workflow
 
 --  return workflowIO 

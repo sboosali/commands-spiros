@@ -2,6 +2,8 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-orphans #-}
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
+ , module X
+ 
  , module Commands.Plugins.Spiros.Extra.Types 
  , module Commands.Plugins.Spiros.Rank 
  , module Commands.Extra
@@ -25,6 +27,7 @@ import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
 import           Control.Lens(imap)  
 import Data.Semigroup ((<>))
+import Data.Default as X
 
 import Data.Foldable
 import qualified Data.List as List
@@ -112,9 +115,6 @@ runWorker (_delay, _action) = _action >> threadDelay _delay
 --  let rootG = root
 --  attemptSerialize rootG
 --  attemptMunge "par round grave camel lit with async break break action"
-
-
-
 
 -- ================================================================ --
 
@@ -326,3 +326,14 @@ isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diar
  then Just fp
  else Nothing
 
+-- ================================================================ --
+-- comapt 
+
+-- | my runWorkflow
+runWorkflow' :: WorkflowT IO a -> IO a
+runWorkflow' = runWorkflowT def
+
+runKeyRiff :: (MonadWorkflow m) => KeySequence -> m ()
+runKeyRiff =  traverse_ sendKeyChord' -- TODO mv
+
+-- ================================================================ --

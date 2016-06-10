@@ -3,7 +3,7 @@ module Commands.Plugins.Spiros.Types where
 import Commands.Plugins.Spiros.Extra.Types 
 
 import qualified Commands.Servers.Servant as Server
-import qualified Commands.Backends.OSX         as OSX
+import Commands.Backends.Workflow (WorkflowT,MonadWorkflow_,MonadThrow)
 import           Commands.Parsers.Earley (EarleyParser) 
 
 -- import qualified System.FilePath.Posix as FilePath
@@ -24,17 +24,21 @@ type SpirosMonad_      = SpirosMonad ()
 type SpirosParser s r  = EarleyParser s r String Text 
 
 newtype SpirosMonad a = SpirosMonad
- { getSpirosMonad :: OSX.WorkflowT IO a
+ { getSpirosMonad :: WorkflowT IO a
  } deriving
- ( OSX.MonadWorkflow
+ ( Functor
+ , Applicative
+ , Monad
+
+ , MonadIO
+ , MonadThrow
+
+ -- , Workflow.MonadWorkflow  -- can't derive ConstraintKinds
+ , MonadWorkflow_
+
  -- , MonadNatlink
  -- , MonadVServer
  -- , MonadState Server.VState
- , MonadIO
-
- , Monad
- , Applicative
- , Functor 
  )
 
 -- ================================================================ --

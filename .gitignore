@@ -9,6 +9,7 @@ cbits/main
 TODO
 
 # Haskell
+.stack-work
 dist
 cabal-dev
 *.o

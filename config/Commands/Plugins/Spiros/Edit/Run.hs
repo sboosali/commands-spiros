@@ -5,7 +5,6 @@ import Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Backends.OSX
-import Commands.Sugar.Keys
 
 
 rankMove :: Move -> Int
