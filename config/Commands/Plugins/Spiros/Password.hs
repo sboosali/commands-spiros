@@ -8,11 +8,11 @@ hasPassword :: Root -> Bool
 -}
 module Commands.Plugins.Spiros.Password where 
 
-newtype Password = Password Phrase 
+-- newtype Password = Password Phrase 
 
-password = 'password <=>
- Password <$ "password" <*> phrase 
+-- password = 'password <=>
+--  Password <$ "password" <*> phrase 
 
-runPassword (Password p) = do
- nothing 
+-- runPassword (Password p) = do
+--  nothing 
 

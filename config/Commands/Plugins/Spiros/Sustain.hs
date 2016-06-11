@@ -2,22 +2,23 @@ module Commands.Plugins.Spiros.Sustain where
 import Commands.Plugins.Spiros.Extra
 
 
-type SustainedMonad = 
+-- type SustainedMonad = 
 
-data Sustained = Sustained String SustainedMonad SustainedMonad
+-- data Sustained = Sustained String SustainedMonad SustainedMonad
 
-sustainedGrammar :: Sustained -> R SustainedMonad
-sustainedGrammar (Sustained name begin finish) = 
- [ "begin"  name -: begin 
- , "finish" name -: finish 
- ] 
+-- sustainedGrammar :: Sustained -> R SustainedMonad
+-- sustainedGrammar (Sustained name begin finish) = 
+--  [ "begin"  name -: begin 
+--  , "finish" name -: finish 
+--  ] 
 
-sustainedSkipping = sustainedGrammar (Sustained "skipping" beginSkipping finishSkipping) 
- where 
- beginSkipping = do 
+-- sustainedSkipping = sustainedGrammar (Sustained "skipping" beginSkipping finishSkipping) 
+--  where 
+--  beginSkipping = do 
   
- finishSkipping = do 
+--  finishSkipping = do 
 
+   
 {-|
 
 
