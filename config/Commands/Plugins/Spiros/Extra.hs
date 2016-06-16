@@ -38,7 +38,7 @@ import System.IO
 import System.Process 
 import Control.Concurrent (ThreadId, threadDelay, forkIO) 
 import Control.Monad (forever) 
-
+import Data.Function as X
 
 type Desugaring a = a -> SpirosMonad_ -- TODO 
 
@@ -326,14 +326,14 @@ isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diar
  then Just fp
  else Nothing
 
+filterMempty :: (Monoid a, Eq a) => [a] -> [a]
+filterMempty = filter (/= mempty)
+
 -- ================================================================ --
 -- comapt 
 
 -- | my runWorkflow
 runWorkflow' :: WorkflowT IO a -> IO a
 runWorkflow' = runWorkflowT def
-
-runKeyRiff :: (MonadWorkflow m) => KeySequence -> m ()
-runKeyRiff =  traverse_ sendKeyChord' -- TODO mv
 
 -- ================================================================ --

@@ -84,7 +84,7 @@ runActs context = \case
  ActsRW n a -> runRepeat emacsDelay n (runAct context a)
 
 runAct context = \case
- KeyRiff_ kr -> runKeyRiff kr
+ KeyRiff_ kr -> sendKeySequence kr
  --TODO Click_ _c   -> nothing
  Edit_ a     -> whenJust (context ^? _EmacsContext) $ editEmacs a
  Move_ a     -> whenJust (context ^? _EmacsContext) $ moveEmacs a

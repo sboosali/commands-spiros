@@ -14,7 +14,6 @@ import Commands.Frontends.Dragon13.Shim.Types (PythonFile(..))
 import qualified Data.Text.Lazy                as T
 import Data.Text.Lazy (Text) 
 
-import           Data.Function                   ((&))
 
 setClipboardIO :: String -> IO ()
 setClipboardIO = runWorkflow' . OSX.setClipboard 

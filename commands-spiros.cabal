@@ -14,7 +14,7 @@ description:
     my configuration for commands: OS X backend; Dragon NaturallySpeaking frontend.
 category: Voice Control
 author: Spiros Boosalis
-tested-with: GHC ==7.10.1
+tested-with: GHC ==7.10.*
 extra-source-files:
     README.md
     emacs-interactive-commands.txt
@@ -25,10 +25,23 @@ source-repository head
 
 
 library
+    -- https://www.haskell.org/cabal/users-guide/developing-packages.html#meaning-of-field-values-when-using-conditionals
+    -- booleans are and'd
+    -- lists are appended
+
+    -- http://stackoverflow.com/questions/9341611/what-are-possible-values-for-the-system-info-os-function-in-haskell
+
     hs-source-dirs: config
 
-    if !os(osx)
-        buildable: False
+    if os(darwin)
+        hs-source-dirs: config-osx
+        exposed-modules:
+                        Commands.Backends.Workflow
+
+    if os(windows)
+        hs-source-dirs: config-windows
+        exposed-modules:
+                        Commands.Backends.Workflow
 
     exposed-modules:
 
@@ -132,14 +145,17 @@ library
     build-depends:
 
         -- packages:
-        -- cabal sandbox add-source ../
         commands-core ==0.0.0, 
-        s-expression ==0.0.0, 
-        enumerate ==0.2.1,
+
+        workflow-types ==0.0.0,
+        workflow-pure ==0.0.0,
+        workflow-extra ==0.0.0,
         workflow-osx ==0.0.1,
 
+        s-expression ==0.0.0, 
+        enumerate ==0.2.1,
+
         -- extra-deps:  
-        -- not on stack 
         language-python ==0.5.*, 
 
         -- on stack 

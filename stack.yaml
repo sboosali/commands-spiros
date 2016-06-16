@@ -13,6 +13,8 @@ packages:
 - ../derive-monoid
 - ../s-expression
 
+- ../spiros
+
 extra-deps:
 - commands-core-0.0.0
 
@@ -23,6 +25,8 @@ extra-deps:
 - enumerate-0.2.1
 - derive-monoid-0.0.0
 - s-expression-0.0.0
+
+- spiros-0.0.0
 
 - language-python-0.5.2
 - c-storable-deriving-0.1.3
