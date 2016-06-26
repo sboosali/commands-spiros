@@ -3,7 +3,7 @@
 module Commands.Plugins.Spiros.Emacs.Config where
 
 import Control.Monad
-import Commands.Backends.OSX (press)
+import qualified Commands.Backends.Workflow as W
 
 -- default ((), Actions_)
 
@@ -15,24 +15,24 @@ emacsDelay = 10 :: Int                 -- milliseconds
 -- Rec?
 -- Map String Workflow
 -- lookup "mark"
-mark = press "C-<spc>"
+mark = W.press "C-<spc>"
 
 activate_mark = replicateM_ 2 exchange_point_and_mark
 
-exchange_point_and_mark = press "C-x C-x"
+exchange_point_and_mark = W.press "C-x C-x"
 -- exchange_point_and_mark = runEmacs "exchange-point-and-mark"
 
-execute_extended_command = press "C-w" --TODO non-standard: make this configurable? ImplicitParams? this is the configuration! just put in separate module. or define this as a keypress, and explicitly turn it into an action at  use site.
+execute_extended_command = W.press "C-w" --TODO non-standard: make this configurable? ImplicitParams? this is the configuration! just put in separate module. or define this as a keypress, and explicitly turn it into an action at  use site.
 
-eval_expression = press "M-:"
+eval_expression = W.press "M-:"
 
-window_bottom = press "M-<down>"
+window_bottom = W.press "M-<down>"
 
 -- my_keymap_prefix = (kbd"M-q")
 -- keymap = "M-q"                  -- NOTE nonstandard  
 keymap = "C-x C-y"
 
-haskell_interactive_bring = press "C-`"      -- haskell-mode 
+haskell_interactive_bring = W.press "C-`"      -- haskell-mode 
 
-haskell_compile = press "C-c C-c"      -- haskell-mode 
+haskell_compile = W.press "C-c C-c"      -- haskell-mode 
 

@@ -3,7 +3,7 @@ module Commands.Plugins.Spiros.Template.Types where
 import Commands.Plugins.Spiros.Extra (insertByClipboard) 
 import Commands.Plugins.Spiros.Extra.Types 
 
-import           Commands.Backends.OSX
+import           Commands.Backends.Workflow as W
 
 import qualified Data.List as List
 import Control.Monad (replicateM_) 
@@ -16,6 +16,15 @@ can be used with @-XQuasiQuotes@ ('qc' supports interpolation).
 
 see "Commands.Plugins.Spiros.Template.haddockTemplate" for example. 
 
+TODO...
+
+Template ~ [Either (First ()) String)]
+
+(String, First (), String) ~ (String, String)
+
+:: [Either (First ()) String] -> (String, String)
+
+
 -}
 data Template
  = TemplateCursor 
@@ -25,14 +34,33 @@ data Template
 
 {- | when constructed with 'mappend', a @Template@ is always flat (see 'flattenTemplate'). 
 
+@
+ 'mempty' = 'TemplateList' []
+@
+
 -} 
 instance Monoid Template where
  mempty = TemplateList [] 
  mappend x y = TemplateList (mappend (toTemplateList x) (toTemplateList y))
 
+{-|
+
+@
+ 'fromString' = 'TemplateText'
+@
+
+-}
 instance IsString Template where
  fromString = TemplateText
 
+{-|
+
+@
+ 'fromList' = 'fromTemplateList'
+ 'toList'   = 'toTemplateList'
+@
+
+-}
 instance IsList Template where
  type Item Template = Template 
  fromList = fromTemplateList
@@ -63,24 +91,24 @@ strips one leading newline and one trailing newline.
 increases readability of quasi-quotes, e.g.:
 
 @
-haddockTemplate2 = [qc|
-\{-| {cursor}
+haddockTemplate_2 = ['qc'|
+\{-| {'cursor'}
 
--} 
+-}
 |]
 @
 
-rather than: 
+rather than:
 
 @
-haddockTemplate3 = [qc|\{-| {cursor}
+haddockTemplate_3 = ['qc'|\{-| {'cursor'}
 
 -}|]
 @
 
 if you want that leading/trailing white space, just add "extra" whitespace, or use a string literal.
 
--} 
+-}
 mungeTemplate :: Template -> (String, String)
 mungeTemplate template = (before, after)
  where
@@ -92,7 +120,7 @@ mungeTemplate template = (before, after)
   ('\n':xs) -> xs
   xs -> xs
 
-{- | input should have zero or one 'TemplateCursor'(s) (splits on the first, when multiple). 
+{- | input should have zero or one 'TemplateCursor'(s). splits on the first, when multiple.
 
 outputs should have zero 'TemplateCursor'(s).
 
@@ -142,5 +170,5 @@ insertTemplate template = do
  -- (b) triggers functions, like "import" opens the mini buffer 
  insertByClipboard before
  insertByClipboard after 
- replicateM_ (length after) (press "<left>") 
+ replicateM_ (length after) (W.press "<left>") 
 

@@ -16,7 +16,7 @@ import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
 import           Commands.Plugins.Spiros.Shortcut.Types 
 
-import           Commands.Backends.OSX
+import Commands.Backends.Workflow as W
 
 -- import Control.Monad.Free.Church (F)
 import Control.Lens((^?))

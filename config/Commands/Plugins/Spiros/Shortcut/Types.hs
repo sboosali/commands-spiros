@@ -26,3 +26,4 @@ shortcuts
  where
  __error__ k = error $ "Commands.Plugins.Spiros.Shortcut.Types.shortcuts " ++ show k
  -- fail loudly
+

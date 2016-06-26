@@ -8,7 +8,7 @@ import           Commands.Plugins.Spiros.Edit.Types
 import           Commands.Plugins.Spiros.Shortcut.Types 
 import           Commands.Plugins.Spiros.Phrase.Types 
 
-import Commands.Backends.OSX (KeyRiff) 
+import Commands.Backends.Workflow (KeySequence) 
 
 import Control.DeepSeq (NFData(..), deepseq) 
 
@@ -45,7 +45,7 @@ data Acts
  deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 data Act
- = KeyRiff_ KeyRiff
+ = KeyRiff_ KeySequence
  --TODO | Click_ Click
  | Edit_ Edit
  | Move_ Move

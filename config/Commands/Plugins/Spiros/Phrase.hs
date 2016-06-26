@@ -19,7 +19,7 @@ import           Commands.Plugins.Spiros.Phrase.Spacing
 import           Commands.Extra
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9
-import qualified Commands.Backends.OSX            as OSX
+import qualified Commands.Backends.Workflow as W
 import           Commands.Parsers.Earley as CP
 
 import qualified Data.Text.Lazy                   as T
@@ -30,8 +30,8 @@ import           Data.Char
 
 phraseCommand :: DNSEarleyCommand SpirosContext SpirosMonad_ Phrase
 phraseCommand = Command phrase bestPhrase $ \_ p -> do
- s <- OSX.getClipboard
- OSX.sendText (runPhrase_ defSpacing s p)
+ s <- W.getClipboard
+ W.sendText (runPhrase_ defSpacing s p)
 
 -- ================================================================ --
 

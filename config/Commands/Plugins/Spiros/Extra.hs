@@ -15,7 +15,7 @@ import Commands.Plugins.Spiros.Extra.Types
 import Commands.Plugins.Spiros.Rank 
 
 import           Commands.Mixins.DNS13OSX9
-import           Commands.Backends.OSX
+import           Commands.Backends.Workflow
 import           Commands.Extra -- for reexport 
 
 import qualified System.FilePath.Posix as FilePath

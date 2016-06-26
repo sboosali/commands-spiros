@@ -20,7 +20,7 @@ import Commands.Plugins.Spiros.Keys
 import  Commands.Plugins.Spiros.Template
 
 import Commands.Mixins.DNS13OSX9
-import           Commands.Backends.OSX
+import Commands.Backends.Workflow as W
 
 import           Control.Applicative
 import qualified Data.List as List
@@ -393,7 +393,7 @@ digit2select :: Integer -> KeyChord
 digit2select 
  = addMod CommandModifier
  . (either __BUG__ id)
- . digit2keypress
+ . digit2keychord
 
 
 

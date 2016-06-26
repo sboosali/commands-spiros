@@ -6,7 +6,7 @@ module Commands.Plugins.Spiros.Keys where
 import Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Phrase (character)
 
-import           Commands.Backends.OSX
+import Commands.Backends.Workflow as W
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative
@@ -43,7 +43,7 @@ so we can't embed the one into the other, but we'll just keep things simple with
 -}
 key :: R KeyChord
 key = 'key
- <=> ((either __BUG__ id) . char2keypress) <$> (__inlineRHS__(character))
+ <=> ((either __BUG__ id) . char2keychord) <$> (__inlineRHS__(character))
   -- inlined to trigger vocabulary optimization, the right-hand side which must have only tokens
 
  <|> "up" $> KeyChord [] UpArrowKey

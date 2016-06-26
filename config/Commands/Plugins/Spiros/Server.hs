@@ -23,7 +23,7 @@ import           Commands.Plugins.Spiros.Server.QQ
 import           Commands.Plugins.Spiros.Correct 
 
 import           Commands.Parsers.Earley (EarleyParser(..), bestParse, eachParse) 
-import qualified Commands.Backends.OSX         as OSX
+import qualified Commands.Backends.Workflow         as W
 import           Commands.Frontends.Dragon13
 import           Commands.Mixins.DNS13OSX9 -- (unsafeDNSGrammar, unsafeEarleyProd) 
 import           Commands.Servers.Servant
@@ -123,14 +123,14 @@ makeSpirosSettings spirosGlobals spirosPluginReference  = VSettings
 spirosInterpreterSettings :: SpirosInterpreterSettings 
 spirosInterpreterSettings = InterpreterSettings{..} 
  where
- iExecute = getSpirosMonad >>> OSX.runWorkflowT def{OSX.osxStepDelay = fromIntegral workflowDelay}
- -- iExecute = OSX.runWorkflowWithDelay 5 
+ iExecute = getSpirosMonad >>> W.runWorkflowT def{W.osxStepDelay = fromIntegral workflowDelay}
+ -- iExecute = W.runWorkflowWithDelay 5 
  iRanking = rankRoots
  iMagic   = spirosMagic 
 
 spirosBackend = VBackend{..}    -- TODO rm  
  where
- -- vExecute = fromF >>> OSX.runWorkflowWithDelay 5 
+ -- vExecute = fromF >>> W.runWorkflowWithDelay 5 
  vExecute = (spirosInterpreterSettings&iExecute ) 
 
 -- spirosSettings :: (Show a) => RULED DNSEarleyCommand r a -> RULED VSettings r a
@@ -202,7 +202,7 @@ spirosSetup environment = do
    putStrLn ""
    T.putStrLn$ code 
    putStrLn ""
-   OSX.runWorkflowT def $ findErrorBySearch countWidth marginWidth errorRow errorColumn 
+   W.runWorkflowT def $ findErrorBySearch countWidth marginWidth errorRow errorColumn 
    putStrLn "SHIM PARSING FAILURE" -- TODO logging
    return$ Left(VError "")
 
@@ -249,7 +249,7 @@ spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
     hFlush stdout
    throwError$ VError (show e) 
 
- context <- liftIO$ readSpirosContext <$> iExecute OSX.currentApplication
+ context <- liftIO$ readSpirosContext <$> iExecute W.currentApplication
 
  let hParse = either2maybe . (bestParse (ePlugin&vParser))
  let hDesugar = ((ePlugin&vDesugar) context) -- TODO fromF for speed? 
@@ -286,7 +286,7 @@ spirosInterpret InterpreterSettings{..} = \(RecognitionRequest ws) -> do
      print =<< do atomically$ getMode (eConfig&vGlobals)
      putStrLn ""
      putStrLn$ "WORKFLOW:"
-     putStr  $ "" -- TODO OSX.showWorkflow workflow -- arrows? 
+     putStr  $ "" -- TODO W.showWorkflow workflow -- arrows? 
      putStrLn ""
      putStrLn$ "TIMES:"
      putStrLn$ show d3 ++ "ms"
@@ -416,7 +416,7 @@ handleStage CommandsResponse{..}= \case
          RunStage   -> do 
              putStrLn ""
              putStrLn "WORKFLOW:" 
-             putStrLn "" -- TODO traverse_ (printAndPaste . OSX.showWorkflow) rDesugared 
+             putStrLn "" -- TODO traverse_ (printAndPaste . W.showWorkflow) rDesugared 
 
 handleParses
  :: (Show a)
@@ -469,11 +469,11 @@ handleHypotheses globals hypotheses@(HypothesesRequest hs) = do
 
  openCorrection = do 
   atomically$ setMode globals CorrectingMode
-  OSX.runWorkflowT def$ reachCorrectionUi
+  W.runWorkflowT def$ reachCorrectionUi
 
  closeCorrection = do 
   atomically$ setMode globals NormalMode
-  OSX.runWorkflowT def$ unreachCorrectionUi
+  W.runWorkflowT def$ unreachCorrectionUi
 
  useCorrection = do 
   promptCorrection hypotheses >>= handleCorrection globals -- ignoring control C ? ask 
@@ -520,7 +520,7 @@ assumes that the "/context" endpoint is only called on module reloading.
 -}
 handleReload :: IO ()
 handleReload = do    -- TODO 
- OSX.runWorkflowT def$ reachLoggingUi
+ W.runWorkflowT def$ reachLoggingUi
  printHeader 
  putStrLn "RELOADED" 
  return()                    
@@ -585,7 +585,7 @@ loadContextWorker globals = (milliseconds 10, loadContext globals)
 
 loadContext :: SpirosGlobals -> IO ()
 loadContext globals = do 
- theApplication <- runWorkflow' OSX.currentApplication 
+ theApplication <- runWorkflow' W.currentApplication 
  let theContext = readSpirosContext theApplication
  atomically$ setContext globals theContext 
  atomically$ writeContext globals -- hacky 
@@ -622,7 +622,7 @@ makeAmbiguousParser p theWords = either (const (Nothing, [])) (\(x:|xs) -> (Just
 --  !(force -> value) <- bestParse p ws 
 --   -- {force} turns WHNF (from the bang pattern) into NF
 
---  context <- liftIO$ readSpirosContext <$> runWorkflow' OSX.currentApplication
+--  context <- liftIO$ readSpirosContext <$> runWorkflow' W.currentApplication
 
 --  let hParse = either2maybe . (bestParse p)
 --  let hDesugar = fromF . (d context)

@@ -5,9 +5,8 @@ import Commands.Plugins.Spiros.Phrase.Types
 import Commands.Plugins.Spiros.Phrase.Munging
 import           Commands.Plugins.Spiros.Extra
 
-import qualified Commands.Backends.OSX            as OSX
 import           Commands.Plugins.Spiros.Phrase.Spacing
-import Commands.Backends.OSX (press)
+import Commands.Backends.Workflow 
 
 import           Data.List.NonEmpty               (NonEmpty (..))
 
@@ -15,7 +14,7 @@ import qualified Data.List as List
 import           Control.Monad ((>=>)) 
 
 
-runPhrase_ :: Spacing -> OSX.ClipboardText -> Phrase -> String
+runPhrase_ :: Spacing -> ClipboardText -> Phrase -> String
 runPhrase_ spacing clipboard
  = flip(mungePhrase) spacing
  . flip(splatPasted) clipboard
@@ -24,40 +23,40 @@ runPhrase_ spacing clipboard
 
 -- | 
 
--- runDictation :: (OSX.MonadWorkflow m) => Dictation -> m () 
+-- runDictation :: (MonadWorkflow m) => Dictation -> m () 
 runDictation = \case
- Dictation ws -> OSX.insert (List.intercalate " " ws)
+ Dictation ws -> insert (List.intercalate " " ws)
 
 -- | 
 
--- runLetters :: (OSX.MonadWorkflow m) => Letters -> m () 
+-- runLetters :: (MonadWorkflow m) => Letters -> m () 
 runLetters = insertL
 
 -- runLetters
--- insertL :: (OSX.MonadWorkflow m) => Letters -> m () 
-insertL (Letters cs) = OSX.insert cs 
+-- insertL :: (MonadWorkflow m) => Letters -> m () 
+insertL (Letters cs) = insert cs 
 
--- slotD :: (OSX.MonadWorkflow m) => Dictation -> m ()
+-- slotD :: (MonadWorkflow m) => Dictation -> m ()
 slotD p = do
- OSX.delay 10
+ delay 10
  insertD p
  press "<ret>"
 
--- insertD :: (OSX.MonadWorkflow m) => Dictation -> m () 
-insertD = mungeDictation >>> OSX.insert
+-- insertD :: (MonadWorkflow m) => Dictation -> m () 
+insertD = mungeDictation >>> insert
 
--- slotP :: (OSX.MonadWorkflow m) => Phrase -> m ()
+-- slotP :: (MonadWorkflow m) => Phrase -> m ()
 slotP p = do
- OSX.delay 10
+ delay 10
  insertP p
  press "<ret>"
 
--- insertP :: (OSX.MonadWorkflow m) => Phrase -> m () 
-insertP = munge >=> OSX.insert
+-- insertP :: (MonadWorkflow m) => Phrase -> m () 
+insertP = munge >=> insert
 
--- munge :: (OSX.MonadWorkflow m) => Phrase -> m String
+-- munge :: (MonadWorkflow m) => Phrase -> m String
 munge (Phrase p1) = do
- p2 <- splatPasted (pPhrase p1) <$> OSX.getClipboard
+ p2 <- splatPasted (pPhrase p1) <$> getClipboard
  return$ mungePhrase p2 defSpacing
 
 

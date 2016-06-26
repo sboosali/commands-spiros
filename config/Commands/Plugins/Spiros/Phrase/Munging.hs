@@ -10,7 +10,7 @@ module Commands.Plugins.Spiros.Phrase.Munging where
 import           Commands.Plugins.Spiros.Phrase.Types
 import           Commands.Plugins.Spiros.Phrase.Spacing
 
-import qualified Commands.Backends.OSX            as OSX
+import qualified Commands.Backends.Workflow as W
 import           Commands.Munging
 import           Data.Sexp
 
@@ -25,7 +25,7 @@ import Data.Char
 
 
 -- | splats the Pasted into PAtom's, after splitting the clipboard into words
-splatPasted :: UPhrase -> OSX.ClipboardText -> MPhrase
+splatPasted :: UPhrase -> W.ClipboardText -> MPhrase
 splatPasted p clipboard = either (substPasted clipboard) (:[]) <$> p
 
 substPasted :: String -> Pasted -> [PAtom]

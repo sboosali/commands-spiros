@@ -4,7 +4,7 @@ import Commands.Plugins.Spiros.Edit.Types
 import Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Extra
 
-import           Commands.Backends.OSX
+import Commands.Backends.Workflow as W
 
 
 rankMove :: Move -> Int

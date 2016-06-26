@@ -5,7 +5,7 @@ import           Commands.Plugins.Spiros.Emacs.Config
 import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Phrase
 
-import           Commands.Backends.OSX
+import Commands.Backends.Workflow
 
 
 insertMarking :: MonadWorkflow m => String -> m() 
