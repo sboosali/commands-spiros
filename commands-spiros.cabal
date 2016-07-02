@@ -87,6 +87,8 @@ library
         Commands.Plugins.Spiros.Root.Types 
         Commands.Plugins.Spiros.Root.Run 
 
+        Commands.Plugins.Spiros.Finite.Grammar
+
         Commands.Plugins.Spiros.Macros
         Commands.Plugins.Spiros.Macros.Types 
 
