@@ -39,6 +39,7 @@ import System.Process
 import Control.Concurrent (ThreadId, threadDelay, forkIO) 
 import Control.Monad (forever) 
 import Data.Function as X
+--import Numeric.Natural
 
 type Desugaring a = a -> SpirosMonad_ -- TODO 
 
@@ -329,6 +330,22 @@ isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diar
 filterMempty :: (Monoid a, Eq a) => [a] -> [a]
 filterMempty = filter (/= mempty)
 
+{-| 'intersperse's a 'delay' between each action.
+
+e.g.
+
+@
+withDelay 30                 -- milliseconds
+ [ press "H-<tab>"
+ , insert =<< getClipboard
+ , press "H-<tab>"
+ ]
+@
+
+-}
+withDelay :: (MonadWorkflow m) => Int -> [m ()] -> m ()
+withDelay t = sequence_ . List.intersperse (delay t)
+
 -- ================================================================ --
 -- comapt 
 
@@ -336,4 +353,8 @@ filterMempty = filter (/= mempty)
 runWorkflow' :: WorkflowT IO a -> IO a
 runWorkflow' = runWorkflowT def
 
--- ================================================================ --
+{- old
+
+delaying
+
+-}

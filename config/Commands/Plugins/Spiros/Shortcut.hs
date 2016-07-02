@@ -93,7 +93,7 @@ emacsShortcuts = shortcuts
  , "other buffer"-: "C-x b <ret>"
  , "other window"-: "C-x o"
  , "evil toggle"-: "C-z"
- , "divider"-: "M--"                -- (it parses) 
+ , "divider"-: "M-<dash>"                -- TODO (M-- doesn't parse) 
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "record"-: "<f3>"
  , "repeat"-: "<f4>"
@@ -135,7 +135,7 @@ haskellShortcuts = shortcuts
  , "insert type"-: "C-u C-c C-t" 
  , "info"-: "C-c C-i"                             -- haskell-process-do-info
  , "builder"-: "C-c C-c"
- , "restart"-: "M-x <ret> haskell-process-restart"
+-- , "restart"-: "M-x <ret> haskell-process-restart" -- TODO won't parse naked chars
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -157,7 +157,7 @@ chromeShortcuts = shortcuts
  , "right page"-: "M-<right>"
  , "reload"-: "M-r"
  , "zoom in"-: "M-+"
- , "zoom out"-: "M--"
+ , "zoom out"-: "M-<dash>"                -- TODO (M-- doesn't parse) 
  , "reopen tab"-: "M-S-t"
  , ""-: ""
  , ""-: ""

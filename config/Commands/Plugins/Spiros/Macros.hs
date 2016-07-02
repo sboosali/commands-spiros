@@ -46,13 +46,11 @@ move_window_up = press "S-<up>"
 toggle_alfred            = press "M-<spc>"               -- NOTE Alfred
 toggle_clipboard_history = press "A-<spc>"               -- NOTE Alfred
 
-open_pad = do
-   openApplication "Commands"   -- TODO make variable 
-   delay 100
-   move_window_down
-   delay 100
-   switch_buffer "*pad*" -- TODO make variable 
-   delay 100
+open_pad = withDelay 100 
+   [ openApplication "Commands"   -- TODO make variable 
+   , move_window_down
+   , switch_buffer "*pad*" -- TODO make variable 
+   ]
 
 emacs_reach_shell = do
    move_window_down 

@@ -24,6 +24,6 @@ shortcuts
  . foldMap (\(s,k) -> readEmacsKeyChord k & maybe (__error__ k) (<$ fromString s))
  . filterBlanks
  where
- __error__ k = error $ "Commands.Plugins.Spiros.Shortcut.Types.shortcuts " ++ show k
+ __error__ k = error $ "ERROR Commands.Plugins.Spiros.Shortcut.Types.shortcuts " ++ show k --TODO CallStack
  -- fail loudly
 

@@ -8,6 +8,7 @@ stack build && stack exec -- spiros-server
 stack build && stack exec -- spiros-server test
 stack build && stack exec -- spiros-server finite
 stack build && stack exec -- spiros-server derive
+stack build && stack exec -- spiros-server parse three up line beg line two del fuss word
 @
 
 -}
@@ -28,5 +29,7 @@ mainWith = \case
  ["finite"] -> printFinite
 
  ["derive"] -> printClick
+
+ ("parse" : ws) -> parseMain ws
 
  _ -> return() 

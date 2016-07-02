@@ -51,6 +51,18 @@ import           Control.Exception(bracket_)
 
 -- ================================================================ --
 
+parseMain :: [String] -> IO ()
+parseMain (fmap T.pack -> ws) = do
+  let p = command2earley rootsCommand
+  print ws
+
+  -- p `eachParse` ws
+  (p&pProd) `eachParse` ws & \case
+    Left e -> print e
+    Right as -> traverse_ print as
+
+-- ================================================================ --
+
 spirosServer :: IO ()
 spirosServer = do
  (settings, globals, _reference) <- newSpirosSettings rootsCommand
@@ -162,6 +174,9 @@ spirosUpdate dnsSettings command = VPlugin g p d
  d = (command&_cDesugar)
 {-# NOINLINE spirosUpdate #-}
 
+--TODO
+command2earley :: DNSEarleyCommand c b a -> EarleyParser s r String Text a
+command2earley Command{..} = EarleyParser (unsafeEarleyProd _cRHS) _cBest
 
 spirosSetup
  :: SpirosEnvironment 
