@@ -10,12 +10,13 @@ module Commands.Plugins.Spiros.Root
  , module Commands.Plugins.Spiros.Root.Types
  , module Commands.Plugins.Spiros.Root.Run -- TODO there should be a .Grammar that is imported, rather than vice versa 
  ) where
+import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Module (SpirosCommand, SpirosParser) 
 import           Commands.Plugins.Spiros.Root.Types 
-import           Commands.Plugins.Spiros.Extra 
 import           Commands.Plugins.Spiros.Root.Run 
-import           Commands.Plugins.Spiros.Emacs
+import           Commands.Plugins.Spiros.Act.Grammar
 import           Commands.Plugins.Spiros.Macros
+import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Correct.Grammar 
 import           Commands.Plugins.Spiros.Digit 
@@ -76,29 +77,6 @@ root = 'root <=> empty
  --TODO 
  -- <|> Phrase_    <$  "pray" <*> phrase
  <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
-
-
-acts = 'acts
- <=> ActsRW <$> (number-?-1) <*> act
-
-act = 'act <=> empty     -- boilerplate (mostly)
- <|> KeyRiff_ <$> keyriff
- --TODO <|> Click_   <$> click
- <|> Edit_    <$> edit
- <|> Move_    <$> move
-
--- data Acts
---  = ActRW Int Act   -- ^ actions can be chained (RW means read/write) 
---  | ActRO Act   -- ^ idempotent(ish) actions don't need immediate repetition (RO means read-in only) .
-
--- acts = 'acts
---  <=> ActRW <$> (number-?-1) <*> actRW
---  <|> ActRO <$> actRO
-
--- actRO = 'actRO <=> empty -- TODO
-
--- actRW = 'actRW <=> empty
---  <|> act
 
 click = 'click <=> empty
  <|> Click <$> (times-?-Single) <*> (button-?-LeftButton) <* "click"

@@ -6,9 +6,10 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root.Run where 
+import           Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Types 
 import           Commands.Plugins.Spiros.Root.Types 
-import           Commands.Plugins.Spiros.Extra
+import           Commands.Plugins.Spiros.Act
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros (rankMacro, runMacro) 
 import           Commands.Plugins.Spiros.Phrase
@@ -44,17 +45,6 @@ rankRoot = \case
  Dictation_ _d       -> highRank + 0
  Phrase_    p        -> rankPhrase p
 
-rankActs = \case
- ActsRW _i a -> rankAct a
-
-rankAct = \case
- KeyRiff_ _kr -> highRank
- -- TODOClick_ _c    -> defaultRank
- Edit_ e      -> defaultRank + rankEdit e
- Move_ m     -> defaultRank + rankMove m
-
-
-
 -- ================================================================ --
 
 runRoots :: SpirosContext -> Roots -> SpirosMonad_ -- TODO access context from within the SpirosMonad_
@@ -79,15 +69,6 @@ contextualDelay = \case
  EmacsContext -> emacsDelay
  ChromeContext -> browserDelay
  _                     -> defaultDelay
-
-runActs context = \case
- ActsRW n a -> runRepeat emacsDelay n (runAct context a)
-
-runAct context = \case
- KeyRiff_ kr -> sendKeySequence kr
- --TODO Click_ _c   -> nothing
- Edit_ a     -> whenJust (context ^? _EmacsContext) $ editEmacs a
- Move_ a     -> whenJust (context ^? _EmacsContext) $ moveEmacs a
 
 -- | 
 runPhraseByClipboard _context p = do

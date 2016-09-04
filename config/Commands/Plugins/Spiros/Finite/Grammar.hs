@@ -12,16 +12,33 @@ a finite grammar can be "un-associated" into a "vocabulary" (i.e. list of phrase
 -}
 module Commands.Plugins.Spiros.Finite.Grammar where
 
-import Commands.Plugins.Spiros.Extra
-import Commands.Plugins.Spiros.Edit.Types
+import Commands.Plugins.Spiros.Extra()
+import Commands.Plugins.Spiros.Finite.Types
+import Commands.Plugins.Spiros.Edit -- .Grammar
 
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative
 
-finite = 'finite <=> empty
+
+finite = 'finite <=>
+ Finite <$> multiple <*> finite0
+
+finite0 = 'finite0 <=> empty
+ <|> Edit0    <$> edit
+ <|> Move0    <$> move
+-- <|> act -- {keyriff}'s implentation is infinite, but actually it's finite (the powerset of the modifiers is only like 2^5)
+
+multiple = 'multiple <=>
+ [ "two"-: 2
+ , "three"-: 3
+ , "four"-: 4
+ , "five"-: 5
+ ]
 
 {-
+
+Infinite imports finite?
 
 Move
 Edit

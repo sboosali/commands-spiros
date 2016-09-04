@@ -12,7 +12,7 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 
 
-keyriff :: R KeyRiff
+keyriff :: R KeyRiff -- TODO re name to key sequence
 keyriff = 'keyriff
  <=> (keychord-++)
 

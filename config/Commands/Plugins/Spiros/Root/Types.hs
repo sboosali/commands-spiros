@@ -1,16 +1,14 @@
 {-# LANGUAGE DeriveAnyClass, StandaloneDeriving, LambdaCase #-}
 module Commands.Plugins.Spiros.Root.Types where
 import           Commands.Plugins.Spiros.Extra.Types 
-import           Commands.Plugins.Spiros.Emacs.Types 
+import           Commands.Plugins.Spiros.Act.Types 
 import           Commands.Plugins.Spiros.Macros.Types 
+import           Commands.Plugins.Spiros.Emacs.Types 
 import           Commands.Plugins.Spiros.Shell.Types 
-import           Commands.Plugins.Spiros.Edit.Types 
 import           Commands.Plugins.Spiros.Shortcut.Types 
 import           Commands.Plugins.Spiros.Phrase.Types 
 
-import Commands.Backends.Workflow (KeySequence) 
-
-import Control.DeepSeq (NFData(..), deepseq) 
+import Control.DeepSeq (NFData(..), deepseq)
 
 
 data Roots
@@ -39,17 +37,6 @@ data Root
  | Phrase_     Phrase        -- ^ 
  -- TODO | Click_ Click
  deriving (Show,Eq,Ord,Generic,Data,NFData)  -- TODO no instance for ,Generic,Data, because Macro is a GADT 
-
-data Acts
- = ActsRW Int Act   -- ^ read/write actions
- deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
-
-data Act
- = KeyRiff_ KeySequence
- --TODO | Click_ Click
- | Edit_ Edit
- | Move_ Move
- deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 
 data Click = Click Times Button deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
 

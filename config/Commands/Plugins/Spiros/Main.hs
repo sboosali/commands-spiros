@@ -14,7 +14,7 @@ stack build && stack exec -- spiros-server parse three up line beg line two del 
 -}
 module Commands.Plugins.Spiros.Main where 
 import Commands.Plugins.Spiros.Server 
-import Commands.Plugins.Spiros.Finite 
+import Commands.Plugins.Spiros.Finite.Example
 
 import System.Environment (getArgs)
 

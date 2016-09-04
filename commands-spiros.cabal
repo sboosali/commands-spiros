@@ -56,7 +56,6 @@ library
                     Commands.Plugins.Spiros.Main
 
                     Commands.Plugins.Spiros.Apply
-                    Commands.Plugins.Spiros.Finite
                     Commands.Plugins.Spiros.Digit
 
                     Commands.Plugins.Spiros.Server
@@ -86,7 +85,17 @@ library
                     Commands.Plugins.Spiros.Root.Types
                     Commands.Plugins.Spiros.Root.Run
 
+                      --TODO
+                    Commands.Plugins.Spiros.Finite
+                    Commands.Plugins.Spiros.Finite.Types
                     Commands.Plugins.Spiros.Finite.Grammar
+                    Commands.Plugins.Spiros.Finite.Execute
+                    Commands.Plugins.Spiros.Finite.Example
+
+                    Commands.Plugins.Spiros.Act
+                    Commands.Plugins.Spiros.Act.Types
+                    Commands.Plugins.Spiros.Act.Grammar
+                    Commands.Plugins.Spiros.Act.Execute
 
                     Commands.Plugins.Spiros.Macros
                     Commands.Plugins.Spiros.Macros.Types

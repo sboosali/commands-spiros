@@ -138,6 +138,9 @@ spirosInterpreterSettings = InterpreterSettings{..}
  iExecute = getSpirosMonad >>> W.runWorkflowT def{W.osxStepDelay = fromIntegral workflowDelay}
  -- iExecute = W.runWorkflowWithDelay 5 
  iRanking = rankRoots
+
+
+ 
  iMagic   = spirosMagic 
 
 spirosBackend = VBackend{..}    -- TODO rm  
