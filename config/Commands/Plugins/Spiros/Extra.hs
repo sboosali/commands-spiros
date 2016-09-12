@@ -3,45 +3,45 @@
 module Commands.Plugins.Spiros.Extra
  ( module Commands.Plugins.Spiros.Extra
  , module X
- 
- , module Commands.Plugins.Spiros.Extra.Types 
- , module Commands.Plugins.Spiros.Rank 
+
+ , module Commands.Plugins.Spiros.Extra.Types
+ , module Commands.Plugins.Spiros.Rank
  , module Commands.Extra
  , module Data.Semigroup
  ) where
 
 import Commands.Plugins.Spiros.Types
-import Commands.Plugins.Spiros.Extra.Types 
-import Commands.Plugins.Spiros.Rank 
+import Commands.Plugins.Spiros.Extra.Types
+import Commands.Plugins.Spiros.Rank
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.Workflow
-import           Commands.Extra -- for reexport 
+import           Commands.Extra -- for reexport
 
 import qualified System.FilePath.Posix as FilePath
-import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec) 
+import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec)
 import Language.Python.Common.Token
 import Language.Python.Common.SrcLocation
 import Language.Python.Common.ParseError
 import qualified Data.Text.Lazy                as T
-import Data.Text.Lazy (Text) 
-import           Control.Lens(imap)  
+import Data.Text.Lazy (Text)
+import           Control.Lens(imap)
 import Data.Semigroup ((<>))
 import Data.Default as X
 
 import Data.Foldable
 import qualified Data.List as List
-import System.Exit(ExitCode(..)) 
+import System.Exit(ExitCode(..))
 import           GHC.Exts                        (IsString)
-import Text.Printf (printf) 
+import Text.Printf (printf)
 import System.IO
-import System.Process 
-import Control.Concurrent (ThreadId, threadDelay, forkIO) 
-import Control.Monad (forever) 
+import System.Process
+import Control.Concurrent (ThreadId, threadDelay, forkIO)
+import Control.Monad (forever)
 import Data.Function as X
 --import Numeric.Natural
 
-type Desugaring a = a -> SpirosMonad_ -- TODO 
+type Desugaring a = a -> SpirosMonad_ -- TODO
 
 -- ================================================================ --
 
@@ -49,23 +49,23 @@ nothing :: (Monad m) => m ()
 nothing = return ()
 
 whenJust :: (Monad m) => Maybe a -> (m () -> m ())
-whenJust condition_ action_ = ifJust condition_ action_ nothing 
+whenJust condition_ action_ = ifJust condition_ action_ nothing
 
 ifJust :: (Monad m) => Maybe b -> m a -> m a -> m a
 ifJust condition_ actionTrue_ actionFalse_ = maybe (actionFalse_) (const actionTrue_) condition_
 
 -- ================================================================ --
 
-type Worker = (Int, IO())          -- TODO 
+type Worker = (Int, IO())          -- TODO
 
-forkWorker :: Worker -> IO ThreadId 
+forkWorker :: Worker -> IO ThreadId
 forkWorker = forkIO . forever . runWorker
 
-runWorker :: Worker -> IO () 
-runWorker (_delay, _action) = _action >> threadDelay _delay 
+runWorker :: Worker -> IO ()
+runWorker (_delay, _action) = _action >> threadDelay _delay
 
 -- ================================================================ --
--- debugging 
+-- debugging
 
 -- import           Commands.Frontends.Dragon13
 -- import           Commands.Plugins.Example.Spacing
@@ -119,7 +119,7 @@ runWorker (_delay, _action) = _action >> threadDelay _delay
 
 -- ================================================================ --
 
-{- | returns the digits that make up a number in some base, most-significant digit first. 
+{- | returns the digits that make up a number in some base, most-significant digit first.
 
 >>> toDigits 10 9
 [9]
@@ -127,7 +127,7 @@ runWorker (_delay, _action) = _action >> threadDelay _delay
 >>> toDigits 10 1234
 [1,2,3,4]
 
-assumes nonnegative input, but still is total. 
+assumes nonnegative input, but still is total.
 
 prop> \(Positive k) n -> ('fromDigits' k . toDigits k) n == n
 
@@ -137,7 +137,7 @@ toDigits base = reverse . List.unfoldr go
  where
  go n = if n < 1 then Nothing else Just ((n `mod` base), (n `div` base))
 
-{- | returns the digits that make up a number in some base, most-significant digit first. 
+{- | returns the digits that make up a number in some base, most-significant digit first.
 
 >>> fromDigits 10 [1,2,3,4]
 1234
@@ -157,11 +157,11 @@ safeAverage :: Foldable t => t Int -> Int
 safeAverage (toList -> []) = 0
 safeAverage xs = sum xs `div` length xs
 
--- slot :: MonadWorkflow m => String -> m () 
+-- slot :: MonadWorkflow m => String -> m ()
 slot s = do
  delay 10
  sendText s
- press "<ret>" 
+ press "<ret>"
 
 isDefaultBrowser :: MonadWorkflow m => m (Maybe String)
 isDefaultBrowser = currentApplication >>= \case
@@ -175,7 +175,7 @@ isBrowser x = if FilePath.takeBaseName x `elem` ["Firefox", "Chrome"]
 defaultDelay = 100 :: Int
 
 chromeDelay = 250 :: Int                 -- milliseconds
- -- in chrome, keypresses are lost when the delay isnt long enough 
+ -- in chrome, keypresses are lost when the delay isnt long enough
 
 browserDelay = chromeDelay
 
@@ -188,109 +188,109 @@ runRepeat delay_ times_
 
 -- used when sendText is too slow/laggy
 -- insertByClipboard :: String -> AMonadAction_
--- insertByClipboard :: MonadWorkflow m => String -> m () 
+-- insertByClipboard :: MonadWorkflow m => String -> m ()
 insertByClipboard s = do
  setClipboard s
  presspaste
 
--- presspaste :: MonadWorkflow m => m () 
+-- presspaste :: MonadWorkflow m => m ()
 presspaste = press "M-v"
 
--- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.  
+-- runs the action, then restores the previous clipboard contents. dictation still pollutes clipboard history, but the most recent "manual" clipboard contents should be preserved.
 -- benign race condition, as no lock is kept on the system clipboard
 restoringClipboard :: Workflow a -> Workflow a
 restoringClipboard m = do
  contents <- getClipboard
  x <- m
- delay 100 -- otherwise, e.g. the old clipboard contents are reset before the temporary clipboard contents are paste TODO call Haskell from Objective-C on callback? 
+ delay 100 -- otherwise, e.g. the old clipboard contents are reset before the temporary clipboard contents are paste TODO call Haskell from Objective-C on callback?
  setClipboard contents
  return x
 
-diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer 
+diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer
 diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
 
-either2maybe :: Either e a -> Maybe a 
-either2maybe = either (const Nothing) Just 
+either2maybe :: Either e a -> Maybe a
+either2maybe = either (const Nothing) Just
 
 either2bool :: Either e a -> Bool
-either2bool = either (const False) (const True) 
+either2bool = either (const False) (const True)
 
-bool2exitcode :: Bool -> ExitCode 
+bool2exitcode :: Bool -> ExitCode
 bool2exitcode False = ExitFailure 1
-bool2exitcode True  = ExitSuccess 
+bool2exitcode True  = ExitSuccess
 
 {-| a type that supports string interpolation.
 
-i.e. supports string literals (via 'IsString') and can be appended (via 'Monoid'). 
+i.e. supports string literals (via 'IsString') and can be appended (via 'Monoid').
 
-uses @ConstraintKinds@. 
-  
+uses @ConstraintKinds@.
+
 -}
 type CanInterpolate t = (IsString t, Monoid t)
 
-padNumber :: Integral a => Int -> a -> String 
-padNumber padding n = printf ("%0." ++ show padding ++ "d") (toInteger n) 
+padNumber :: Integral a => Int -> a -> String
+padNumber padding n = printf ("%0." ++ show padding ++ "d") (toInteger n)
 
-leftAppendLineNumbers :: Text -> (Int,Int,Text) 
+leftAppendLineNumbers :: Text -> (Int,Int,Text)
 leftAppendLineNumbers code = (marginWidth, countWidth, (T.unlines . imap go) allLines)
- where 
- go ((+1) -> lineNumber) oneLine = getLeftMargin lineNumber <> oneLine 
- marginWidth = (fromInteger . toInteger . T.length) (getLeftMargin (0::Integer))  -- assumes the length is constant 
+ where
+ go ((+1) -> lineNumber) oneLine = getLeftMargin lineNumber <> oneLine
+ marginWidth = (fromInteger . toInteger . T.length) (getLeftMargin (0::Integer))  -- assumes the length is constant
  getLeftMargin lineNumber = "[" <> T.pack (padNumber countWidth lineNumber) <> "]"
  countWidth = length (show lineCount)
- lineCount = length allLines 
+ lineCount = length allLines
  allLines = T.lines code
 
 getPythonErrorSpan :: ParseError -> (Int,Int)
-getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span 
- where 
+getPythonErrorSpan = maybe (1,1) id . go -- TODO default error span
+ where
 
  go = \case
-  UnexpectedToken (token_span -> theSpan) -> fromSourceSpan theSpan 
-  UnexpectedChar _ location -> fromSourceLocation location 
+  UnexpectedToken (token_span -> theSpan) -> fromSourceSpan theSpan
+  UnexpectedChar _ location -> fromSourceLocation location
   _ -> Nothing
 
  fromSourceSpan = \case
-  SpanCoLinear{ span_row, span_start_column } -> Just (span_row, span_start_column) 
-  SpanMultiLine{ span_start_row, span_start_column } -> Just (span_start_row, span_start_column) 
-  SpanPoint{ span_row, span_column } -> Just (span_row, span_column) 
+  SpanCoLinear{ span_row, span_start_column } -> Just (span_row, span_start_column)
+  SpanMultiLine{ span_start_row, span_start_column } -> Just (span_start_row, span_start_column)
+  SpanPoint{ span_row, span_column } -> Just (span_row, span_column)
   _ -> Nothing
 
  fromSourceLocation = \case
-  Sloc{ sloc_row, sloc_column } -> Just (sloc_row, sloc_column) 
-  _ -> Nothing 
+  Sloc{ sloc_row, sloc_column } -> Just (sloc_row, sloc_column)
+  _ -> Nothing
 
-showWords :: [Text] -> String 
+showWords :: [Text] -> String
 showWords = T.unpack . T.intercalate (T.pack " ")
 
 printMessage :: [String] -> IO ()
 printMessage = putStrLn . List.intercalate "\n"
 
 index :: (Integral n, Num n) => [a] -> n -> Maybe a
-index [] _ = Nothing 
+index [] _ = Nothing
 index (x:xs) n
  | n == 0    = Just x
- | n < 0     = Nothing 
+ | n < 0     = Nothing
  | otherwise = index xs (n-1)
 
 prompt :: String -> IO String
 prompt s = do
-    putStr s 
+    putStr s
     hFlush stdout
     getLine
 
 type Vocab a = [(String, a)]
 
-vocabWith :: (IsString t, Show t, Functor'RHS n t f) => (a->b) -> Vocab a -> RHS n t f b 
-vocabWith f = vocab . fmap (fmap f) 
+vocabWith :: (IsString t, Show t, Functor'RHS n t f) => (a->b) -> Vocab a -> RHS n t f b
+vocabWith f = vocab . fmap (fmap f)
 
-strip :: String -> String 
+strip :: String -> String
 strip = rstrip . lstrip
  where
  lstrip = dropWhile (`elem` (" \t\n\r"::String))
  rstrip = reverse . lstrip . reverse
 
-{-| inputs milliseconds, outputs microseconds (which can be given to threadDelay).   
+{-| inputs milliseconds, outputs microseconds (which can be given to threadDelay).
 
 >>> milliseconds 10
 10000
@@ -299,28 +299,28 @@ strip = rstrip . lstrip
 milliseconds :: Int -> Int
 milliseconds = (*1000)
 
-{-| inputs seconds, outputs microseconds (which can be given to threadDelay).   
+{-| inputs seconds, outputs microseconds (which can be given to threadDelay).
 
 >>> seconds 1
 1000000
 
 -}
 seconds :: Int -> Int
-seconds = (*1000000) 
+seconds = (*1000000)
 
-{-| 
+{-|
 
 -}
-readCommand aCommand someArguments = do 
- (exitCode, standardInput, standardError) <- readProcessWithExitCode aCommand someArguments "" 
+readCommand aCommand someArguments = do
+ (exitCode, standardInput, standardError) <- readProcessWithExitCode aCommand someArguments ""
  return (exitCode, lines standardInput, lines standardError)
 
-readSpirosContext :: String -> SpirosContext 
-readSpirosContext = \case 
- (isEmacsApp -> Just{}) -> EmacsContext 
- "Google Chrome" -> ChromeContext 
- "IntelliJ" -> IntelliJContext 
- _ -> GlobalContext 
+readSpirosContext :: String -> SpirosContext
+readSpirosContext = \case
+ (isEmacsApp -> Just{}) -> EmacsContext
+ "Google Chrome" -> ChromeContext
+ "IntelliJ" -> IntelliJContext
+ _ -> GlobalContext
 
 isEmacsApp :: FilePath -> Maybe FilePath
 isEmacsApp fp = if FilePath.takeBaseName fp `elem` ["Emacs","Work","Notes","Diary","Obs","Commands"]
@@ -347,11 +347,11 @@ withDelay :: (MonadWorkflow m) => Int -> [m ()] -> m ()
 withDelay t = sequence_ . List.intersperse (delay t)
 
 -- ================================================================ --
--- comapt 
+-- comapt
 
--- | my runWorkflow
-runWorkflow' :: WorkflowT IO a -> IO a
-runWorkflow' = runWorkflowT def
+--TODO -- | my runWorkflow
+-- runWorkflow' :: WorkflowT IO a -> IO a
+-- runWorkflow' = runWorkflowT def
 
 {- old
 

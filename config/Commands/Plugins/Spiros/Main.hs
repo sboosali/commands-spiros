@@ -12,24 +12,24 @@ stack build && stack exec -- spiros-server parse three up line beg line two del 
 @
 
 -}
-module Commands.Plugins.Spiros.Main where 
-import Commands.Plugins.Spiros.Server 
-import Commands.Plugins.Spiros.Finite.Example
+module Commands.Plugins.Spiros.Main where
+-- import Commands.Plugins.Spiros.Server
+--TODO import Commands.Plugins.Spiros.Finite.Example
 
 import System.Environment (getArgs)
 
 main = mainWith =<< getArgs
 
-mainWith = \case
+mainWith = \case --TODO
+ --
+ -- [] -> spirosServer
+ --
+ -- ["test"] -> spirosTest
+ --
+ -- -- ["finite"] -> printFinite
+ --
+ -- ["derive"] -> printClick
+ --
+ -- ("parse" : ws) -> parseMain ws
 
- [] -> spirosServer
-
- ["test"] -> spirosTest
-
- ["finite"] -> printFinite
-
- ["derive"] -> printClick
-
- ("parse" : ws) -> parseMain ws
-
- _ -> return() 
+ _ -> return()

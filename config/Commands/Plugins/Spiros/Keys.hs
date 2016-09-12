@@ -3,7 +3,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Keys where
-import Commands.Plugins.Spiros.Extra 
+import Commands.Plugins.Spiros.Extra
 import           Commands.Plugins.Spiros.Phrase (character)
 
 import Commands.Backends.Workflow as W
@@ -12,20 +12,21 @@ import           Commands.Mixins.DNS13OSX9
 import           Control.Applicative
 
 
-keyriff :: R KeyRiff -- TODO re name to key sequence
+keyriff :: R KeySequence  -- TODO re name to key sequence
 keyriff = 'keyriff
  <=> (keychord-++)
 
 -- | the terminals in key and modifier should be disjoint; otherwise, there is ambiguity.
 keychord :: R KeyChord
 keychord = 'keychord
- <=> moveShift <$ "press" <*> (modifier-*)  <*> key      -- zero or more modifiers (prefixed) 
- <|> moveShift <$>            (modifier-++) <*> key      -- one or more modifiers (not prefixed) 
+ <=> moveShift <$ "press" <*> (modifier-*)  <*> key      -- zero or more modifiers (prefixed)
+ <|> moveShift <$>            (modifier-++) <*> key      -- one or more modifiers (not prefixed)
  where
  moveShift ms (ms', k) = KeyChord (ms ++ ms') k
 
 modifier = 'modifier
- <=> "met"   $> CommandModifier
+ <=> "met"   $> MetaModifier
+--TODO <|> ""   $> HyperModifier
  <|> "con"   $> ControlModifier
  <|> "shift" $> ShiftModifier
  <|> "alt"   $> OptionModifier
@@ -77,7 +78,7 @@ key = 'key
  <|> "F20" $> KeyChord [] F20Key
 
 -- -- functionKey = empty
---  <|> "eff one" $> KeyChord [] F1Key  -- TODO can DNS vocabularies handle strings with multiple tokens? YES 
+--  <|> "eff one" $> KeyChord [] F1Key  -- TODO can DNS vocabularies handle strings with multiple tokens? YES
 --  <|> "eff two" $> KeyChord [] F2Key
 --  <|> "eff three" $> KeyChord [] F3Key
 --  <|> "eff four" $> KeyChord [] F4Key
@@ -137,4 +138,3 @@ dictOrdinalDigit = fmap (fmap Ordinal)
 -- Keypress [Meta] CKey
 --  OR
 -- kbd "M-c"
-

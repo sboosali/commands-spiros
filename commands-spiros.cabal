@@ -33,15 +33,30 @@ library
 
     hs-source-dirs: config
 
-    if os(darwin)
-        hs-source-dirs: config-osx
-        exposed-modules:
-                        Commands.Backends.Workflow
+    -- if os(darwin)
+    --     hs-source-dirs: config-osx
+    --     exposed-modules:
+    --                     Commands.Backends.Workflow
+    --     build-depends:
+    --                     workflow-osx
+    --
+    -- if os(windows)
+    --     hs-source-dirs: config-windows
+    --     exposed-modules:
+    --                     Commands.Backends.Workflow
+    --     build-depends:
+    --                     workflow-windows
 
-    if os(windows)
-        hs-source-dirs: config-windows
-        exposed-modules:
-                        Commands.Backends.Workflow
+
+--     ghc.exe: C:\Users\Maria\speech\commands-spiros\.stack-work\install\12018b8a\lib\x86_64-windows-ghc-7.10.3\workflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh\HSworkflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh.o: unknown symbol `__imp_LookupPrivilegeValueW'
+        --
+        -- includes:         native/CommandsSpiros.h
+        -- install-includes: native/CommandsSpiros.h
+        -- include-dirs:     native
+        --
+        -- ghc-options: -D_UNICODE -DUNICODE
+        -- cc-options: -D_UNICODE -DUNICODE
+        -- cpp-options: -D_UNICODE -DUNICODE
 
     exposed-modules:
                     Commands.Plugins.Spiros
@@ -58,26 +73,9 @@ library
                     Commands.Plugins.Spiros.Apply
                     Commands.Plugins.Spiros.Digit
 
-                    Commands.Plugins.Spiros.Server
-                    Commands.Plugins.Spiros.Server.Types
-                    Commands.Plugins.Spiros.Server.Workflow
-                    Commands.Plugins.Spiros.Server.Settings
-                    Commands.Plugins.Spiros.Server.QQ
-
-                    Commands.Plugins.Spiros.Correct
-                    Commands.Plugins.Spiros.Correct.Grammar
-
-                    Commands.Plugins.Spiros.Shim
-                    Commands.Plugins.Spiros.Shim.API
-                    Commands.Plugins.Spiros.Shim.QQ
-
                     Commands.Plugins.Spiros.Template
                     Commands.Plugins.Spiros.Template.Types
                     Commands.Plugins.Spiros.Template.QQ
-
-                    Commands.Plugins.Spiros.Windows
-                    Commands.Plugins.Spiros.Windows.Types
-                    Commands.Plugins.Spiros.Windows.QQ
 
                               -- grammars
 
@@ -87,10 +85,10 @@ library
 
                       --TODO
                     Commands.Plugins.Spiros.Finite
-                    Commands.Plugins.Spiros.Finite.Types
-                    Commands.Plugins.Spiros.Finite.Grammar
-                    Commands.Plugins.Spiros.Finite.Execute
-                    Commands.Plugins.Spiros.Finite.Example
+                    -- Commands.Plugins.Spiros.Finite.Types
+                    -- Commands.Plugins.Spiros.Finite.Grammar
+                    -- Commands.Plugins.Spiros.Finite.Execute
+                    -- Commands.Plugins.Spiros.Finite.Example
 
                     Commands.Plugins.Spiros.Act
                     Commands.Plugins.Spiros.Act.Types
@@ -130,7 +128,6 @@ library
                     Commands.Plugins.Spiros.IntelliJ.Grammar
                     Commands.Plugins.Spiros.IntelliJ.Run
 
-
                               -- etc
 
                     Commands.Plugins.Spiros.Apply.Types
@@ -139,18 +136,21 @@ library
                     Commands.Plugins.Spiros.Emacs.Types
 
                     Commands.Plugins.Spiros.Macros.Extra
+
                     Commands.Plugins.Spiros.Module
+
                     Commands.Plugins.Spiros.Password
+
                     Commands.Plugins.Spiros.Rank
+
                     Commands.Plugins.Spiros.Shell.Grammar
                     Commands.Plugins.Spiros.Shell.Run
                     Commands.Plugins.Spiros.Shell.Types
+
                     Commands.Plugins.Spiros.Sustain
-                    Commands.Servers.Servant
-                    Commands.Servers.Servant.API
-                    Commands.Servers.Servant.API.Types
-                    Commands.Servers.Servant.Types
-                    Commands.Servers.Servant.V
+
+                    --TODO
+                    Commands.Backends.Workflow
 
     build-depends:
 
@@ -160,7 +160,6 @@ library
                   workflow-types ==0.0.0,
                   workflow-pure ==0.0.0,
                   workflow-extra ==0.0.0,
-                  workflow-osx ==0.0.1,
 
                   s-expression ==0.0.0,
                   enumerate ==0.2.1,
@@ -174,7 +173,7 @@ library
                   containers,
                   mtl,
                   wl-pprint-text,
-                  Earley ==0.10.1.0,
+                  Earley,
                   text,
                   semigroups,
                   lens,
@@ -190,9 +189,7 @@ library
                   clock,
                   template-haskell ==2.10.*,
                   time,
-                  stm ==2.4.*,
                   deepseq == 1.4.*,
-                  haskeline,
                   ghc-prim==0.4.*,
                   data-default,
 
@@ -201,11 +198,7 @@ library
                   warp,
                   vinyl,
 
-        -- shared with command-spiros
                   aeson,
-                  servant-client ==0.4.*,
-                  servant-server ==0.4.*,
-                  servant        ==0.4.*,
 
         -- ekmett
                   free,
@@ -215,7 +208,7 @@ library
 
     default-language: Haskell2010
     default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable
-    ghc-options: -Wall 
+    ghc-options: -Wall
 
 
 executable spiros-server
@@ -224,7 +217,6 @@ executable spiros-server
     build-depends:  base >=4.8 && <5.0, commands-spiros
 
     default-language: Haskell2010
-    ghc-options: 
-     -threaded 
-     -Wall 
-
+    ghc-options:
+     -threaded
+     -Wall
