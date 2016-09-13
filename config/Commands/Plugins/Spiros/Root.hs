@@ -19,7 +19,7 @@ import           Commands.Plugins.Spiros.Macros
 import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Phrase
 -- import           Commands.Plugins.Spiros.Correct.Grammar
-import           Commands.Plugins.Spiros.Digit
+import           Commands.Plugins.Spiros.Digit.Grammar
 import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Plugins.Spiros.Shell
 import           Commands.Plugins.Spiros.Edit
@@ -27,6 +27,7 @@ import  Commands.Plugins.Spiros.Keys
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Parsers.Earley              (EarleyParser(..))
+import Digit
 
 import           Control.Applicative
 import           GHC.Exts                        (IsString(..))

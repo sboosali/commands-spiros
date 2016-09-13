@@ -346,6 +346,16 @@ withDelay 30                 -- milliseconds
 withDelay :: (MonadWorkflow m) => Int -> [m ()] -> m ()
 withDelay t = sequence_ . List.intersperse (delay t)
 
+-- | The constructors of a (zero-based) Enum.
+--
+-- >>> constructors :: [Bool]
+-- [False,True]
+--
+-- (Bounded Constraint elided for convenience; doesn't terminate on un@Bounded@ @Enum@erations)
+--
+constructors :: (Enum a) => [a]
+constructors = enumFrom (toEnum 0)
+
 -- ================================================================ --
 -- comapt
 

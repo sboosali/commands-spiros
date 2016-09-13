@@ -2,7 +2,11 @@ resolver: lts-6.1
 
 packages:
 - .
+- ../spiros
+
 - ../commands-core
+- ../commands-frontend-DragonNaturallySpeaking
+- ../commands-server-types
 
 - ../workflow-types
 - ../workflow-pure
@@ -15,10 +19,12 @@ packages:
 - ../derive-monoid
 - ../s-expression
 
-- ../spiros
-
 extra-deps:
+- spiros-0.0.0
+
 - commands-core-0.0.0
+- commands-frontend-DragonNaturallySpeaking-0.0.0
+- commands-server-types-0.0.0
 
 - workflow-pure-0.0.0
 - workflow-extra-0.0.0
@@ -28,8 +34,6 @@ extra-deps:
 - enumerate-0.2.1
 - derive-monoid-0.0.0
 - s-expression-0.0.0
-
-- spiros-0.0.0
 
 - language-python-0.5.2
 - c-storable-deriving-0.1.3
