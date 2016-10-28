@@ -56,14 +56,6 @@ ifJust condition_ actionTrue_ actionFalse_ = maybe (actionFalse_) (const actionT
 
 -- ================================================================ --
 
-type Worker = (Int, IO())          -- TODO
-
-forkWorker :: Worker -> IO ThreadId
-forkWorker = forkIO . forever . runWorker
-
-runWorker :: Worker -> IO ()
-runWorker (_delay, _action) = _action >> threadDelay _delay
-
 -- ================================================================ --
 -- debugging
 

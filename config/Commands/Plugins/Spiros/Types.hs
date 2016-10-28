@@ -13,6 +13,8 @@ import Data.Text.Lazy (Text)
 
 import Control.Monad.IO.Class (MonadIO)
 
+import Prelude.Spiros (Default(..))
+
 
 -- type SpirosConfig      = Server.VConfig SpirosBackend SpirosContext
 -- TODO
@@ -51,6 +53,7 @@ data SpirosContext
  | IntelliJContext
  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 instance NFData SpirosContext
+instance Default SpirosContext where def = Default
 
 makePrisms ''SpirosContext
 
