@@ -53,7 +53,7 @@ data SpirosContext
  | IntelliJContext
  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 instance NFData SpirosContext
-instance Default SpirosContext where def = Default
+instance Default SpirosContext where def = GlobalContext
 
 makePrisms ''SpirosContext
 

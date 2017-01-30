@@ -3,7 +3,7 @@
 {-# LANGUAGE PatternSynonyms, PostfixOperators, RankNTypes, RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables, TemplateHaskell, OverloadedStrings, TupleSections            #-}
 {-# LANGUAGE ViewPatterns                                                   #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing -fno-warn-missing-pattern-synonym-signatures #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Root
  ( module Commands.Plugins.Spiros.Root

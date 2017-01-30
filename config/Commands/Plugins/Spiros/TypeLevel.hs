@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies, ConstraintKinds, DataKinds, KindSignatures #-}
 
 module Commands.Plugins.Spiros.TypeLevel where
-import GHC.Prim (Constraint)
+import Data.Kind (Constraint)
 
 
 {-| the type has satisfies constraint in the (type-level) list.

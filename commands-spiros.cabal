@@ -163,6 +163,7 @@ library
                   commands-core ==0.0.0,
                   commands-frontend-DragonNaturallySpeaking ==0.0.0,
                   commands-server-types ==0.0.0,
+                  commands-server-simple ==0.0.0,
 
                   workflow-types ==0.0.0,
                   workflow-pure ==0.0.0,
@@ -172,10 +173,10 @@ library
                   enumerate ==0.2.1,
 
         -- extra-deps:
-                  language-python ==0.5.*,
+                  language-python >=0.5,
 
         -- on stack
-                  haskell-src-meta ==0.6.*,
+                  haskell-src-meta >=0.6,
                   process >= 1.2.3.0,
                   containers,
                   mtl,
@@ -191,13 +192,13 @@ library
                   bytestring,
                   transformers,
                   filepath,
-                  interpolatedstring-perl6 ==1.*,
+                  interpolatedstring-perl6 >=1,
                   split,
                   clock,
-                  template-haskell ==2.10.*,
+                  template-haskell >=2.10,
                   time,
-                  deepseq == 1.4.*,
-                  ghc-prim==0.4.*,
+                  deepseq >=1.4,
+                  ghc-prim >=0.4,
                   data-default,
 
         -- newer
