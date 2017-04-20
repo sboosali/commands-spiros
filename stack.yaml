@@ -1,8 +1,8 @@
-resolver: lts-7.14
-compiler: ghc-8.0
+resolver: nightly-2017-04-19 #lts-8.11
+compiler: ghc-8.0.2
 
 nix:
-  enable: true
+  # enable: true
   pure: true
   packages: [zlib]
   # shell-file: shell.nix
@@ -19,8 +19,10 @@ packages:
 - ../workflow-types
 - ../workflow-pure
 - ../workflow-extra
+
+# TODO these are platform specific
 # - ../workflow-osx
-# - ../workflow-windows
+- ../workflow-windows
 
 - ../reified-bindings
 - ../enumerate
@@ -47,5 +49,5 @@ extra-deps:
 - language-python-0.5.4
 - c-storable-deriving-0.1.3
 - string-conv-0.1.1
-- optparse-generic-1.1.1
+#- optparse-generic-0.13.2.0
 - recursion-schemes-5.0.1 #?

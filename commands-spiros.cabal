@@ -40,13 +40,13 @@ library
     --     build-depends:
     --                     workflow-osx
     --
-    -- if os(windows)
-    --     hs-source-dirs: config-windows
-    --     exposed-modules:
-    --                     Commands.Backends.Workflow
-    --     build-depends:
-    --                     workflow-windows
-    --
+    if os(windows)
+         hs-source-dirs: config-windows
+         exposed-modules:
+                         Commands.Backends.Workflow
+         build-depends:
+                         workflow-windows
+    
 
 --     ghc.exe: C:\Users\Maria\speech\commands-spiros\.stack-work\install\12018b8a\lib\x86_64-windows-ghc-7.10.3\workflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh\HSworkflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh.o: unknown symbol `__imp_LookupPrivilegeValueW'
         --
@@ -59,6 +59,8 @@ library
         -- cpp-options: -D_UNICODE -DUNICODE
 
     exposed-modules:
+                    Commands.Spiros.Server
+
                     Commands.Plugins.Spiros
 
                     Commands.Plugins.Spiros.Extra
@@ -153,7 +155,7 @@ library
                     Commands.Plugins.Spiros.Sustain
 
                     --TODO
-                    Commands.Backends.Workflow
+                    Commands.Backends.Workflow_
 
     build-depends:
 
@@ -219,7 +221,7 @@ library
     ghc-options: -Wall
 
 
-executable spiros-server
+executable commands-spiros-server
     main-is:        Main.hs
     hs-source-dirs: executables
     build-depends:  base >=4.8 && <5.0, commands-spiros

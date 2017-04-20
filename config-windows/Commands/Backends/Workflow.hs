@@ -2,10 +2,13 @@
 module Commands.Backends.Workflow
  ( module Workflow.Core
  , module Workflow.Derived
- , module Workflow.Windows
+ , module Workflow.Windows.Execute
  , module Control.Monad.Catch
+ , module Commands.Backends.Workflow
  ) where
 import Workflow.Core
 import Workflow.Derived
-import Workflow.Windows
+import Workflow.Windows.Execute
 import Control.Monad.Catch (MonadThrow)
+
+type ClipboardText = Clipboard --TODO
