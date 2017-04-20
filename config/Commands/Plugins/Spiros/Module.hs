@@ -6,7 +6,7 @@ module Commands.Plugins.Spiros.Module
  , module Commands.Plugins.Spiros.Types
  ) where
 import Commands.Plugins.Spiros.Types
-import Commands.Plugins.Spiros.Root.Types (Roots)
+import Commands.Plugins.Spiros.Root.Types (Root)
 
 import qualified Commands.Mixins.DNS13OSX9 as Dragon
 --TODO import qualified Commands.Servers.Servant as Server 
@@ -26,4 +26,4 @@ import qualified Commands.Mixins.DNS13OSX9 as Dragon
 
 type SpirosCommand     = Dragon.DNSEarleyCommand SpirosContext SpirosMonad_ SpirosType
 
-type SpirosType        = Roots
+type SpirosType        = Root -- or Roots

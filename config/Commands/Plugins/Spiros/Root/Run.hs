@@ -27,6 +27,8 @@ import Control.Lens((^?))
 
 bestRoots = argmax rankRoots
 
+bestRoot = argmax rankRoot
+
 rankRoots = \case                --TODO fold over every field of every case, normalizing each case
  Frozen _ r -> highRank + rankRoot r
  Ambiguous r -> highRank + rankRoot r
