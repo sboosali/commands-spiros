@@ -6,9 +6,14 @@ module Commands.Plugins.Spiros.Extra
 
  , module Commands.Plugins.Spiros.Extra.Types
  , module Commands.Plugins.Spiros.Rank
+
  , module Commands.Extra
- , module Data.Semigroup
+-- , module Prelude.Spiros
+
  ) where
+
+import           Commands.Extra hiding (insert) -- the module is a reexport
+-- Workflow.insert is used by the `.Run` modules
 
 import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.Extra.Types
@@ -16,10 +21,9 @@ import Commands.Plugins.Spiros.Rank
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.Workflow
-import           Commands.Extra -- for reexport
 
 import qualified System.FilePath.Posix as FilePath
-import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec)
+import System.Clock (TimeSpec,toNanoSecs,diffTimeSpec)
 import Language.Python.Common.Token
 import Language.Python.Common.SrcLocation
 import Language.Python.Common.ParseError
@@ -36,17 +40,15 @@ import           GHC.Exts                        (IsString)
 import Text.Printf (printf)
 import System.IO
 import System.Process
-import Control.Concurrent (ThreadId, threadDelay, forkIO)
-import Control.Monad (forever)
 import Data.Function as X
 --import Numeric.Natural
+
+--import Prelude.Spiros -- already reexported by commands.extra
+import Prelude(toEnum)
 
 type Desugaring a = a -> SpirosMonad_ -- TODO
 
 -- ================================================================ --
-
-nothing :: (Monad m) => m ()
-nothing = return ()
 
 whenJust :: (Monad m) => Maybe a -> (m () -> m ())
 whenJust condition_ action_ = ifJust condition_ action_ nothing
@@ -127,7 +129,7 @@ prop> \(Positive k) n -> ('fromDigits' k . toDigits k) n == n
 toDigits :: (Integral a) => a -> a -> [a]
 toDigits base = reverse . List.unfoldr go
  where
- go n = if n < 1 then Nothing else Just ((n `mod` base), (n `div` base))
+ go n = if n `lessThan` 1 then Nothing else Just ((n `mod` base), (n `div` base))
 
 {- | returns the digits that make up a number in some base, most-significant digit first.
 
@@ -199,26 +201,11 @@ restoringClipboard m = do
  return x
 
 diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer
-diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
-
-either2maybe :: Either e a -> Maybe a
-either2maybe = either (const Nothing) Just
-
-either2bool :: Either e a -> Bool
-either2bool = either (const False) (const True)
+diffTimeSpecAsMilliseconds x y = (toNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
 
 bool2exitcode :: Bool -> ExitCode
 bool2exitcode False = ExitFailure 1
 bool2exitcode True  = ExitSuccess
-
-{-| a type that supports string interpolation.
-
-i.e. supports string literals (via 'IsString') and can be appended (via 'Monoid').
-
-uses @ConstraintKinds@.
-
--}
-type CanInterpolate t = (IsString t, Monoid t)
 
 padNumber :: Integral a => Int -> a -> String
 padNumber padding n = printf ("%0." ++ show padding ++ "d") (toInteger n)
@@ -258,13 +245,6 @@ showWords = T.unpack . T.intercalate (T.pack " ")
 printMessage :: [String] -> IO ()
 printMessage = putStrLn . List.intercalate "\n"
 
-index :: (Integral n, Num n) => [a] -> n -> Maybe a
-index [] _ = Nothing
-index (x:xs) n
- | n == 0    = Just x
- | n < 0     = Nothing
- | otherwise = index xs (n-1)
-
 prompt :: String -> IO String
 prompt s = do
     putStr s
@@ -275,12 +255,6 @@ type Vocab a = [(String, a)]
 
 vocabWith :: (IsString t, Show t, Functor'RHS n t f) => (a->b) -> Vocab a -> RHS n t f b
 vocabWith f = vocab . fmap (fmap f)
-
-strip :: String -> String
-strip = rstrip . lstrip
- where
- lstrip = dropWhile (`elem` (" \t\n\r"::String))
- rstrip = reverse . lstrip . reverse
 
 {-| inputs milliseconds, outputs microseconds (which can be given to threadDelay).
 

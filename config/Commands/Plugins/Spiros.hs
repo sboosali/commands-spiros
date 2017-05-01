@@ -13,7 +13,7 @@ module Commands.Plugins.Spiros
  , module Commands.Plugins.Spiros.TypeLevel
  , module Commands.Plugins.Spiros.Main
  , module Commands.Plugins.Spiros.Apply
- , module Commands.Plugins.Spiros.Finite
+--, module Commands.Plugins.Spiros.Finite
  , module Commands.Plugins.Spiros.Digit.Grammar
  -- , module Commands.Plugins.Spiros.Correct
  -- , module Commands.Plugins.Spiros.Server
@@ -38,7 +38,7 @@ import Commands.Plugins.Spiros.Types
 import Commands.Plugins.Spiros.TypeLevel
 import Commands.Plugins.Spiros.Main
 import Commands.Plugins.Spiros.Apply
-import Commands.Plugins.Spiros.Finite
+-- import Commands.Plugins.Spiros.Finite
 import Commands.Plugins.Spiros.Digit.Grammar
 -- import Commands.Plugins.Spiros.Correct
 -- import Commands.Plugins.Spiros.Server

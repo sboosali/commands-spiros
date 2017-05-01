@@ -9,7 +9,7 @@ import           Commands.Plugins.Spiros.Phrase
 
 import           Commands.Mixins.DNS13OSX9
 
-import           Control.Applicative
+--import           Control.Applicative
 
 
 emacs = 'emacs <=> empty

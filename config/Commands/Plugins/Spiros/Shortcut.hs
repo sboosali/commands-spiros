@@ -8,8 +8,6 @@ import Commands.Plugins.Spiros.Chrome.Gmail
 import Commands.Extra
 import Commands.Mixins.DNS13OSX9
 
-import Control.Applicative
-
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
 myShortcuts :: R Shortcut 

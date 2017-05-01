@@ -6,8 +6,6 @@ import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
 
-import           Control.Applicative
-
 
 englishNumericRHS :: DNSEarleyRHS Char
 englishNumericRHS = vocab

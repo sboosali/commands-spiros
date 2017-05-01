@@ -14,7 +14,7 @@ import           Commands.Plugins.Spiros.Emacs
 import           Commands.Plugins.Spiros.Macros (rankMacro, runMacro) 
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Shell
-import           Commands.Plugins.Spiros.Edit
+-- import           Commands.Plugins.Spiros.Edit
 import           Commands.Plugins.Spiros.Shortcut.Types 
 
 import Commands.Backends.Workflow as W
@@ -26,6 +26,8 @@ import Control.Lens((^?))
 
 
 bestRoots = argmax rankRoots
+
+bestRoot = argmax rankRoot
 
 rankRoots = \case                --TODO fold over every field of every case, normalizing each case
  Frozen _ r -> highRank + rankRoot r

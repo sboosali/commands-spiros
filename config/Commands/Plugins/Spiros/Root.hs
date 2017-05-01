@@ -22,19 +22,18 @@ import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Digit.Grammar
 import           Commands.Plugins.Spiros.Shortcut
 import           Commands.Plugins.Spiros.Shell
-import           Commands.Plugins.Spiros.Edit
-import  Commands.Plugins.Spiros.Keys
+-- import           Commands.Plugins.Spiros.Edit
+-- import  Commands.Plugins.Spiros.Keys
 
 import           Commands.Mixins.DNS13OSX9
 import           Commands.Parsers.Earley              (EarleyParser(..))
 import Digit
 
-import           Control.Applicative
 import           GHC.Exts                        (IsString(..))
 
 --------------------------------------------------------------------------------
 
-rootsCommand :: SpirosCommand
+--rootsCommand :: SpirosCommand
 rootsCommand = Command{..}
  where
  _cRHS     = roots
@@ -43,8 +42,6 @@ rootsCommand = Command{..}
 
 rootsParser :: SpirosParser s r Roots
 rootsParser = EarleyParser (unsafeEarleyProd roots) bestRoots -- TODO rankRoots
-
---------------------------------------------------------------------------------
 
 roots :: R Roots
 roots = 'roots <=> empty
@@ -62,6 +59,15 @@ freezeRoot = 'freezeRoot <=> empty --TODO recursion
 
 pattern RootsAmbiguousPrefix = "explicate"
 pattern RootsFrozenPrefix    = "freeze"
+
+-------------------------------------------------
+
+rootCommand :: SpirosCommand
+rootCommand = Command{..}
+ where
+ _cRHS     = root
+ _cBest    = bestRoot
+ _cDesugar = runRoot
 
 root :: R Root
 root = 'root <=> empty

@@ -9,7 +9,7 @@ import           Commands.Plugins.Spiros.Phrase (character)
 import Commands.Backends.Workflow as W
 import           Commands.Mixins.DNS13OSX9
 
-import           Control.Applicative
+--import           Control.Applicative
 
 
 keyriff :: R KeySequence  -- TODO re name to key sequence

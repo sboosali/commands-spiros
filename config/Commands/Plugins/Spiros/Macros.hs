@@ -22,7 +22,6 @@ import  Commands.Plugins.Spiros.Template
 import Commands.Mixins.DNS13OSX9
 import Commands.Backends.Workflow as W
 
-import           Control.Applicative
 import qualified Data.List as List
 import Control.Monad (replicateM_)
 
