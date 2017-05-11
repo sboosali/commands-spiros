@@ -9,25 +9,24 @@ nix:
 
 packages:
 - .
-- ../spiros
 
 - ../commands-core
 - ../commands-frontend-DragonNaturallySpeaking
 - ../commands-server-types
 - ../commands-server-simple
 
-- ../workflow-types
-- ../workflow-pure
-- ../workflow-extra
+#- ../workflow-types
+#- ../workflow-pure
+#- ../workflow-extra
 
 # TODO these are platform specific
 # - ../workflow-osx
 - ../workflow-windows
 
 - ../reified-bindings
-- ../enumerate
-- ../derive-monoid
-- ../s-expression
+#- ../enumerate
+#- ../derive-monoid
+#- ../s-expression
 
 extra-deps:
 - spiros-0.0.0
@@ -37,13 +36,16 @@ extra-deps:
 - commands-server-types-0.0.0
 - commands-server-simple-0.0.0
 
-- workflow-pure-0.0.0
-- workflow-extra-0.0.0
+- workflow-types-0.0.1
+- workflow-pure-0.0.1
+- workflow-extra-0.0.1
+
+# TODO these are platform specific
 #- workflow-osx-0.0.1
 - workflow-windows-0.0.0
 
-- enumerate-0.2.1
-- derive-monoid-0.0.0
+- enumerate-0.2.2
+- derive-monoid-0.0.1
 - s-expression-0.0.0
 
 - language-python-0.5.4

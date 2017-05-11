@@ -1,10 +1,10 @@
 {-# LANGUAGE NoMonadComprehensions, LambdaCase, LiberalTypeSynonyms, RankNTypes, ExistentialQuantification, ViewPatterns  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-module Commands.Plugins.Spiros.Finite.Example where 
+module Commands.Plugins.Spiros.Finite.Example where
 import Commands.Plugins.Spiros.Extra
 --import Commands.Plugins.Spiros.Edit ()
 import Commands.Plugins.Spiros.Finite.Grammar (finite)
-import Commands.Plugins.Spiros.Root (click) 
+import Commands.Plugins.Spiros.Root (click)
 import Commands.RHS.Finite
 
 import           Commands.Mixins.DNS13OSX9
@@ -41,6 +41,7 @@ printFinite = do
  putStrLn"(dns) Grammar ="
  putStrLn $ displaySerializedGrammar finiteDNS
 
+
  -- case finiteSentences of
  --   Nothing  -> do
  --     putStrLn "(infinite)"
@@ -76,28 +77,28 @@ finiteDNS = unsafeDNSGrammar defaultDnsOptimizationSettings finite
 {-
 
 printAllSentences someSentences  = do
- (traverse_.traverse_)  printSentences someSentences 
+ (traverse_.traverse_)  printSentences someSentences
 
- where 
+ where
  printSentences sentences = do
   putStrLn""
-  traverse_ printSentence $ sentences 
+  traverse_ printSentence $ sentences
 
 myFiniteSentences = theFiniteGrammars
 
- where 
+ where
  theFiniteGrammars
   = (fmap.fmap.fmap.fmap) T.unpack
-  . fmap (\(SomeDNSEarleyRHS r) -> rhsEnumerateSentencesSimply r) 
+  . fmap (\(SomeDNSEarleyRHS r) -> rhsEnumerateSentencesSimply r)
   $ allFiniteRhs
 --TODO (getRhsName r, isFiniteDNSEarleyGrammar r)
 
-allFiniteRhs :: [SomeDNSEarleyRHS] 
+allFiniteRhs :: [SomeDNSEarleyRHS]
 allFiniteRhs =
- [ SomeDNSEarleyRHS move 
- , SomeDNSEarleyRHS edit 
- -- , SomeDNSEarleyRHS 
- ] 
+ [ SomeDNSEarleyRHS move
+ , SomeDNSEarleyRHS edit
+ -- , SomeDNSEarleyRHS
+ ]
 
  printSentences sentences = do
   putStrLn""
@@ -160,6 +161,6 @@ action slice region
 - de-associate into Alternative's
 - dedup
 - inline NonTerminal's, bottom-up
-- 
+-
 
 -}

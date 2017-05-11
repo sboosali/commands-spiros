@@ -46,7 +46,7 @@ library
                          Commands.Backends.Workflow
          build-depends:
                          workflow-windows
-    
+
 
 --     ghc.exe: C:\Users\Maria\speech\commands-spiros\.stack-work\install\12018b8a\lib\x86_64-windows-ghc-7.10.3\workflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh\HSworkflow-windows-0.0.0-IbuwRuKOjSPBHW440nyHEh.o: unknown symbol `__imp_LookupPrivilegeValueW'
         --
@@ -60,6 +60,7 @@ library
 
     exposed-modules:
                     Commands.Spiros.Server
+                    Commands.Spiros.Templates
 
                     Commands.Plugins.Spiros
 
@@ -160,19 +161,19 @@ library
     build-depends:
 
         -- my packages:
-                  spiros ==0.0.0,
+                  spiros,
 
-                  commands-core ==0.0.0,
-                  commands-frontend-DragonNaturallySpeaking ==0.0.0,
-                  commands-server-types ==0.0.0,
-                  commands-server-simple ==0.0.0,
+                  commands-core,
+                  commands-frontend-DragonNaturallySpeaking,
+                  commands-server-types,
+                  commands-server-simple,
 
-                  workflow-types ==0.0.0,
-                  workflow-pure ==0.0.0,
-                  workflow-extra ==0.0.0,
+                  workflow-types,
+                  workflow-pure,
+                  workflow-extra,
 
-                  s-expression ==0.0.0,
-                  enumerate ==0.2.1,
+                  s-expression,
+                  enumerate,
 
         -- extra-deps:
                   language-python >=0.5,
