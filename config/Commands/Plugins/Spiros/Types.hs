@@ -54,6 +54,7 @@ data SpirosContext
  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
 instance NFData SpirosContext
 instance Default SpirosContext where def = GlobalContext
+-- instance IsString SpirosContext where fromString =  -- no, depends on a mapping, unlawful like fromaeson
 
 makePrisms ''SpirosContext
 

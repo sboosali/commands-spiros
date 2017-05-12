@@ -81,6 +81,11 @@ but http://127.0.0.1:8888/test still works from browser
 
 whitelist localhost
 
+Fix: (A simpler or automated solution probably exists)
+edit the Windows firewall Settings to white list localhost connections from the current user.
+E.g.
+
+
 -}
 main = mainWith myEnvironment
 
@@ -162,11 +167,14 @@ myCmdln ePlugin (words -> fmap T.pack -> ws) = do
 -- myHandle = defaultHandle
 myHandle ePlugin (fmap T.pack -> ws) = do
 
-  context <- W.currentApplication
+  -- context <- W.currentApplication
+  let context = GlobalContext -- ""
 
   case bestParse (ePlugin&vParser) ws of
   -- {force} turns WHNF (the bang pattern) into NF
-    Right x -> go context x
+    Right x -> do
+      _display context x
+      exec context x
     Left e -> do
     	liftIO$ do
     	   replicateM_ 3 (putStrLn"")
@@ -177,16 +185,22 @@ myHandle ePlugin (fmap T.pack -> ws) = do
            hFlush stdout
 
   where
-  go context value = liftIO$ do
+  _display context value = liftIO$ do
+     putStrLn "----------------------------------------------------------------------------------"
+     putStrLn$ "VALUE:"
+     print value
      putStrLn ""
      putStrLn$ "CONTEXT:"
      print context
      putStrLn ""
-     putStrLn$ "VALUE:"
-     print value
-     putStrLn ""
      putStrLn$ "WORDS:"
      putStrLn$ showWords ws
+     putStrLn ""
+
+  exec context value = liftIO$ do
+    runSpirosMonad $ (ePlugin&vDesugar) context value
+
+runSpirosMonad = getSpirosMonad > W.runWorkflowWithT def
 
 ----------------------------------------------------------------------------------
 
@@ -249,7 +263,7 @@ spirosSetup environment = do
  do
    putStrLn ""
    T.putStrLn$ displayAddress nlAddress
-  -- T.putStrLn$ curl_ExampleRequest nlAddress
+   -- T.putStrLn$ curl_ExampleRequest nlAddress
 
  -- do
  --   let myBatchScript = getBatchScript myBatchScriptR
