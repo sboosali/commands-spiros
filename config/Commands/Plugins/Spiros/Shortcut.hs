@@ -2,34 +2,32 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Shortcut where
-import Commands.Plugins.Spiros.Shortcut.Types 
-import Commands.Plugins.Spiros.Chrome.Gmail 
+import Commands.Plugins.Spiros.Shortcut.Types
+import Commands.Plugins.Spiros.Chrome.Gmail
 
 import Commands.Extra
 import Commands.Mixins.DNS13OSX9
 
-import Control.Applicative
-
 
 -- TODO global context (e.g. all Apps) should be overridden by a local context (e.g. some App)
-myShortcuts :: R Shortcut 
+myShortcuts :: R Shortcut
 myShortcuts = 'myShortcuts
  <=> globalShortcuts
  <|> emacsShortcuts
  <|> magitShortcuts
- <|> tagsShortcuts 
+ <|> tagsShortcuts
  <|> haskellShortcuts
- <|> chromeShortcuts 
+ <|> chromeShortcuts
  <|> gmailShortcuts
 
 
-globalShortcuts :: R Shortcut  
+globalShortcuts :: R Shortcut
 globalShortcuts = shortcuts
  -- keys
  [ "space"-: "<spc>"
  , "tab"-: "<tab>"
  , "ret"-: "<ret>"  -- "line" conflicts with (Line :: Region)
- , "yes"-: "<ret>"  -- only active (or at least active) during correction mode 
+ , "yes"-: "<ret>"  -- only active (or at least active) during correction mode
  , "del"-: "<del>"
  , "return"-: "<ret>"
  , "delete"-: "<del>"
@@ -46,21 +44,23 @@ globalShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
 
- , "no"-: "M-z"
- , "undo"-: "M-z"
- , "salt"-: "M-a"
- , "pasting"-: "M-v"              -- "paste" is mis-recognized "eighth"
- , "copying"-: "M-c"               -- 
- , "cutting"-: "M-x"                -- 
+ , "no"-: "H-z"
+ , "undo"-: "H-z"
+ , "salt"-: "H-a"
+ , "pasting"-: "H-v"              -- "paste" is mis-recognized "eighth"
+ , "copying"-: "H-c"               --
+ , "cutting"-: "H-x"                --
  , "kill"-: "C-k"
  , "killer"-: "C-k"
- , "show apps"-: "M-<tab>"
- , "twist"-: "M-<tab> <ret>"
+-- , "show apps"-: "M-<tab>" -- <ret> only needed on OS X
+ -- , "twist"-: "M-<tab> <ret>"
+ , "twist"-: "M-<tab>" -- <ret> only needed on OS X
  , "switch"-: "M-`"
- , "abdicate"-: "M-q"
- , "scroll"-: "<spc>"
- , "scroll down"-: "<spc>"
- , "scroll up"-: "S-<spc>"
+ -- , "abdicate"-: "M-q" --
+ , "abdicate"-: "A-<f4>"
+ -- , "scroll"-: "<spc>"
+ -- , "scroll down"-: "<spc>"
+ -- , "scroll up"-: "S-<spc>"
  , "submit"-: "<tab> <ret>"                 -- "M-<ret>"
  , "preferences"-: "M-,"
  , ""-: ""
@@ -74,8 +74,8 @@ globalShortcuts = shortcuts
  ]
 
 
-emacsShortcuts :: R Shortcut 
-emacsShortcuts = shortcuts 
+emacsShortcuts :: R Shortcut
+emacsShortcuts = shortcuts
  [ "stop"-: "C-g"
  -- , "check"-: "M-u"
  -- , "comment"-: "M-;"
@@ -93,7 +93,7 @@ emacsShortcuts = shortcuts
  , "other buffer"-: "C-x b <ret>"
  , "other window"-: "C-x o"
  , "evil toggle"-: "C-z"
- , "divider"-: "M-<dash>"                -- TODO (M-- doesn't parse) 
+ , "divider"-: "M-<dash>"                -- TODO (M-- doesn't parse)
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "record"-: "<f3>"
  , "repeat"-: "<f4>"
@@ -104,7 +104,7 @@ emacsShortcuts = shortcuts
  , ""-: ""
  ]
 
-tagsShortcuts = shortcuts             -- TAGS 
+tagsShortcuts = shortcuts             -- TAGS
  [ ""-: ""
  , "definition"-: "M-."
  , "jump def"-: "M-."
@@ -114,8 +114,8 @@ tagsShortcuts = shortcuts             -- TAGS
  , ""-: ""
  ]
 
-magitShortcuts :: R Shortcut 
-magitShortcuts = shortcuts 
+magitShortcuts :: R Shortcut
+magitShortcuts = shortcuts
  [ "stage"-: "s"
  , "stage all"-: "S-s"
  , "unstage"-: "u"
@@ -124,15 +124,15 @@ magitShortcuts = shortcuts
  , "amend"-: "c a"
  , "difference"-: "d <ret>"
  , "push"-: "S-p S-p"
- , "chunks"-: "<tab>"           -- nonstandard 
+ , "chunks"-: "<tab>"           -- nonstandard
  , ""-: ""
  ]
 
-haskellShortcuts :: R Shortcut 
-haskellShortcuts = shortcuts 
+haskellShortcuts :: R Shortcut
+haskellShortcuts = shortcuts
  [ ""-: ""
- , "type"-: "C-c C-t" 
- , "insert type"-: "C-u C-c C-t" 
+ , "type"-: "C-c C-t"
+ , "insert type"-: "C-u C-c C-t"
  , "info"-: "C-c C-i"                             -- haskell-process-do-info
  , "builder"-: "C-c C-c"
 -- , "restart"-: "M-x <ret> haskell-process-restart" -- TODO won't parse naked chars
@@ -143,10 +143,10 @@ haskellShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
  , ""-: ""
- , ""-: "" 
- ] 
+ , ""-: ""
+ ]
 
-chromeShortcuts :: R Shortcut 
+chromeShortcuts :: R Shortcut
 chromeShortcuts = shortcuts
  [ "new tab"-: "M-t"
  , "close tab"-: "M-w"
@@ -157,7 +157,7 @@ chromeShortcuts = shortcuts
  , "right page"-: "M-<right>"
  , "reload"-: "M-r"
  , "zoom in"-: "M-+"
- , "zoom out"-: "M-<dash>"                -- TODO (M-- doesn't parse) 
+ , "zoom out"-: "M-<dash>"                -- TODO (M-- doesn't parse)
  , "reopen tab"-: "M-S-t"
  , ""-: ""
  , ""-: ""
@@ -165,4 +165,3 @@ chromeShortcuts = shortcuts
  , ""-: ""
  , ""-: ""
  ]
-

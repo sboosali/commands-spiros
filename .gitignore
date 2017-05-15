@@ -8,6 +8,7 @@ docs.md
 cbits/main
 TODO
 notes.txt
+binaries/
 
 # Haskell
 .stack-work
@@ -34,4 +35,3 @@ TAGS
 
 # OS X
 .DS_Store
-

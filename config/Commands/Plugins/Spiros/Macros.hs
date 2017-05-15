@@ -21,8 +21,8 @@ import  Commands.Plugins.Spiros.Template
 
 import Commands.Mixins.DNS13OSX9
 import Commands.Backends.Workflow as W
+--import qualified Workflow.Windows as Windows --TODO
 
-import           Control.Applicative
 import qualified Data.List as List
 import Control.Monad (replicateM_)
 
@@ -308,11 +308,11 @@ myMacros0_ =  vocabMacro
  , "skip"-: do
    press "x z"
 
- , ""-: do
-   nothing
-
- , ""-: do
-   nothing
+ -- , "scroll"-: do
+ --   Windows.pressKeyChord [] Windows.VK_NEXT--TODO
+ --
+ -- , "scroll back"-: do
+ --   Windows.pressKeyChord [] Windows.VK_PRIOR--TODO
 
  , ""-: do
    nothing

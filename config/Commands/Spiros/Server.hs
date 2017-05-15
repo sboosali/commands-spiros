@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, FlexibleContexts, NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings, ViewPatterns, NamedFieldPuns, RecordWildCards, PartialTypeSignatures #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, NamedFieldPuns, RecordWildCards, PartialTypeSignatures, DoAndIfThenElse #-}
 
 {-|
 
@@ -13,6 +13,11 @@ all further communication Is networked, aand further  modifications  Can be boot
 Concept: the Phrase. An important Production That enables  Dictating complexly-formatted sentences/expressions Via a single utterance.
 It interleaves arbitrary dictation with keywords. Examples of formatting include: Camel casing, capitalization, spacing, etc.
 
+
+in Atom, or paredit mode in Emacs, only insert the left grouping character (e.g. "("),
+since the right grouping character (e.g. ")") is inserted automatically and the cursor moved back
+
+TODO the sounds of typing on the keyboard is recognized as "up".
 
 -}
 module Commands.Spiros.Server where
@@ -87,7 +92,12 @@ E.g.
 
 
 -}
-main = mainWith myEnvironment
+main = do
+  --
+  hSetBuffering stdin LineBuffering
+  hSetBuffering stdout NoBuffering
+
+  mainWith myEnvironment
 
 myEnvironment :: _
 myEnvironment = VEnvironment myPlugin myNatlink
@@ -156,7 +166,7 @@ mainWith environment@VEnvironment{..} = do
   where
   _settings = (defaultSettings defaultWindowsExecuteWorkflow) -- TODO This is  platform specific
     { handle = myHandle ePlugin
-    , cmdln = myCmdln ePlugin
+    , cmdln = Nothing -- Just $ myCmdln ePlugin
     }
 
 myCmdln ePlugin (words -> fmap T.pack -> ws) = do
@@ -165,16 +175,34 @@ myCmdln ePlugin (words -> fmap T.pack -> ws) = do
 	putStrLn""
 
 -- myHandle = defaultHandle
-myHandle ePlugin (fmap T.pack -> ws) = do
+myHandle ePlugin recognition = do
+  let ws = recognition & fmap T.pack
+  liftIO$ do
+      putStrLn "----------------------------------------------------------------------------------"
+      putStrLn$ "Recognition:"
+      print $ recognition
+      putStrLn ""
 
   -- context <- W.currentApplication
   let context = GlobalContext -- ""
 
+  if (isNoise recognition) -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
+  then liftIO$ do
+    putStrLn$ "NOISE:"
+    print $ myNoise
+    putStrLn$ "WORDS:"
+    putStrLn$ showWords ws
+  else liftIO$ do
+    go context ws
+
+ where
+ go context ws = do
   case bestParse (ePlugin&vParser) ws of
-  -- {force} turns WHNF (the bang pattern) into NF
     Right x -> do
-      _display context x
-      exec context x
+      -- if (isNoise (ws & fmap T.unpack)) -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
+        _display context x
+        exec context x
+
     Left e -> do
     	liftIO$ do
     	   replicateM_ 3 (putStrLn"")
@@ -186,21 +214,23 @@ myHandle ePlugin (fmap T.pack -> ws) = do
 
   where
   _display context value = liftIO$ do
-     putStrLn "----------------------------------------------------------------------------------"
-     putStrLn$ "VALUE:"
-     print value
-     putStrLn ""
-     putStrLn$ "CONTEXT:"
-     print context
-     putStrLn ""
-     putStrLn$ "WORDS:"
-     putStrLn$ showWords ws
-     putStrLn ""
+      putStrLn$ "VALUE:"
+      print value
+      putStrLn ""
+      putStrLn$ "CONTEXT:"
+      print context
+      putStrLn ""
+      putStrLn$ "WORDS:"
+      putStrLn$ showWords ws
+      putStrLn ""
 
   exec context value = liftIO$ do
     runSpirosMonad $ (ePlugin&vDesugar) context value
 
-runSpirosMonad = getSpirosMonad > W.runWorkflowWithT def
+runSpirosMonad = getSpirosMonad > W.runWorkflowWithT def{windowsCharacterDelay=0} --TODO
+
+myNoise = ["the","will","if","him","that","a","she","and","up","noise" ] & fmap (:[])
+isNoise ws = (ws `elem` myNoise)
 
 ----------------------------------------------------------------------------------
 
