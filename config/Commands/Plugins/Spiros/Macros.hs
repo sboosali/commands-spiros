@@ -314,8 +314,12 @@ myMacros0_ =  vocabMacro
  -- , "scroll back"-: do
  --   Windows.pressKeyChord [] Windows.VK_PRIOR--TODO
 
- , ""-: do
-   nothing
+ , "dos copy"-: do
+   press "A-<spc>"
+   delay 100
+   press "e"
+   delay 100
+   press "y"
 
  , ""-: do
    nothing
@@ -410,7 +414,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
  <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
  <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
- <|>  A1  'goto_line                goto_line                  <$           "go"        <*>  number
+ <|>  A1  'goto_line                goto_line                  <$           "line"        <*>  number -- TODO "goto" not recognized
  <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
  <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
  <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
@@ -426,6 +430,7 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation
  <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation
  <|>  A1  'insert_readonly          insert_readonly            <$           "insert"   <*>  phrase
+ <|>  A1  'set_clipboard            set_clipboard              <$           "set clipboard"   <*>  phrase
 
 -- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
 -- "<\\$" "<\\*>"
@@ -461,17 +466,17 @@ search_regexp p = do
   maybe nothing insertP p
 
 reverse_search_regexp p = do
-  press "C-r"
+  press "C-rto "
   maybe nothing insertP p
 
 find_text p = do
- press "M-f"
+ press "H-f"
  delay browserDelay
  insertP p
 
 goto_line :: Int -> SpirosMonad_
 goto_line n = do
- press "M-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
+ press "H-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
  -- press (n::Int)
  slot (show n)
 
@@ -557,7 +562,7 @@ insert_haddock p = do
  insertTemplate (haddockTemplate s)
 
 insert_grammar d = do
- let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier
+ let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- TODO just use munging functions, we don't need the power of phrase in a monad, e.g.like we would for clipboard usage  ;; camel case it, it's a Haskell value-level identifier
  s <- munge p
  insertTemplate (grammarTemplate s)
 
@@ -570,3 +575,7 @@ insert_readonly p = do
  press "C-x C-q"                -- toggle buffer writeability TODO set to read/write
  insertP p
  press "C-x C-q"                -- toggle buffer writeability TODO set to read-only
+
+set_clipboard p = do
+  s <- munge p
+  setClipboard s

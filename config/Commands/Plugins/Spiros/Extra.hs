@@ -151,6 +151,9 @@ safeAverage :: Foldable t => t Int -> Int
 safeAverage (toList -> []) = 0
 safeAverage xs = sum xs `div` length xs
 
+pause = do
+  delay 30
+
 -- slot :: MonadWorkflow m => String -> m ()
 slot s = do
  delay 10

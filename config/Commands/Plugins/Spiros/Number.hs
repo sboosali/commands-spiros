@@ -1,13 +1,41 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, PostfixOperators #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Number where 
+module Commands.Plugins.Spiros.Number where
 import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
 
 import           Control.Applicative
+import Digit
 
+type Decimal = [Digit]  --TODO mv this to Spiro's package
+fromDecimal :: (Num a) => Decimal -> a
+fromDecimal = todo
+fromDigit :: (Num a) => Digit -> a
+fromDigit (Digit i) = fromIntegral i
+
+digitizedNumber  :: R Decimal
+digitizedNumber = 'digitizedNumber <=> (digit__ -++)
+
+digit__ :: R Digit-- TODO renamed the one in Correct.Grammar to avoid conflict with this
+digit__  = vocab
+ [ "nil"   -: Digit 0                 -- monosyllabic
+ , "zero"  -: Digit 0                 -- disyllabic
+ , "oh"    -: Digit 0                 -- sometimes more fluent
+ , "one"   -: Digit 1
+ , "two"   -: Digit 2
+ , "three" -: Digit 3
+ , "four"  -: Digit 4
+ , "five"  -: Digit 5
+ , "six"   -: Digit 6
+ , "sev"   -: Digit 7                -- monosyllabic
+ , "seven" -: Digit 7                -- disyllabic
+ , "eight" -: Digit 8
+ , "nine"  -: Digit 9
+ ]
+
+--------------------------------------------------------------------------------
 
 englishNumericRHS :: DNSEarleyRHS Char
 englishNumericRHS = vocab
@@ -25,10 +53,10 @@ englishNumericRHS = vocab
 
 -- | @('read' <$> digits :: R_ 'Int')@ is total.
 digits :: R String
-digits = 'digits <=> (digit-++) -- TODO 
+digits = 'digits <=> (digit-++) -- TODO
 
 digit :: R Char
-digit = 'digit <=> (head . show) <$> digitRHS -- TODO 
+digit = 'digit <=> (head . show) <$> digitRHS -- TODO
 
 digitRHS :: (Num a) => R a
 digitRHS = vocab
@@ -45,6 +73,8 @@ digitRHS = vocab
  , "eight" -: 8
  , "nine"  -: 9
  ]
+
+--------------------------------------------------------------------------------
 
 number :: R Number
 number = 'number <=> numberRHS
@@ -143,4 +173,3 @@ numberRHS = digitRHS <|> vocab
  , "ninety-nine"-: 99
  , "one-hundred"-: 100
  ]
-

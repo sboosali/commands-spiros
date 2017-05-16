@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes, FlexibleContexts, NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings, ViewPatterns, NamedFieldPuns, RecordWildCards, PartialTypeSignatures, DoAndIfThenElse #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-type-defaults #-}
 
 {-|
 
@@ -25,13 +26,13 @@ import Commands.Plugins.Spiros hiding (mainWith)
 
 import Commands.Servers.Simple
 -- import Workflow.<platform>
-import Commands.Backends.Workflow as W
+import qualified Commands.Backends.Workflow as Windows
 
 import Commands.Frontends.Dragon13 as DNS
 --import qualified Commands.Frontends.Dragon13 as DNS
-import           Commands.Parsers.Earley (EarleyParser(..), bestParse, eachParse)
+import           Commands.Parsers.Earley (EarleyParser(..), bestParse) -- , eachParse)
 import           Commands.Mixins.DNS13OSX9 -- (unsafeDNSGrammar, unsafeEarleyProd)
-import  Workflow.Core         as W
+-- import qualified Workflow.Core         as W
 
 import           Control.Lens
 import           Data.Text.Lazy                        (Text)
@@ -41,8 +42,9 @@ import Data.Char
 import qualified Data.List as List
 import           Control.Monad
 import System.IO
+import System.Mem
 
-import Prelude.Spiros
+-- import Prelude.Spiros
 import Prelude()
 
 {-|
@@ -105,7 +107,7 @@ myEnvironment = VEnvironment myPlugin myNatlink
 myPlugin :: _
 myPlugin = spirosUpdate
   (defaultDnsOptimizationSettings & dnsOptimizeSerialization.serializationForceWordWrap .~ True)
-	rootCommand
+  rootCommand
 
 myNatlink = NatLinkSettings{..} -- "" -- Todo remove context  fields From NatLinkConfig
   where
@@ -157,33 +159,36 @@ Right (Phrase_ (Phrase [Joined_ CamelJoiner,Dictated_ (Dictation ["two","words"]
 'windowsStepDelay'     = 'defaultWindowsStepDelay'
 
 -}
+mainWith :: _ -> IO ()
 mainWith environment@VEnvironment{..} = do
   --	putStrLn $ displaySerializedGrammar (ePlugin&vGrammar)
   putStrLn "(commands-spiros-server...)"
-  spirosSetup environment
+  _ <- spirosSetup environment
   runSimpleServer _settings
 
   where
-  _settings = (defaultSettings defaultWindowsExecuteWorkflow) -- TODO This is  platform specific
+  _settings = (defaultSettings Windows.defaultWindowsExecuteWorkflow) -- TODO This is  platform specific
     { handle = myHandle ePlugin
     , cmdln = Nothing -- Just $ myCmdln ePlugin
     }
 
 myCmdln ePlugin (words -> fmap T.pack -> ws) = do
-	print $ bestParse (ePlugin&vParser) ws
-	--print =<< W.currentApplication
-	putStrLn""
+  print $ bestParse (ePlugin&vParser) ws
+  --print =<< Windows.currentApplication
+  putStrLn""
+  hFlush stdout
 
 -- myHandle = defaultHandle
-myHandle ePlugin recognition = do
-  let ws = recognition & fmap T.pack
+myHandle :: _
+myHandle ePlugin (fmap T.pack -> recognition) = do
+  let ws = recognition & cleanRecognition
   liftIO$ do
       putStrLn "----------------------------------------------------------------------------------"
       putStrLn$ "Recognition:"
       print $ recognition
       putStrLn ""
 
-  -- context <- W.currentApplication
+  -- context <- Windows.currentApplication
   let context = GlobalContext -- ""
 
   if (isNoise recognition) -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
@@ -195,12 +200,14 @@ myHandle ePlugin recognition = do
   else liftIO$ do
     go context ws
 
+  liftIO$ performGC
+
  where
  go context ws = do
   case bestParse (ePlugin&vParser) ws of
     Right x -> do
       -- if (isNoise (ws & fmap T.unpack)) -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
-        _display context x
+        _display ws context x
         exec context x
 
     Left e -> do
@@ -210,10 +217,9 @@ myHandle ePlugin recognition = do
            print e
            putStrLn$ "WORDS:"
            putStrLn$ showWords ws
-           hFlush stdout
+           hFlush stdout -- TODO why flush ?
 
-  where
-  _display context value = liftIO$ do
+ _display ws context value = liftIO$ do
       putStrLn$ "VALUE:"
       print value
       putStrLn ""
@@ -224,13 +230,26 @@ myHandle ePlugin recognition = do
       putStrLn$ showWords ws
       putStrLn ""
 
-  exec context value = liftIO$ do
+ exec context value = liftIO$ do
     runSpirosMonad $ (ePlugin&vDesugar) context value
 
-runSpirosMonad = getSpirosMonad > W.runWorkflowWithT def{windowsCharacterDelay=0} --TODO
+runSpirosMonad = getSpirosMonad > Windows.runWorkflowWithT def{Windows.windowsCharacterDelay=0} --TODO
 
-myNoise = ["the","will","if","him","that","a","she","and","up","noise" ] & fmap (:[])
+myNoise = ["the","will","if","him","that","a","she","and","up","to","it"] & fmap (:[]) :: [MyRecognition]
 isNoise ws = (ws `elem` myNoise)
+
+type MyRecognition = [Text]
+
+{-|
+
+>>> cleanRecognition ['spell', 'a\\\\spelling-letter\\\\A', ',\\\\comma\\\\comma', 'a\\\\determiner', 'letter']
+["spell", "A", ",", "a", "letter"]
+
+-}
+cleanRecognition :: MyRecognition -> MyRecognition
+cleanRecognition
+  = fmap (T.splitOn "\\" > head) -- NOTE safely partial
+
 
 ----------------------------------------------------------------------------------
 
@@ -261,10 +280,10 @@ data VPlugin m c v = VPlugin
 
 defaultHandle = handle
  where
- handle ws = if (ignore ws) then nothing else W.sendText (munge ws)
- munge = unwords > fmap toLower > (++ " ")
- ignore = unwords > (`elem` noise)
- noise = ["the","will","if","him","that","a","she","and"]
+ handle ws = if (_ignore ws) then nothing else Windows.sendText (_munge ws)
+ _munge = unwords > fmap toLower > (++ " ")
+ _ignore = unwords > (`elem` _noise)
+ _noise = ["the","will","if","him","that","a","she","and"]
 
 --
 --TODO
@@ -287,7 +306,8 @@ spirosSetup
 -- spirosSetup VEnvironment{ePlugin{..},eConfig{..}} = do
 spirosSetup environment = do
  let theGrammar = (environment&ePlugin&vGrammar)
- let theSettings@NatLinkSettings{..} = environment&eSettings -- TODO theAddress
+ let NatLinkSettings{..} = environment&eSettings -- TODO theAddress
+ -- let theSettings@NatLinkSettings{..} = environment&eSettings -- TODO theAddress
  let theConfig = DNS.NatLinkConfig nlAddress -- TODO LOL get rid of  config
 
  do
@@ -313,14 +333,14 @@ spirosSetup environment = do
 
   Left (PythonSyntaxError e s) -> do
    let (errorRow, errorColumn) = getPythonErrorSpan e
-   let (marginWidth, countWidth, code) = leftAppendLineNumbers s
+   let (_marginWidth, _countWidth, code) = leftAppendLineNumbers s
 
    putStrLn ""
    print e
    putStrLn ""
    T.putStrLn$ code
    putStrLn ""
-   -- W.runWorkflowT def $ findErrorBySearch countWidth marginWidth errorRow errorColumn
+   -- Windows.runWorkflowT def $ findErrorBySearch countWidth marginWidth errorRow errorColumn
    putStrLn $ (show errorRow)<>":"<> (show errorColumn)
    putStrLn "SHIM PARSING FAILURE" -- TODO logging
    return$ Left("")
