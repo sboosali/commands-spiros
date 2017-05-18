@@ -1,14 +1,18 @@
-{-# LANGUAGE DeriveAnyClass, LambdaCase, TypeFamilies, ViewPatterns, FlexibleContexts  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, LambdaCase, TypeFamilies, ViewPatterns, FlexibleContexts #-}
 module Commands.Plugins.Spiros.Template.Types where
 -- import Commands.Plugins.Spiros.Extra (insertByClipboard)
 import Commands.Plugins.Spiros.Extra.Types
 
 import Commands.Backends.Workflow as W
 
-import qualified Data.List as List
-import Control.Monad (replicateM_)
-import           GHC.Exts                          (IsString (..), IsList (..))
+import Data.Monoid.Split
 
+-- import qualified Data.List as List
+import Control.Monad (replicateM_)
+import           GHC.Exts                          (IsString (..)) -- , IsList (..))
+
+import Prelude.Spiros hiding (rstrip,lstrip) 
+import Prelude()
 
 {- | a simple monoid that can hold the metadata of a cursor position. you can then can set the position of the cursor after inserting a template.
 
@@ -24,13 +28,21 @@ Template ~ [Either (First ()) String)]
 
 :: [Either (First ()) String] -> (String, String)
 
+'Split' keeps the rightmost divider:
+
+>>> import Data.Monoid.Split
+>>> M "a" <> ("b" :| "c") <>  ("d" :| "e")
+"abcd" :| "e"
 
 -}
-data Template
- = TemplateCursor
- | TemplateText String
- | TemplateList [Template]
- deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
+-- data Template
+--  = TemplateCursor
+--  | TemplateText String
+--  | TemplateList [Template]
+--  deriving (Show,Read,Eq,Ord,Generic,Data,NFData)
+
+newtype Template = Template { getTemplate :: Split String }
+  deriving (Show,Read,Eq,Generic,Data,Semigroup,Monoid) -- TODO Hashable, Ord, NFData
 
 {- | when constructed with 'mappend', a @Template@ is always flat (see 'flattenTemplate').
 
@@ -39,19 +51,19 @@ data Template
 @
 
 -}
-instance Monoid Template where
- mempty = TemplateList []
- mappend x y = TemplateList (mappend (toTemplateList x) (toTemplateList y))
+-- instance Monoid Template where
+--  mempty = TemplateList []
+--  mappend x y = TemplateList (mappend (toTemplateList x) (toTemplateList y))
 
 {-|
 
 @
- 'fromString' = 'TemplateText'
+ 'fromString' ~ 'M'
 @
 
 -}
 instance IsString Template where
- fromString = TemplateText
+ fromString = M > Template
 
 {-|
 
@@ -61,26 +73,23 @@ instance IsString Template where
 @
 
 -}
-instance IsList Template where
- type Item Template = Template
- fromList = fromTemplateList
- toList = toTemplateList
 
-toTemplateList :: Template -> [Template]
-toTemplateList = \case
- TemplateList ts -> ts
- t -> [t]
+-- instance IsList Template where
+--  type Item Template = Template
+--  fromList = fromTemplateList
+--  toList = toTemplateList
+--
+-- toTemplateList :: Template -> [Template]
+-- toTemplateList = \case
+--  TemplateList ts -> ts
+--  t -> [t]
+--
+-- fromTemplateList :: [Template] -> Template
+-- fromTemplateList = TemplateList
 
-fromTemplateList :: [Template] -> Template
-fromTemplateList = TemplateList
-
-toTemplateText :: Template -> String
-toTemplateText = \case
- TemplateCursor  -> ""
- TemplateText s  -> s
- TemplateList ts -> concatMap toTemplateText ts
-
-
+-- | @getTemplate > 'unsplit'@
+fromTemplate :: Template -> String
+fromTemplate = getTemplate > unsplit
 
 -- ================================================================ --
 
@@ -112,10 +121,10 @@ if you want that leading/trailing white space, just add "extra" whitespace, or u
 mungeTemplate :: Template -> (String, String)
 mungeTemplate template = (before, after)
  where
- before = (lstrip . toTemplateText) beforeTemplate
- after  = (rstrip . toTemplateText) afterTemplate
+ before = (lstrip) beforeTemplate
+ after  = (rstrip) afterTemplate
  (beforeTemplate, afterTemplate) = splitTemplateByCursor template
- rstrip = reverse.lstrip.reverse -- TODO
+ rstrip = reverse.lstrip.reverse -- TODO case on  nonempty,  last, check, init
  lstrip = \case
   ('\n':xs) -> xs
   xs -> xs
@@ -125,39 +134,24 @@ mungeTemplate template = (before, after)
 outputs should have zero 'TemplateCursor'(s).
 
 -}
-splitTemplateByCursor :: Template -> (Template, Template)
-splitTemplateByCursor
- = bothmap fromTemplateList
- . bothmap (filter (/=TemplateCursor))
- . splitOn TemplateCursor
- . toTemplateList
- . flattenTemplate
- where
- bothmap f (x,y) = (f x, f y)
- splitOn :: Eq a => a -> [a] -> ([a], [a])
- splitOn x xs = (List.break (==x) xs)
+splitTemplateByCursor :: Template -> (String, String)
+splitTemplateByCursor = getTemplate > \case
+  M x    -> (x, "") -- no cursor
+  x :| y -> (x, y)
 
-{-| outputs a "flat" 'Template'. i.e. the @ts@ in a @'TemplateList' ts@ are only either @'TemplateCursor'@ or @'TemplateText' s@. thus, @'TemplateList' [Template]@ could be @'TemplateList' (Maybe String)@.
+{- | @cursor ~ 'split'@
 
-(when a 'Template' has been constructed with constructors, rather than 'mappend',
-and you can 'flattenTemplate' to make sure this holds.)
+there is always zero @('Template' ('M' ...))@
+or one @('Template' (... ':|' ...))@ cursor.
 
 -}
-flattenTemplate :: Template -> Template
-flattenTemplate = \case
- TemplateList ts -> TemplateList (map flattenTemplate ts)
- t -> t
-
--- | @cursor = 'TemplateCursor'@
 cursor :: Template
-cursor = TemplateCursor
-
-
+cursor = Template split
 
 -- ================================================================ --
+-- workflow stuff
 
-{- | expects zero or one 'TemplateCursor'(s).
-
+{- |
 strips one leading newline and one trailing newline,
 which increases the readability of quasiquotes.
 
@@ -178,4 +172,6 @@ insertTemplate template = do
  -- (b) triggers functions, like "import" opens the mini buffer
  W.insert before
  W.insert after
- replicateM_ (length after) (W.press "<left>")
+ replicateM_ (length after) moveLeft
+ where
+ moveLeft = W.press "<left>"

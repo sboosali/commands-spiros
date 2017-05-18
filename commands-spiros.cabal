@@ -171,6 +171,7 @@ library
                   workflow-types,
                   workflow-pure,
                   workflow-extra,
+                  monoid-extras,
 
                   s-expression,
                   enumerate,
@@ -224,7 +225,6 @@ library
       -Wcompat
       -Wmissing-monadfail-instances
       -Wsemigroup
-      -threaded
 
 executable commands-spiros-server
     main-is:        Main.hs
