@@ -218,12 +218,13 @@ library
                   base >=4.8 && <5.0
 
     default-language: Haskell2010
-    default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable, DeriveLift 
+    default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable, DeriveLift
     ghc-options:
       -Wall
       -Wcompat
       -Wmissing-monadfail-instances
       -Wsemigroup
+      -threaded
 
 executable commands-spiros-server
     main-is:        Main.hs

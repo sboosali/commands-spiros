@@ -118,8 +118,17 @@ myNatlink = NatLinkSettings{..} -- "" -- Todo remove context  fields From NatLin
 data NatLinkSettings = NatLinkSettings
  { nlAddress :: Address
  , nlLocation :: FilePath  -- todo Add a field to Config
- }
+ }  deriving (Show,Read,Eq,Ord,Data,Generic)
 
+defaultNatlinkSettings :: NatLinkSettings
+defaultNatlinkSettings = NatLinkSettings{..} -- "" -- Todo remove context  fields From NatLinkConfig
+  where
+  nlAddress = Address (Host "127.0.0.1") (Port 8888) -- Todo Write-once The simple-server's settings&Port
+  nlLocation = "C:/NatLink/NatLink/MacroSystem/_commands.py"
+
+{-| the \"diff\" of an 'Invocation'.
+
+-}
 data Invoker m a = Invoker
   { parse   :: [Text] -> Maybe a
   , compile :: a -> m ()

@@ -3,7 +3,7 @@ module Commands.Plugins.Spiros.Template.Types where
 -- import Commands.Plugins.Spiros.Extra (insertByClipboard)
 import Commands.Plugins.Spiros.Extra.Types
 
-import           Commands.Backends.Workflow as W
+import Commands.Backends.Workflow as W
 
 import qualified Data.List as List
 import Control.Monad (replicateM_)
@@ -176,6 +176,6 @@ insertTemplate template = do
  -- when inserted not by clipboard, it's
  -- (a) harder to undo and
  -- (b) triggers functions, like "import" opens the mini buffer
- insert before
- insert after
+ W.insert before
+ W.insert after
  replicateM_ (length after) (W.press "<left>")

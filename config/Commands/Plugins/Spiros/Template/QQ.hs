@@ -23,11 +23,12 @@ haddockTemplate "" = [qc|
 -}
 
 |]
+
+{-| insert a comment -}
 haddockTemplate text = [qc|
 \{-| {text} {cursor}
 
 -}
-
 |]
 
 grammarTemplate :: String -> Template

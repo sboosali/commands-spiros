@@ -158,7 +158,7 @@ chromeShortcuts = shortcuts
  , "reload"-: "M-r"
  , "zoom in"-: "M-+"
  , "zoom out"-: "M-<dash>"                -- TODO (M-- doesn't parse)
- , "reopen tab"-: "M-S-t"
+ , "reopen tab"-: "H-S-t"
  , ""-: ""
  , ""-: ""
  , ""-: ""

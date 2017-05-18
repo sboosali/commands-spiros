@@ -1,4 +1,4 @@
-{-# LANGUAGE  TemplateHaskell, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
+{-# LANGUAGE  TemplateHaskellQuotes, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Macros
@@ -28,6 +28,260 @@ import Control.Monad (replicateM_)
 
 -- default (Workflow ())            -- ExtendedDefaultRules. TODO doesn't help with inference
 
+
+-- | macros without arguments
+myAliases :: R Macro
+myAliases = aliasMacro sendText myAliasesList -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner
+
+myAliasesList =
+ [ ""-: ""
+ , "arrow"-: "->"
+ , "to do"-: "TODO"
+ , "I owe unit"-: "IO ()"
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ , ""-: ""
+ ]
+
+myApps :: R Macro
+myApps = aliasMacro openApplication myAppsList  -- TODO make less stringly-typed
+
+myAppsList =
+ [ ""      -: ""
+ , "man"      -: "Commands"
+ , "work"     -: "Work"
+ , "notes"    -: "Notes"
+ , "jobs"     -: "Obs"
+ , "chrome"   -: "Google Chrome"
+ , "fox"      -: "Firefox"
+ , "terminal" -: "Terminal"
+ , "dragon"   -: "VirtualBoxVM"
+ , "jelly"    -: "IntelliJ"
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ , ""         -: ""
+ ]
+
+myOrdinals :: R Macro
+myOrdinals = aliasMacro runOrdinalAsSelect dictOrdinalDigit
+ -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
+ -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
+
+-- | run an ordinal as a keypress.
+-- @runOrdinalAsSelect (Ordinal 3)@ is like @press "M-3"@.
+runOrdinalAsSelect :: Ordinal -> SpirosMonad_
+runOrdinalAsSelect
+ = uncurry sendKeyChord
+ . digit2select
+ . unOrdinal
+
+
+{-|
+
+@digit2select (Ordinal 2)@ is like @"M-2 :: KeyRiff"@.
+
+
+-}
+digit2select :: Integer -> KeyChord
+digit2select
+ = addMod MetaModifier
+ . (either __BUG__ id)
+ . digit2keychord
+
+
+
+-- ================================================================ --
+
+-- | macros with arguments (should be a VocabularyList)
+myMacrosN :: R Macro
+myMacrosN = fmap Macro $ empty
+
+ -- <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase
+
+ <|>  A1  'replace_with_something   replace_with_something     <$           "replace"   <*>  phrase
+ <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
+ <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  (myBuffers<|>phrase)
+ <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  (phrase)
+ <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
+ <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
+ <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
+ <|>  A1  'goto_line                goto_line                  <$           "line"        <*>  number -- TODO "goto" not recognized
+ <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
+ <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
+ <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
+ <|>  A1  'query_clipboard_history  query_clipboard_history    <$           "clipboard" <*>  ((ordinalDigit-|-phrase)-?)
+ <|>  A1  'query_alfred             query_alfred               <$           "Alfred"    <*>  (phrase-?)
+ <|>  A1  'switch_tab               switch_tab                 <$           "tab"       <*>  (phrase-?-"")
+ <|>  A1  'visit_site               visit_site                 <$           "visit"     <*>  (phrase-?-"")
+ <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
+ <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation
+ <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
+ <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase
+ <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
+ <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation
+ <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation
+ <|>  A1  'insert_readonly          insert_readonly            <$           "insert"   <*>  phrase
+ <|>  A1  'set_clipboard            set_clipboard              <$           "set clipboard"   <*>  phrase
+
+-- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
+-- "<\\$" "<\\*>"
+
+-- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
+
+align_regexp p = do
+ runEmacs "align-regexp"
+ insertP p
+
+-- needs (setq confirm-nonexistent-file-or-buffer 'after-completion), which only switches to a buffer without prompt when that buffer already exists
+switch_buffer p = do
+ press "C-x b"
+ slotP p
+
+multi_occur p = do
+ runEmacs "multi-occur-in-matching-buffers"
+ slot "."                       -- match all buffers
+ insertP p                     -- match this regexp
+
+replace_with_something this = do
+ runEmacsWithP "replace-regexp" [this]
+
+replace_with this that = do
+ runEmacsWithP "replace-regexp" [this, that]
+
+google_for p = do
+ q <- munge p
+ google q
+
+search_regexp p = do
+  press "C-s"
+  maybe nothing insertP p
+
+reverse_search_regexp p = do
+  press "C-rto "
+  maybe nothing insertP p
+
+find_text p = do
+ press "H-f"
+ delay browserDelay
+ insertP p
+
+goto_line :: Int -> SpirosMonad_
+goto_line n = do
+ press "H-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
+ -- press (n::Int)
+ slot (show n)
+
+comment_with :: Maybe Phrase -> SpirosMonad_
+comment_with p = do
+ press "M-;"
+ maybe nothing insertP p
+
+write_to_pad p = do
+ open_pad
+ replicateM_ 2 $ press "<ret>"
+ maybe nothing insertP p
+
+run_shell (Left s) = do
+ emacs_reach_shell
+ runShell s
+run_shell (Right p) = do
+ emacs_reach_shell
+ maybe nothing insertP p
+
+query_clipboard_history :: Maybe (Either Ordinal Phrase) -> SpirosMonad_
+query_clipboard_history Nothing = do
+ toggle_clipboard_history
+query_clipboard_history (Just (Left n)) = do
+ toggle_clipboard_history
+ delay 500
+ runOrdinalAsSelect n
+query_clipboard_history (Just (Right p)) = do
+ toggle_clipboard_history
+ delay 500
+ insertP p
+
+query_alfred p = do
+ toggle_alfred
+ delay 500
+ maybe nothing insertP p
+
+slot_alfred p = do
+ query_alfred (Just p)
+ press "<ret>"
+
+switch_tab p = do
+ press "A-t"                    -- needs Tab Ahead chrome extension
+ delay chromeDelay
+ insertP p
+ delay chromeDelay            -- NOTE {{slotP p}} doesn't work because chrome inserts text too slowly
+ press "<ret>"
+
+visit_site p = do
+ openApplication "Google Chrome"   -- TODO make variable
+ press "M-t"
+ delay chromeDelay
+ slotP p
+
+-- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
+chrome_click_link p = do
+ press "M-f"
+ delay chromeDelay              -- TODO ReaderMonad delay time
+ slotP p
+ delay chromeDelay
+ press "C-<ret>"
+
+open_application d = do
+ openApplication$ mungeDictation d
+
+bookmark_it d_ = do
+ press "M-d"
+ delay 1000
+ press "<tab>"
+ delay chromeDelay
+ press "<up>"
+ press "M-<up>"
+ maybe nothing bookmark_by_name d_
+
+ where
+ bookmark_by_name d = do
+   slotD d
+   delay 1000                    -- enough time to double check
+   replicateM_ 2 $ press "<ret>"
+
+insert_haddock p = do
+ s <- munge p
+ insertTemplate (haddockTemplate s)
+
+insert_grammar d = do
+ let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- TODO just use munging functions, we don't need the power of phrase in a monad, e.g.like we would for clipboard usage  ;; camel case it, it's a Haskell value-level identifier
+ s <- munge p
+ insertTemplate (grammarTemplate s)
+
+insert_grammar_module d = do
+ typeName  <- munge $ Phrase [Joined_ ClassJoiner, Dictated_ d] -- class case it, it's a Haskell value-level identifier
+ valueName <- munge $ Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier
+ insertTemplate (grammarModuleTemplate typeName valueName)
+
+insert_readonly p = do
+ press "C-x C-q"                -- toggle buffer writeability TODO set to read/write
+ insertP p
+ press "C-x C-q"                -- toggle buffer writeability TODO set to read-only
+
+set_clipboard p = do
+  s <- munge p
+  setClipboard s
+
+
+--------------------------------------------------------------------------------
 
 -- | all macros (should be a VocabularyList)
 myMacros :: R Macro
@@ -321,261 +575,59 @@ myMacros0_ =  vocabMacro
    delay 100
    press "y"
 
+ , "test insert"-: do
+   insert "\n"
+   insert "\r"
+   insert "\f"
+   insert "\n\r"
+   insert "\r\n"
+
+ , ""-: do
+   nothing
+
  , ""-: do
    nothing
 
  , ""-: do
    nothing
 
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+    nothing
+
+ , ""-: do
+    nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+   nothing
+
+ , ""-: do
+    nothing
+
+ , ""-: do
+    nothing
+
  ]
-
--- | macros without arguments
-myAliases :: R Macro
-myAliases = aliasMacro sendText myAliasesList -- TODO embed into any phrase. in grammar itself? or, with less accuracy, just in phrase runner
-
-myAliasesList =
- [ ""-: ""
- , "arrow"-: "->"
- , "to do"-: "TODO"
- , "I owe unit"-: "IO ()"
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- ]
-
-myApps :: R Macro
-myApps = aliasMacro openApplication myAppsList  -- TODO make less stringly-typed
-
-myAppsList =
- [ ""      -: ""
- , "man"      -: "Commands"
- , "work"     -: "Work"
- , "notes"    -: "Notes"
- , "jobs"     -: "Obs"
- , "chrome"   -: "Google Chrome"
- , "fox"      -: "Firefox"
- , "terminal" -: "Terminal"
- , "dragon"   -: "VirtualBoxVM"
- , "jelly"    -: "IntelliJ"
- , ""         -: ""
- , ""         -: ""
- , ""         -: ""
- , ""         -: ""
- ]
-
-myOrdinals :: R Macro
-myOrdinals = aliasMacro runOrdinalAsSelect dictOrdinalDigit
- -- __inlineRHS__ because: we want myMacrosRHS0 to be flattened into a vocabulary
- -- the cast is safe because: ordinalDigit is between zero and nine, inclusive
-
--- | run an ordinal as a keypress.
--- @runOrdinalAsSelect (Ordinal 3)@ is like @press "M-3"@.
-runOrdinalAsSelect :: Ordinal -> SpirosMonad_
-runOrdinalAsSelect
- = uncurry sendKeyChord
- . digit2select
- . unOrdinal
-
-
-{-|
-
-@digit2select (Ordinal 2)@ is like @"M-2 :: KeyRiff"@.
-
-
--}
-digit2select :: Integer -> KeyChord
-digit2select
- = addMod MetaModifier
- . (either __BUG__ id)
- . digit2keychord
-
-
-
--- ================================================================ --
-
--- | macros with arguments (should be a VocabularyList)
-myMacrosN :: R Macro
-myMacrosN = fmap Macro $ empty
-
- -- <|>  A2  'replace_with             replace_with               <$           "replace"   <*>  phrase <* "with" <*> phrase
-
- <|>  A1  'replace_with_something   replace_with_something     <$           "replace"   <*>  phrase
- <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
- <|>  A1  'switch_buffer            switch_buffer              <$           "buffer"    <*>  (myBuffers<|>phrase)
- <|>  A1  'multi_occur              multi_occur                <$           "occur"     <*>  (phrase)
- <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
- <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
- <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
- <|>  A1  'goto_line                goto_line                  <$           "line"        <*>  number -- TODO "goto" not recognized
- <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
- <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
- <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
- <|>  A1  'query_clipboard_history  query_clipboard_history    <$           "clipboard" <*>  ((ordinalDigit-|-phrase)-?)
- <|>  A1  'query_alfred             query_alfred               <$           "Alfred"    <*>  (phrase-?)
- <|>  A1  'switch_tab               switch_tab                 <$           "tab"       <*>  (phrase-?-"")
- <|>  A1  'visit_site               visit_site                 <$           "visit"     <*>  (phrase-?-"")
- <|>  A1  'chrome_click_link        chrome_click_link          <$           "link"      <*>  phrase
- <|>  A1  'open_application         open_application           <$           "open"      <*>  dictation
- <|>  A1  'bookmark_it              bookmark_it                <$           "bookmark"  <*>  (dictation-?)
- <|>  A1  'slotP                    slotP                      <$           "slot"      <*>  phrase
- <|>  A1  'insert_haddock           insert_haddock             <$           "haddock"   <*>  (phrase-?-"")
- <|>  A1  'insert_grammar           insert_grammar             <$           "grammar"   <*>  dictation
- <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation
- <|>  A1  'insert_readonly          insert_readonly            <$           "insert"   <*>  phrase
- <|>  A1  'set_clipboard            set_clipboard              <$           "set clipboard"   <*>  phrase
-
--- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
--- "<\\$" "<\\*>"
-
--- we need the Apply constructors to delay function application, which allows the parser to disambiguate by ranking the arguments, still unapplied until execution
-
-align_regexp p = do
- runEmacs "align-regexp"
- insertP p
-
--- needs (setq confirm-nonexistent-file-or-buffer 'after-completion), which only switches to a buffer without prompt when that buffer already exists
-switch_buffer p = do
- press "C-x b"
- slotP p
-
-multi_occur p = do
- runEmacs "multi-occur-in-matching-buffers"
- slot "."                       -- match all buffers
- insertP p                     -- match this regexp
-
-replace_with_something this = do
- runEmacsWithP "replace-regexp" [this]
-
-replace_with this that = do
- runEmacsWithP "replace-regexp" [this, that]
-
-google_for p = do
- q <- munge p
- google q
-
-search_regexp p = do
-  press "C-s"
-  maybe nothing insertP p
-
-reverse_search_regexp p = do
-  press "C-rto "
-  maybe nothing insertP p
-
-find_text p = do
- press "H-f"
- delay browserDelay
- insertP p
-
-goto_line :: Int -> SpirosMonad_
-goto_line n = do
- press "H-g"    -- TODO generalize to AMonadAction_, as well as PressFun https://github.com/AJFarmar/haskell-polyvariadic
- -- press (n::Int)
- slot (show n)
-
-comment_with :: Maybe Phrase -> SpirosMonad_
-comment_with p = do
- press "M-;"
- maybe nothing insertP p
-
-write_to_pad p = do
- open_pad
- replicateM_ 2 $ press "<ret>"
- maybe nothing insertP p
-
-run_shell (Left s) = do
- emacs_reach_shell
- runShell s
-run_shell (Right p) = do
- emacs_reach_shell
- maybe nothing insertP p
-
-query_clipboard_history :: Maybe (Either Ordinal Phrase) -> SpirosMonad_
-query_clipboard_history Nothing = do
- toggle_clipboard_history
-query_clipboard_history (Just (Left n)) = do
- toggle_clipboard_history
- delay 500
- runOrdinalAsSelect n
-query_clipboard_history (Just (Right p)) = do
- toggle_clipboard_history
- delay 500
- insertP p
-
-query_alfred p = do
- toggle_alfred
- delay 500
- maybe nothing insertP p
-
-slot_alfred p = do
- query_alfred (Just p)
- press "<ret>"
-
-switch_tab p = do
- press "A-t"                    -- needs Tab Ahead chrome extension
- delay chromeDelay
- insertP p
- delay chromeDelay            -- NOTE {{slotP p}} doesn't work because chrome inserts text too slowly
- press "<ret>"
-
-visit_site p = do
- openApplication "Google Chrome"   -- TODO make variable
- press "M-t"
- delay chromeDelay
- slotP p
-
--- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
-chrome_click_link p = do
- press "M-f"
- delay chromeDelay              -- TODO ReaderMonad delay time
- slotP p
- delay chromeDelay
- press "C-<ret>"
-
-open_application d = do
- openApplication$ mungeDictation d
-
-bookmark_it d_ = do
- press "M-d"
- delay 1000
- press "<tab>"
- delay chromeDelay
- press "<up>"
- press "M-<up>"
- maybe nothing bookmark_by_name d_
-
- where
- bookmark_by_name d = do
-   slotD d
-   delay 1000                    -- enough time to double check
-   replicateM_ 2 $ press "<ret>"
-
-insert_haddock p = do
- s <- munge p
- insertTemplate (haddockTemplate s)
-
-insert_grammar d = do
- let p = Phrase [Joined_ CamelJoiner, Dictated_ d] -- TODO just use munging functions, we don't need the power of phrase in a monad, e.g.like we would for clipboard usage  ;; camel case it, it's a Haskell value-level identifier
- s <- munge p
- insertTemplate (grammarTemplate s)
-
-insert_grammar_module d = do
- typeName  <- munge $ Phrase [Joined_ ClassJoiner, Dictated_ d] -- class case it, it's a Haskell value-level identifier
- valueName <- munge $ Phrase [Joined_ CamelJoiner, Dictated_ d] -- camel case it, it's a Haskell value-level identifier
- insertTemplate (grammarModuleTemplate typeName valueName)
-
-insert_readonly p = do
- press "C-x C-q"                -- toggle buffer writeability TODO set to read/write
- insertP p
- press "C-x C-q"                -- toggle buffer writeability TODO set to read-only
-
-set_clipboard p = do
-  s <- munge p
-  setClipboard s
