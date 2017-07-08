@@ -1,6 +1,11 @@
-{-# LANGUAGE  TemplateHaskellQuotes, OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
+{-# LANGUAGE  TemplateHaskellQuotes, DeriveAnyClass , OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
+{-|
+TODO rm stupid short commands that are misrecognized from noise and screw things up , like "fifth"
+TODO replace the sring to action mapping with a list of strings i.e.  aliases. in this you is conflicts
+, you should be warned of there are duplicate items in different keys.
+-}
 module Commands.Plugins.Spiros.Macros
  ( module Commands.Plugins.Spiros.Macros
  , module Commands.Plugins.Spiros.Macros.Types
@@ -19,12 +24,17 @@ import           Commands.Plugins.Spiros.Shell
 import Commands.Plugins.Spiros.Keys
 import  Commands.Plugins.Spiros.Template
 
-import Commands.Mixins.DNS13OSX9
+import           Commands.Mixins.DNS13OSX9 hiding(chr)
 import Commands.Backends.Workflow as W
 --import qualified Workflow.Windows as Windows --TODO
 
 import qualified Data.List as List
 import Control.Monad (replicateM_)
+import Data.Char (chr)
+
+import Prelude()
+import Prelude.Spiros hiding(insert)
+
 
 -- default (Workflow ())            -- ExtendedDefaultRules. TODO doesn't help with inference
 
@@ -38,11 +48,12 @@ myAliasesList =
  , "arrow"-: "->"
  , "to do"-: "TODO"
  , "I owe unit"-: "IO ()"
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
- , ""-: ""
+ , "my e-mail"-: "SamBoosalis"++ (fmap chr [64,71,109,97,105,108,46,99,111,109]) -- obfuscated from crawlers to stop spam , hopefully
+ , "my name"-: "Spiros Boosalis"
+ , "my last name"-: "Boosalis"
+ , "deriving simple "    -: "deriving (Show,Read,Eq,Ord)"
+ , "deriving standard"   -: "deriving (Show,Read,Eq,Ord,Data,Generic,NFData,Hashable)"
+ , "deriving enumeration"-: "deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data,NFData,Hashable)"
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -131,6 +142,9 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'insert_grammar_module    insert_grammar_module      <$           "new grammar module"   <*>  dictation
  <|>  A1  'insert_readonly          insert_readonly            <$           "insert"   <*>  phrase
  <|>  A1  'set_clipboard            set_clipboard              <$           "set clipboard"   <*>  phrase
+
+ <|>  A1  'render_magic_cost             render_magic_cost               <$           "magic cost"     <*>  manaCost
+ -- <|>  A1  'align_regexp             align_regexp               <$           "align"     <*>  phrase
 
 -- TODO this elisp expression aligns the block of code, when {{M-x eval-last-sexp}}
 -- "<\\$" "<\\*>"
@@ -291,7 +305,7 @@ myMacros = 'myMacros <=> empty
 
 alt_tab = do
  press "M-<tab>"
- press "<ret>"
+ --  press "<ret>" -- TODO only necessary on OS X
 
 move_window_down = press "S-<down>"
 
@@ -347,7 +361,49 @@ global_reach_voice_app = do
  openApplication "Commands"
  delay 100
 
+--------------------------------------------------------------------------------
 
+data ManaCost = ManaCost (Maybe Number) [MagicColor] -- should be sorted by wubrg -- TODO (Sum Number)?
+ deriving(Show,Read,Eq,Ord,Typeable,Data,Generic,NFData)
+data MagicSymbol=MagicSymbol
+ deriving(Show,Read,Eq,Ord,Typeable,Data,Generic,NFData)
+data MagicColor = MagicWhite | MagicBlue | MagicBlack | MagicRed | MagicGreen
+ deriving(Show,Read,Eq,Ord,Enum , Typeable,Data,Generic,NFData)
+
+instance Rankable ManaCost where rank = const defaultRank
+
+manaCost :: R ManaCost
+manaCost = 'manaCost <=> ManaCost <$> (number-?) <*> (magicColor-*)
+
+magicColor :: R MagicColor
+magicColor = 'magicColor <=> qualifiedGrammarWith "Magic"
+
+-- type ManaCost = [ManaSymbol]
+-- data ManaSymbol = ManaSymbol Color | GenericSymbol Natural
+--
+-- manaSymbol :: R z _
+-- manaSymbol = 'manaSymbol <=> empty
+--  <|> ManaSymbol color
+--  <|> GenericSymbol natural
+
+render_magic_cost mc = do
+  insert $ renderManaCostForReddit mc
+
+renderManaCostForReddit :: ManaCost ->String
+renderManaCostForReddit (ManaCost n c)
+  = ((n        <&> (show             > renderSymbolForReddit)) & maybe "" id )
+ ++ ((sort c   <&> (renderMagicColor > renderSymbolForReddit)) & foldr (++) "" )
+
+renderSymbolForReddit s = "["++s++"]"++"(/"++s++")"
+
+renderMagicColor = \case
+  MagicWhite -> "W"
+  MagicBlue -> "U"
+  MagicBlack ->"B"
+  MagicRed ->"R"
+  MagicGreen ->"G"
+
+--------------------------------------------------------------------------------
 
 -- ================================================================ --
 
@@ -503,12 +559,13 @@ myMacros0_ =  vocabMacro
    press "!"
 
  , "transfer"-: do
-   press "M-c"
-   openApplication "Notes"
-   press "M-<down>"
+   press "H-c" -- TODO pressCopy -
+   delay 100                    -- must wait for clipboard
+   -- openApplication "Notes"
+   press "M-<tab>"
    delay 500                    -- must wait for clipboard
-   press "M-v"
-   replicateM_ 2 $ press "<ret>"
+   press "H-v" -- TODO pressPaste
+   replicateM_ 1 $ press "<ret>"
    delay 500                    -- must wait for clipboard
    alt_tab
 
@@ -545,6 +602,11 @@ myMacros0_ =  vocabMacro
 
  , "open maps"-: do
    openURL "https://www.google.com/maps" -- TODO https://www.google.com/maps/dir/638+Pine+St,+Redwood+City,+CA+94063,+USA/901+Marshall+Street,+Redwood+City,+CA+94063-2026,+USA/
+
+ , "open magic"-: do
+   openURL "http://magiccards.info/search.html" --
+   delay 2
+   replicateM_ 16 $ press "<tab>"
 
  , "highlight"-: do
    activate_mark
