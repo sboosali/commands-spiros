@@ -58,9 +58,9 @@ globalShortcuts = shortcuts
  , "switch"-: "M-`"
  -- , "abdicate"-: "M-q" --
  , "abdicate"-: "A-<f4>"
- -- , "scroll"-: "<spc>"
- -- , "scroll down"-: "<spc>"
- -- , "scroll up"-: "S-<spc>"
+ , "scroll"-: "<spc>"
+ , "scroll down"-: "<spc>"
+ , "scroll up"-: "S-<spc>"
  , "submit"-: "<tab> <ret>"                 -- "M-<ret>"
  , "preferences"-: "M-,"
  , "save"-: "H-s"
@@ -93,7 +93,7 @@ emacsShortcuts = shortcuts
  , "other buffer"-: "C-x b <ret>"
  , "other window"-: "C-x o"
  , "evil toggle"-: "C-z"
- , "divider"-: "M-<dash>"                -- TODO (M-- doesn't parse)
+-- , "divider"-: "M-<dash>"                -- TODO (M-- doesn't parse)
  -- , "yank"-: "C-y"               -- works in many buffer, M-v doesn't . TODO this is how we want to paste and Emacs, including phrases
  , "record"-: "<f3>"
  , "repeat"-: "<f4>"
@@ -116,16 +116,17 @@ tagsShortcuts = shortcuts             -- TAGS
 
 magitShortcuts :: R Shortcut
 magitShortcuts = shortcuts
- [ "stage"-: "s"
- , "stage all"-: "S-s"
- , "unstage"-: "u"
- , "unstage all"-: "S-u y"
- , "commit"-: "c c"
- , "amend"-: "c a"
- , "difference"-: "d <ret>"
- , "push"-: "S-p S-p"
- , "chunks"-: "<tab>"           -- nonstandard
- , ""-: ""
+ [  ""-: ""
+ -- , "stage"-: "s"
+ -- , "stage all"-: "S-s"
+ -- , "unstage"-: "u"
+ -- , "unstage all"-: "S-u y"
+ -- , "commit"-: "c c"
+ -- , "amend"-: "c a"
+ -- , "difference"-: "d <ret>"
+ -- , "push"-: "S-p S-p"
+ -- , "chunks"-: "<tab>"           -- nonstandard
+ -- , ""-: ""
  ]
 
 haskellShortcuts :: R Shortcut
@@ -148,16 +149,16 @@ haskellShortcuts = shortcuts
 
 chromeShortcuts :: R Shortcut
 chromeShortcuts = shortcuts
- [ "new tab"-: "M-t"
- , "close tab"-: "M-w"
- , "last"-: "M-9"
+ [ "new tab"-: "6 H-t"
+ , "close tab"-: "H-w"
+ , "last"-: "H-9"
  , "left tab"-: "C-S-<tab>"
  , "right tab"-: "C-<tab>"
  , "left page"-: "M-<left>"
  , "right page"-: "M-<right>"
- , "reload"-: "M-r"
- , "zoom in"-: "M-+"
- , "zoom out"-: "M-<dash>"                -- TODO (M-- doesn't parse)
+ , "reload"-: "H-r"
+ , "zoom in"-: "H-+"
+ , "zoom out"-: "H-<dash>"                -- TODO (M-- doesn't parse)
  , "reopen tab"-: "H-S-t"
  , ""-: ""
  , ""-: ""

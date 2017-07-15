@@ -23,7 +23,7 @@ import           Commands.Mixins.DNS13OSX9
 import           Commands.Backends.Workflow
 
 import qualified System.FilePath.Posix as FilePath
-import System.Clock (TimeSpec,timeSpecAsNanoSecs,diffTimeSpec)
+import System.Clock (TimeSpec,toNanoSecs,diffTimeSpec)
 import Language.Python.Common.Token
 import Language.Python.Common.SrcLocation
 import Language.Python.Common.ParseError
@@ -204,7 +204,7 @@ restoringClipboard m = do
  return x
 
 diffTimeSpecAsMilliseconds :: TimeSpec -> TimeSpec -> Integer
-diffTimeSpecAsMilliseconds x y = (timeSpecAsNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
+diffTimeSpecAsMilliseconds x y = (toNanoSecs (diffTimeSpec x y)) `div` (1000*1000)
 
 bool2exitcode :: Bool -> ExitCode
 bool2exitcode False = ExitFailure 1

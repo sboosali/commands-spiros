@@ -20,6 +20,9 @@ since the right grouping character (e.g. ")") is inserted automatically and the 
 
 TODO the sounds of typing on the keyboard is recognized as "up".
 
+TODO on my correction interface, use monospaced and large font ,
+which makes it easy to click on visual incorrect characters
+
 -}
 module Commands.Spiros.Server where
 import Commands.Plugins.Spiros hiding (mainWith)
@@ -27,8 +30,10 @@ import Commands.Plugins.Spiros hiding (mainWith)
 import Commands.Servers.Simple
 -- import Workflow.<platform>
 import qualified Commands.Backends.Workflow as Windows
+import qualified Workflow.Windows.Bindings as Windows2
 
 import Commands.Frontends.Dragon13 as DNS
+import Commands.Frontends.Natlink.Types
 --import qualified Commands.Frontends.Dragon13 as DNS
 import           Commands.Parsers.Earley (EarleyParser(..), bestParse) -- , eachParse)
 import           Commands.Mixins.DNS13OSX9 -- (unsafeDNSGrammar, unsafeEarleyProd)
@@ -92,12 +97,26 @@ Fix: (A simpler or automated solution probably exists)
 edit the Windows firewall Settings to white list localhost connections from the current user.
 E.g.
 
+NOTE on Windows (for reproducibility: Windows ten, Dragon NaturallySpeaking thirteen ,
+GHC eight, the server is started by running the executable from a command prompt
+(IE normally)), sometimes the server seems to freeze. NatSpeak works,
+as does the NatLink shim, but nothing is output to the terminal and no actions are
+performed;until the command prompt window that is running the server
+receives input (for example, hit enter); this often happens near the start of
+the server running, and frequently after navigating away from the window.
+TODO: see if running it without a window helps (or if it prevents the hack that fixes
+it); also see if the issue is with standard input , maybe the buffering settings
+(I have tried line buffering, which I think is the default buffering, and no buffering)
+or concurrency(the server is being run with `-threaded`).
 
 -}
 main = do
   --
   hSetBuffering stdin LineBuffering
   hSetBuffering stdout NoBuffering
+
+  b <- Windows2.enableDebugPriv
+  putStrLn $ "enableDebugPriv: " ++ show b
 
   mainWith myEnvironment
 
@@ -130,14 +149,14 @@ defaultNatlinkSettings = NatLinkSettings{..} -- "" -- Todo remove context  field
 
 -}
 data Invoker m a = Invoker
-  { parse   :: [Text] -> Maybe a
-  , compile :: a -> m ()
+  { iParse   :: [Text] -> Maybe a
+  , iCompile :: a -> m ()
   }
 
 data Invocation m a = Invocation
- { recognized :: [Text]
- , parsed     :: Maybe a
- , compiled   :: m ()
+ { iRecognized :: [Text]
+ , iParsed     :: Maybe a
+ , iCompiled   :: m ()
 -- , executed   :: Bool
  }
 
@@ -149,9 +168,9 @@ with intermediary computations shared.
 invoke :: (Applicative m) => Invoker m a -> [Text] -> Invocation m a
 invoke Invoker{..} ws = Invocation{..}
  where
- recognized = ws
- parsed     = recognized & parse
- compiled   = parsed & maybe (pure()) compile
+ iRecognized = ws
+ iParsed     = iRecognized & iParse
+ iCompiled   = iParsed & maybe (pure()) iCompile
 
 {- |
 
@@ -181,9 +200,11 @@ mainWith environment@VEnvironment{..} = do
     , cmdln = Nothing -- Just $ myCmdln ePlugin
     }
 
+{-| a command line (that is actively reading from standard input) may or may not make the app hang
+
+-}
 myCmdln ePlugin (words -> fmap T.pack -> ws) = do
   print $ bestParse (ePlugin&vParser) ws
-  --print =<< Windows.currentApplication
   putStrLn""
   hFlush stdout
 
@@ -193,21 +214,33 @@ myHandle ePlugin (fmap T.pack -> recognition) = do
   let ws = recognition & cleanRecognition
   liftIO$ do
       putStrLn "----------------------------------------------------------------------------------"
-      putStrLn$ "Recognition:"
+      putStrLn$ "RECOGNITION:"
       print $ recognition
       putStrLn ""
 
-  -- context <- Windows.currentApplication
+  -- context' <- Windows.currentApplication
+  -- liftIO$ do
+  --     putStrLn "----------------------------------------------------------------------------------"
+  --     putStrLn$ "APP:"
+  --     print $ context'
+  --     putStrLn ""
+
   let context = GlobalContext -- ""
 
-  if (isNoise recognition) -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
-  then liftIO$ do
-    putStrLn$ "NOISE:"
-    print $ myNoise
-    putStrLn$ "WORDS:"
-    putStrLn$ showWords ws
-  else liftIO$ do
-    go context ws
+  liftIO$ case validateRecognition ws of
+    Left (EncodingError invalidCharacters) -> do
+      putStrLn$ "INVALID CHARACTERS:"
+      putStrLn$ invalidCharacters
+      putStrLn$ invalidCharacters & fmap ord &show
+      putStrLn$ "WORDS:"
+      putStrLn$ showWords ws
+    Left (NoiseError) -> do -- TODO a "results type" for the parsing stage , either failure, success, or noise (and later maybe  other cases)
+      putStrLn$ "NOISE:"
+      print $ myNoise
+      putStrLn$ "WORDS:"
+      putStrLn$ showWords ws
+    Right () -> do
+      go context ws
 
   liftIO$ performGC
 
@@ -220,8 +253,8 @@ myHandle ePlugin (fmap T.pack -> recognition) = do
         exec context x
 
     Left e -> do
-    	liftIO$ do
-    	   replicateM_ 3 (putStrLn"")
+      liftIO$ do
+           replicateM_ 3 (putStrLn"")
            putStrLn$ "ERROR:"
            print e
            putStrLn$ "WORDS:"
@@ -242,12 +275,31 @@ myHandle ePlugin (fmap T.pack -> recognition) = do
  exec context value = liftIO$ do
     runSpirosMonad $ (ePlugin&vDesugar) context value
 
-runSpirosMonad = getSpirosMonad > Windows.runWorkflowWithT def{Windows.windowsCharacterDelay=0} --TODO
+runSpirosMonad = getSpirosMonad > Windows.runWorkflowWithT def
+  { Windows.windowsCharacterDelay=0
+  , Windows.windowsDuplicateCharacterDelay = 40
+  } --TODO
 
-myNoise = ["the","will","if","him","that","a","she","and","up","to","it"] & fmap (:[]) :: [MyRecognition]
 isNoise ws = (ws `elem` myNoise)
+myNoise = fmap (:[]) $
+  ["the","will","if","him","that","a","she","and","up","to","it","6"
+  ] :: [MyRecognition]
 
 type MyRecognition = [Text]
+
+data ServerError
+  = NoiseError
+  | EncodingError [Char] -- the invalid characters
+
+isAsciiRecognition :: MyRecognition -> Bool
+isAsciiRecognition = all (T.all isAscii)
+
+validateRecognition :: MyRecognition -> Either ServerError ()
+validateRecognition recognition
+ -- NOTE currently unnecessary, as Unicode insertion works on Windows 
+ -- not (isAsciiRecognition recognition) = Left $ EncodingError (recognition & T.concat & T.filter (isAscii > not) & T.unpack)
+ | isNoise recognition = Left $ NoiseError
+ | otherwise = Right ()
 
 {-|
 
@@ -258,7 +310,6 @@ type MyRecognition = [Text]
 cleanRecognition :: MyRecognition -> MyRecognition
 cleanRecognition
   = fmap (T.splitOn "\\" > head) -- NOTE safely partial
-
 
 ----------------------------------------------------------------------------------
 
@@ -317,7 +368,7 @@ spirosSetup environment = do
  let theGrammar = (environment&ePlugin&vGrammar)
  let NatLinkSettings{..} = environment&eSettings -- TODO theAddress
  -- let theSettings@NatLinkSettings{..} = environment&eSettings -- TODO theAddress
- let theConfig = DNS.NatLinkConfig nlAddress -- TODO LOL get rid of  config
+ let theConfig = DNS.NatLinkConfig nlAddress narcissisticGrammarProperties -- TODO LOL get rid of  config
 
  do
    putStrLn ""
@@ -336,7 +387,7 @@ spirosSetup environment = do
  --
  --   setClipboardIO$ T.unpack (myBatchScriptR&__batchFilePath__)
 
- let theShim = fmap (over _PythonFile _cleanShim) $ DNS.applyShim DNS.getShim theConfig theGrammar  -- TODO is this the right place?
+ let theShim = fmap (over _PythonFile _cleanShim) $ (DNS.applyShim DNS.getShim theConfig theGrammar)  -- TODO is this the right place?
 
  case theShim of
 

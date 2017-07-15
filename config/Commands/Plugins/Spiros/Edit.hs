@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, RankNTypes, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts, NoMonomorphismRestriction  #-}
+{-# LANGUAGE TemplateHaskellQuotes, OverloadedStrings, RankNTypes, LambdaCase, PostfixOperators, PartialTypeSignatures, TupleSections, FlexibleContexts, NoMonomorphismRestriction  #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures -fno-warn-name-shadowing #-}  -- fewer type signatures (i.e. more type inference) makes the file more "config-like"
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Edit
@@ -12,9 +12,6 @@ import Commands.Plugins.Spiros.Edit.Run
 import Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
-
-import           Control.Applicative
-
 
 -- ================================================================ --
 
@@ -30,7 +27,7 @@ direction = tidyGrammar
 -- direction = transformedGrammar (filter (/= '_'))
 -- direction = qualifiedGrammarWith "_"
 
-edit = 'edit <=> empty 
+edit = 'edit <=> empty
  -- <|> Edit Cut Forwards Line <$ "kill" -- NOTE overrides
  --     -- i.e. "kill" -> "kill for line", not "kill whole that"
  <|> Edit <$> action              <*> (slice -?- defaultSlice) <*> (region -?- defaultRegion)
@@ -48,8 +45,8 @@ edit = 'edit <=> empty
 
 action = 'action <=> empty
  <|> Select      <$ "sell"
- <|> Copy        <$ "copy"      -- "cop" 
- <|> Cut         <$ "cut"      -- "kill" 
+ <|> Copy        <$ "copy"      -- "cop"
+ <|> Cut         <$ "cut"      -- "kill"
  <|> Delete      <$ "del"
  <|> Transpose   <$ "trans"
  <|> Google      <$ "google"
@@ -80,5 +77,4 @@ region = 'region
  <|> Reference  <$ "ref"
  <|> Structure  <$ "struct"
 
-getHighlighted = selected Whole That 
-
+getHighlighted = selected Whole That

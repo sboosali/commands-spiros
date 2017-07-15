@@ -11,7 +11,7 @@ import Data.Monoid.Split
 import Control.Monad (replicateM_)
 import           GHC.Exts                          (IsString (..)) -- , IsList (..))
 
-import Prelude.Spiros hiding (rstrip,lstrip) 
+import Prelude.Spiros hiding (rstrip,lstrip)
 import Prelude()
 
 {- | a simple monoid that can hold the metadata of a cursor position. you can then can set the position of the cursor after inserting a template.
@@ -113,6 +113,12 @@ rather than:
 haddockTemplate_3 = ['qc'|\{-| {'cursor'}
 
 -}|]
+@
+
+becoming:
+
+@
+Template {getTemplate = "\n{-| " :| "\n\n-}\n"}
 @
 
 if you want that leading/trailing white space, just add "extra" whitespace, or use a string literal.

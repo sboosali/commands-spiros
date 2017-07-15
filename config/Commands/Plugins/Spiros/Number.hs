@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, PostfixOperators #-}
+{-# LANGUAGE TemplateHaskellQuotes, OverloadedStrings, PostfixOperators #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Number where
@@ -6,7 +6,6 @@ import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
 
-import           Control.Applicative
 import Digit
 
 type Decimal = [Digit]  --TODO mv this to Spiro's package

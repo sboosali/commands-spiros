@@ -33,7 +33,7 @@ haddockTemplate text = [qc|
 
 grammarTemplate :: String -> Template
 grammarTemplate text = [qc|
-{text} :: R z _
+{text} :: R _
 {text} = '{text} <=> empty
  <|> {cursor}
 
@@ -57,7 +57,7 @@ import Commands.Mixins.DNS13OSX9
 import Control.Applicative
 
 
-{valueName} :: R z _
+{valueName} :: R _
 {valueName} = '{valueName} <=> empty
  <|> empty{cursor}
 

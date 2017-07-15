@@ -1,5 +1,5 @@
 {-# LANGUAGE  TemplateHaskellQuotes, DeriveAnyClass , OverloadedStrings, PostfixOperators, RankNTypes, LambdaCase, FlexibleContexts, GADTs, ConstraintKinds, FlexibleInstances, DataKinds, NoMonomorphismRestriction             #-}
-{-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
+{-# OPTIONS_GHC -Wall -fno-warn-missing-signatures -fno-warn-partial-type-signatures #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 {-|
 TODO rm stupid short commands that are misrecognized from noise and screw things up , like "fifth"
@@ -51,10 +51,10 @@ myAliasesList =
  , "my e-mail"-: "SamBoosalis"++ (fmap chr [64,71,109,97,105,108,46,99,111,109]) -- obfuscated from crawlers to stop spam , hopefully
  , "my name"-: "Spiros Boosalis"
  , "my last name"-: "Boosalis"
+ -- , "my address"-: ""
  , "deriving simple "    -: "deriving (Show,Read,Eq,Ord)"
  , "deriving standard"   -: "deriving (Show,Read,Eq,Ord,Data,Generic,NFData,Hashable)"
  , "deriving enumeration"-: "deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data,NFData,Hashable)"
- , ""-: ""
  , ""-: ""
  , ""-: ""
  , ""-: ""
@@ -363,17 +363,26 @@ global_reach_voice_app = do
 
 --------------------------------------------------------------------------------
 
-data ManaCost = ManaCost (Maybe Number) [MagicColor] -- should be sorted by wubrg -- TODO (Sum Number)?
+data ManaCost = ManaCost (Maybe Number) [MagicSymbol] -- should be sorted by wubrg -- TODO (Sum Number)?
  deriving(Show,Read,Eq,Ord,Typeable,Data,Generic,NFData)
-data MagicSymbol=MagicSymbol
- deriving(Show,Read,Eq,Ord,Typeable,Data,Generic,NFData)
-data MagicColor = MagicWhite | MagicBlue | MagicBlack | MagicRed | MagicGreen
- deriving(Show,Read,Eq,Ord,Enum , Typeable,Data,Generic,NFData)
-
 instance Rankable ManaCost where rank = const defaultRank
 
+data MagicSymbol = ColoredMagicSymbol MagicColor | HybridMagicColor MagicColor MagicColor | GenericHybridMagicColor MagicColor | LifeMagicColor MagicColor
+ deriving(Show,Read,Eq,Ord,Typeable,Data,Generic,NFData)
+
+--  | more like"kind" of mana , not exactly color
+data MagicColor = MagicWhite | MagicBlue | MagicBlack | MagicRed | MagicGreen | MagicGray | MagicSnow
+ deriving(Show,Read,Eq,Ord,Enum , Typeable,Data,Generic,NFData)
+
 manaCost :: R ManaCost
-manaCost = 'manaCost <=> ManaCost <$> (number-?) <*> (magicColor-*)
+manaCost = 'manaCost <=> ManaCost <$> (number-?) <*> (magicSymbol-*)
+
+magicSymbol :: R MagicSymbol
+magicSymbol = 'magicSymbol <=> empty
+ <|> HybridMagicColor <$ "hybrid" <*> magicColor <*> magicColor
+ <|> GenericHybridMagicColor <$ "generic hybrid" <*> magicColor
+ <|> LifeMagicColor <$ "phyrexian" <*> magicColor
+ <|> ColoredMagicSymbol <$> magicColor
 
 magicColor :: R MagicColor
 magicColor = 'magicColor <=> qualifiedGrammarWith "Magic"
@@ -390,11 +399,17 @@ render_magic_cost mc = do
   insert $ renderManaCostForReddit mc
 
 renderManaCostForReddit :: ManaCost ->String
-renderManaCostForReddit (ManaCost n c)
+renderManaCostForReddit (ManaCost n s)
   = ((n        <&> (show             > renderSymbolForReddit)) & maybe "" id )
- ++ ((sort c   <&> (renderMagicColor > renderSymbolForReddit)) & foldr (++) "" )
+ ++ ((sort s   <&> (renderMagicSymbol > renderSymbolForReddit)) & foldr (++) "" )
 
 renderSymbolForReddit s = "["++s++"]"++"(/"++s++")"
+
+renderMagicSymbol = \case
+  ColoredMagicSymbol x -> renderMagicColor x
+  HybridMagicColor x y -> (renderMagicColor x) ++ (renderMagicColor y)
+  GenericHybridMagicColor x -> "2" ++ renderMagicColor x
+  LifeMagicColor x     -> "P" ++ renderMagicColor x
 
 renderMagicColor = \case
   MagicWhite -> "W"
@@ -402,10 +417,10 @@ renderMagicColor = \case
   MagicBlack ->"B"
   MagicRed ->"R"
   MagicGreen ->"G"
+  MagicGray -> "C"
+  MagicSnow ->"S"
 
 --------------------------------------------------------------------------------
-
--- ================================================================ --
 
 -- | all macros without arguments (should be a VocabularyList)
 myMacros0 :: R Macro
@@ -644,8 +659,11 @@ myMacros0_ =  vocabMacro
    insert "\n\r"
    insert "\r\n"
 
- , ""-: do
-   nothing
+ , "rebuild"-: do -- TODO
+   alt_tab -- TODO find shell by name
+   -- delay 100
+   press "C-c" -- TODO
+   insert "stack build\n"
 
  , ""-: do
    nothing

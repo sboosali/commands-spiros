@@ -1,12 +1,14 @@
 {-# LANGUAGE DeriveAnyClass, TemplateHaskell, PostfixOperators, LambdaCase, OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
-module Commands.Plugins.Spiros.Shell.Grammar where 
-import           Commands.Plugins.Spiros.Shell.Types 
+module Commands.Plugins.Spiros.Shell.Grammar where
+import           Commands.Plugins.Spiros.Shell.Types
 import           Commands.Plugins.Spiros.Phrase
 import           Commands.Plugins.Spiros.Extra
 
-import           Commands.Mixins.DNS13OSX9
+import           Commands.Mixins.DNS13OSX9 
+import Prelude()
+import Prelude.Spiros
 
 
 shell = 'shell <=> foldMap go shellCommands
@@ -14,9 +16,9 @@ shell = 'shell <=> foldMap go shellCommands
  shellCommands =  fmap (leftAppend Safe)   (filterBlanks safeShellCommands)
                ++ fmap (leftAppend Unsafe) (filterBlanks unsafeShellCommands)
  go (safety,spoken,written) = Shell safety <$> (written <$ token spoken) <*> (phrase-?-"")
- leftAppend a (b,c) = (a,b,c) 
+ leftAppend a (b,c) = (a,b,c)
 
-safeShellCommands = 
+safeShellCommands =
  [ "list"-: "ls"
  , "make dear"-: "mkdir"
  , "get"-: "git"
@@ -61,7 +63,12 @@ safeShellCommands =
  , both ""
  , both ""
 
- ] 
+ ] ++ concat
+ [ fmap (("stack "++) > both)
+   [ "build"
+   , "exec"
+   ]
+ ]
 
 unsafeShellCommands =
  [ "remove"-: "rm"
@@ -106,4 +113,3 @@ unsafeShellCommands =
  , both ""
 
  ]
-

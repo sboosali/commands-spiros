@@ -20,8 +20,15 @@ import           GHC.Exts                         (IsString (..),IsList (..))
 newtype Phrase = Phrase [Phrase_]
  deriving(Show,Read,Eq,Ord,Data,Generic,NFData,Monoid,Semigroup)
 
-instance IsString Phrase where
- fromString = word2phrase
+instance IsString Phrase where fromString = word2phrase
+
+instance IsList Phrase where
+  type Item Phrase = Phrase_
+  fromList = Phrase
+  toList = getPhrase
+
+getPhrase :: Phrase -> [Phrase_]
+getPhrase (Phrase ps) = ps
 
 {- |
 
