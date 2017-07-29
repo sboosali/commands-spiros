@@ -38,6 +38,7 @@ import Prelude.Spiros hiding(insert)
 
 -- default (Workflow ())            -- ExtendedDefaultRules. TODO doesn't help with inference
 
+defaultPasting = press "H-v" -- TODO move to some shared utility module
 
 -- | macros without arguments
 myAliases :: R Macro
@@ -125,7 +126,9 @@ myMacrosN = fmap Macro $ empty
  <|>  A1  'google_for               google_for                 <$           "google"    <*>  (phrase-?-"")
  <|>  A1  'search_regexp            search_regexp              <$           "search"    <*>  (phrase-?)
  <|>  A1  'find_text                find_text                  <$           "discover"  <*>  (phrase-?-"")
- <|>  A1  'goto_line                goto_line                  <$           "line"        <*>  number -- TODO "goto" not recognized
+-- <|>  A1  'goto_line                goto_line                  <$           "line"        <*>  number -- TODO "goto" not recognized
+ <|>  A1  'atomic_goto_line    atomic_goto_line            <$   "line"    <*>  digits__  -- TODO also accept naturally spoken digits, like"fifty" instead of "five zero"
+ <|>  A2  'atomic_goto_location      atomic_goto_location  <$   "location" <*>  digits__ <* "column" <*> digits__  -- TODO doesn't work with stupid Macro constraints  (("column" <* digits__)-?)    -- TODO also accept naturally spoken digits, like"fifty" instead of "five zero"
  <|>  A1  'comment_with             comment_with               <$           "comment"   <*>  (phrase-?)
  <|>  A1  'write_to_pad             write_to_pad               <$           "scribble"  <*>  (phrase-?)
  <|>  A1  'run_shell                run_shell                  <$           "shell"     <*>  (shell-|-(phrase-?))
@@ -194,6 +197,18 @@ goto_line n = do
  -- press (n::Int)
  slot (show n)
 
+atomic_goto_line ds = do
+ let n = fromDecimal ds
+ press "H-g"
+ slot (show n)
+
+atomic_goto_location lineNumbers columnNumbers = do
+  let l= fromDecimal lineNumbers
+  let c= {- fromMaybe 0 -} columnNumbers & fromDecimal -- TODO as a pattern, should simple defaulting be in the grammar declaration (e.g.with -?-) or the handler function (e.g.like here)
+  press "H-g"
+  slot (show l)
+  replicateM_ c $ moveRight -- atom's goto-line command moves to the start of the life
+
 comment_with :: Maybe Phrase -> SpirosMonad_
 comment_with p = do
  press "M-;"
@@ -247,7 +262,7 @@ visit_site p = do
 
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
 chrome_click_link p = do
- press "M-f"
+ press "H-f"
  delay chromeDelay              -- TODO ReaderMonad delay time
  slotP p
  delay chromeDelay
@@ -294,6 +309,20 @@ set_clipboard p = do
   s <- munge p
   setClipboard s
 
+google_voice = do
+  openUrl "https://www.google.com/" -- must be Chrome browser, if not default
+  delay 800
+  press "C-S-."
+  delay 2000
+  replicateM_ 6 $ pressTab
+  defaultCutting
+  delay defaultDelay
+  altTab
+
+google_voice_inserting = do
+  google_voice
+  delay defaultDelay
+  defaultPasting
 
 --------------------------------------------------------------------------------
 
@@ -421,6 +450,44 @@ renderMagicColor = \case
   MagicSnow ->"S"
 
 --------------------------------------------------------------------------------
+-- TODO utilities that are simple aliases for common cross-platform actions
+
+moveRight = press "<right>"
+
+moveLeft = press "<left>"
+
+defaultCutting = press "H-x"
+
+defaultCopying = press "H-c"
+
+pressTab = press "<tab>"
+
+pressReturn = press "<ret>"
+
+altTab = press "M-<tab>"
+
+openUrl = openURL -- TODO which formatting is most natural?
+
+transferText  howToInsert = do
+  press "H-c" -- TODO pressCopy -
+  delay 100                    -- must wait for clipboard
+  -- openApplication "Notes"
+  press "M-<tab>"
+  delay 500                    -- must wait for clipboard
+  howToInsert
+  replicateM_ 1 $ press "<ret>"
+  delay 500                    -- must wait for clipboard
+  alt_tab
+
+transferTextDefault = transferText $ defaultPasting
+
+transferTextSpeciallyLibreOffice = transferText $ specialPastingLibreOffice
+
+specialPastingLibreOffice = do
+  press "C-S-v"
+  delay 500
+  replicateM_ 2 $ press "<down>" -- TODO interleaved delays?
+  press "<ret>"
 
 -- | all macros without arguments (should be a VocabularyList)
 myMacros0 :: R Macro
@@ -574,13 +641,21 @@ myMacros0_ =  vocabMacro
    press "!"
 
  , "transfer"-: do
+   transferTextDefault
+
+ , "transfer formatted"-: do
+   transferTextDefault
+
+ , "transfer specially"-: do
+   transferTextSpeciallyLibreOffice
+
+ , "transmit"-: do
    press "H-c" -- TODO pressCopy -
    delay 100                    -- must wait for clipboard
    -- openApplication "Notes"
    press "M-<tab>"
    delay 500                    -- must wait for clipboard
    press "H-v" -- TODO pressPaste
-   replicateM_ 1 $ press "<ret>"
    delay 500                    -- must wait for clipboard
    alt_tab
 
@@ -665,17 +740,17 @@ myMacros0_ =  vocabMacro
    press "C-c" -- TODO
    insert "stack build\n"
 
- , ""-: do
-   nothing
+ , "pasting special"-: do -- TODO LibreOffice
+  specialPastingLibreOffice
 
- , ""-: do
-   nothing
+ , "Google search"-: do
+   google_voice
 
- , ""-: do
-   nothing
+ , "Google insert"-: do
+   google_voice_inserting
 
- , ""-: do
-   nothing
+ , "atomic command "-: do
+   press "S-C-p" -- the command palette , like M-x in Emacs
 
  , ""-: do
    nothing

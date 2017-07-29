@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskellQuotes, OverloadedStrings, PostfixOperators #-}
+{-# LANGUAGE NoImplicitPrelude, TypeSynonymInstances, FlexibleInstances, TemplateHaskellQuotes, OverloadedStrings, PostfixOperators #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-type-defaults #-}
 {-# OPTIONS_GHC -O0 -fno-cse -fno-full-laziness #-}  -- preserve "lexical" sharing for observed sharing
 module Commands.Plugins.Spiros.Number where
@@ -7,28 +7,36 @@ import           Commands.Plugins.Spiros.Extra
 import           Commands.Mixins.DNS13OSX9
 
 import Digit
+import Prelude.Spiros
 
-type Decimal = [Digit]  --TODO mv this to Spiro's package
-fromDecimal :: (Num a) => Decimal -> a
-fromDecimal = todo
+instance Rankable Digit  -- omg this stupid typeclass must die
+instance Rankable Decimal
+
+type Decimal = [Digit]
+fromDecimal :: (Integral a) => Decimal -> a
+fromDecimal = fmap fromDigit > fromDigits 10
+
 fromDigit :: (Num a) => Digit -> a
 fromDigit (Digit i) = fromIntegral i
 
 digitizedNumber  :: R Decimal
-digitizedNumber = 'digitizedNumber <=> (digit__ -++)
+digitizedNumber = 'digitizedNumber <=> (digit__ -++)-- TODO remove
+
+digits__ :: R Decimal
+digits__ = 'digits__ <=> (digit__ -++)
 
 digit__ :: R Digit-- TODO renamed the one in Correct.Grammar to avoid conflict with this
 digit__  = vocab
- [ "nil"   -: Digit 0                 -- monosyllabic
- , "zero"  -: Digit 0                 -- disyllabic
+ [ "zero"  -: Digit 0                 -- disyllabic
  , "oh"    -: Digit 0                 -- sometimes more fluent
+-- , "nil"   -: Digit 0                 -- monosyllabic
  , "one"   -: Digit 1
  , "two"   -: Digit 2
  , "three" -: Digit 3
  , "four"  -: Digit 4
  , "five"  -: Digit 5
  , "six"   -: Digit 6
- , "sev"   -: Digit 7                -- monosyllabic
+--  , "sev"   -: Digit 7                -- monosyllabic
  , "seven" -: Digit 7                -- disyllabic
  , "eight" -: Digit 8
  , "nine"  -: Digit 9

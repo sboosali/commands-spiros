@@ -146,6 +146,8 @@ toDigits base = reverse . List.unfoldr go
 fromDigits :: forall a. (Integral a) => a -> [a] -> a
 fromDigits base = foldr (+) 0 . zipWith (\i n -> (base^i) * n) [(0::a)..] . reverse
 
+-- TODO remove fromDecimalDigits = fromDigits 10
+
 -- average xs = realToFrac (sum xs) / genericLength xs
 safeAverage :: Foldable t => t Int -> Int
 safeAverage (toList -> []) = 0

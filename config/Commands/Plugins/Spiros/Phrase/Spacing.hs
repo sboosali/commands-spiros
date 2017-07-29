@@ -1,12 +1,14 @@
-{-# LANGUAGE LambdaCase, MultiWayIf #-}
+{-# LANGUAGE LambdaCase, MultiWayIf, TupleSections  #-}
 module Commands.Plugins.Spiros.Phrase.Spacing where
 
 import Data.Char
+import qualified Data.Map as Map
 
-
+import Prelude.Spiros
+import Prelude ()
 
 {-| some text that's being spaced out.
- 
+
 (specialized @Reader@; simplifies refactoring.)
 
 -}
@@ -87,7 +89,31 @@ defSpacing = Spacing $ \(l,r) -> if
  | otherwise                            -> ""
  -- cases should be disjoint (besides the last) for clarity
 
-spaceOut :: [String] -> Spaced String -- TODO Either String 
+data SpacingCategory = NoSpacing | LeftSpacing | RightSpacing | BothSpacing
+ deriving (Show,Read,Eq,Ord,Enum,Bounded, Generic )
+
+{-|
+
+distinguish "spacing punctuation" from "raw punctuation"
+
+e.g. in English, the colon is followed on the right by a space before the next word (it's a 'RightSpacing').
+but in Haskell, the double-colon is an operator with no spaces in between.
+and for magiccards.info, there's no spacing between the selector and the rest of the query.
+
+-}
+getSpacingCategory :: Char -> SpacingCategory
+getSpacingCategory = ((Map.findWithDefault NoSpacing)&flip) _mapping
+ where
+ _mapping = _splatMapping _categories
+ _splatMapping = concatMap (\(ks,v) -> fmap (,v) ks ) > Map.fromList
+ _categories =
+  [ ['/'] -: NoSpacing
+  , [',', '.', '?', '!', ':', ';'] -: RightSpacing
+  , [')', ']', '}' ] -: RightSpacing
+  , ['(', '[', '{'] -: LeftSpacing
+  , ['&'] -: BothSpacing
+  ]
+
+spaceOut :: [String] -> Spaced String -- TODO Either String
 -- spaceOut xs _spacing = List.intercalated " " xs
 spaceOut xs spacing = concat (fmap (either id (getSpacing spacing)) (interstagger xs))
-
