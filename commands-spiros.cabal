@@ -155,6 +155,10 @@ library
 
                     Commands.Plugins.Spiros.Sustain
 
+                    Commands.Plugins.Spiros.Language.Haskell
+
+--                    Commands.Plugins.Spiros.History 
+
                     --TODO
                     Commands.Backends.Workflow_
 
@@ -225,6 +229,8 @@ library
       -Wcompat
       -Wmissing-monadfail-instances
       -Wsemigroup
+      -Wnoncanonical-monad-instances
+      -Wnoncanonical-monadfail-instances
 
 executable commands-spiros-server
     main-is:        Main.hs

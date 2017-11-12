@@ -6,6 +6,8 @@ import           Commands.Plugins.Spiros.Extra
 
 import           Commands.Mixins.DNS13OSX9
 
+import GHC.Stack
+
 import Digit
 import Prelude.Spiros
 
@@ -62,8 +64,8 @@ englishNumericRHS = vocab
 digits :: R String
 digits = 'digits <=> (digit-++) -- TODO
 
-digit :: R Char
-digit = 'digit <=> (head . show) <$> digitRHS -- TODO
+digit :: (HasCallStack) => R Char
+digit = 'digit <=> (head . show) <$> digitRHS -- TODO errorWithCallStack
 
 digitRHS :: (Num a) => R a
 digitRHS = vocab

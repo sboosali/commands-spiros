@@ -80,13 +80,13 @@ root_ = 'root_ <=> empty
  <|> Shortcut_  <$> (number-?-1) <*> myShortcuts
  <|> Shell_     <$>                  shell
  <|> Dictation_ <$  "say"   <*> dictation
+ <|> (Dictation_ . word2dictation ) <$  "way" <*> word_ 
  <|> Letters_   <$  "spell" <*> letters
  <|> (Dictation_ . digit2dictation) <$> digit_
  -- <|> Correction_ <$ correction
  -- <|> Click_ <$> click
 
- --TODO
- -- <|> Phrase_    <$  "pray" <*> phrase
+ <|> Phrase_    <$  "pray" <*> phrase  --TODO why not?
  <|> Phrase_    <$> phrase  -- must be last, phrase falls back to wildcard.
 
 click = 'click <=> empty

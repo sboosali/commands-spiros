@@ -50,7 +50,7 @@ myAliasesList =
  , "to do"-: "TODO"
  , "I owe unit"-: "IO ()"
  , "my e-mail"-: "SamBoosalis"++ (fmap chr [64,71,109,97,105,108,46,99,111,109]) -- obfuscated from crawlers to stop spam , hopefully
- , "my name"-: "Spiros Boosalis"
+ , "my name"-: "Sam Boosalis"
  , "my last name"-: "Boosalis"
  -- , "my address"-: ""
  , "deriving simple "    -: "deriving (Show,Read,Eq,Ord)"
@@ -183,7 +183,7 @@ search_regexp p = do
   maybe nothing insertP p
 
 reverse_search_regexp p = do
-  press "C-rto "
+  press "C-r"
   maybe nothing insertP p
 
 find_text p = do
@@ -262,10 +262,11 @@ visit_site p = do
 
 -- http://superuser.com/questions/170353/chrome-selecting-a-link-by-doing-search-on-its-text
 chrome_click_link p = do
- press "H-f"
- delay chromeDelay              -- TODO ReaderMonad delay time
- slotP p
- delay chromeDelay
+--  press "H-f"
+--  delay chromeDelay              -- TODO ReaderMonad delay time
+--  insertP p -- slotP p
+--  delay chromeDelay
+ find_text p 
  press "C-<ret>"
 
 open_application d = do
@@ -313,7 +314,7 @@ google_voice = do
   openUrl "https://www.google.com/" -- must be Chrome browser, if not default
   delay 800
   press "C-S-."
-  delay 2000
+  delay 5000
   replicateM_ 6 $ pressTab
   defaultCutting
   delay defaultDelay
@@ -468,7 +469,7 @@ altTab = press "M-<tab>"
 
 openUrl = openURL -- TODO which formatting is most natural?
 
-transferText  howToInsert = do
+transferTextWith howToInsert howToReturn = do 
   press "H-c" -- TODO pressCopy -
   delay 100                    -- must wait for clipboard
   -- openApplication "Notes"
@@ -477,11 +478,17 @@ transferText  howToInsert = do
   howToInsert
   replicateM_ 1 $ press "<ret>"
   delay 500                    -- must wait for clipboard
-  alt_tab
+  howToReturn 
 
-transferTextDefault = transferText $ defaultPasting
+transferTextNormallyStaying  = do
+  transferTextWith defaultPasting nothing 
 
-transferTextSpeciallyLibreOffice = transferText $ specialPastingLibreOffice
+transferTextReturning   howToInsert = do
+  transferTextWith  howToInsert alt_tab
+
+transferTextDefault = transferTextWith defaultPasting alt_tab
+
+transferTextSpeciallyLibreOffice = transferTextWith  specialPastingLibreOffice alt_tab
 
 specialPastingLibreOffice = do
   press "C-S-v"
@@ -649,6 +656,9 @@ myMacros0_ =  vocabMacro
  , "transfer specially"-: do
    transferTextSpeciallyLibreOffice
 
+ , "transfer staying"-: do  
+   transferTextNormallyStaying 
+
  , "transmit"-: do
    press "H-c" -- TODO pressCopy -
    delay 100                    -- must wait for clipboard
@@ -743,22 +753,27 @@ myMacros0_ =  vocabMacro
  , "pasting special"-: do -- TODO LibreOffice
   specialPastingLibreOffice
 
- , "Google search"-: do
+ , "Google voice"-: do
    google_voice
 
- , "Google insert"-: do
+ , "Google voice insert"-: do
    google_voice_inserting
 
  , "atomic command "-: do
    press "S-C-p" -- the command palette , like M-x in Emacs
 
- , ""-: do
-   nothing
+ , "open macros"-: do
+   openUrl  "C:/Users/Spiros/haskell/commands-spiros/config/Commands/Plugins/Spiros/Macros.hs" 
+   -- NOTE a function like "toWindowsFilePath" is unnecessary 
+   delay 1000 
+   press "C-f" 
+   insert "\"\"" 
+   press "<return>" 
 
- , ""-: do
-    nothing
+ , "open client"-: do 
+   openUrl  "C:\\NatLink\\NatLink\\MacroSystem\\_commands.py" -- TODO make location configurable 
 
- , ""-: do
+ , "open server"-: do
     nothing
 
  , ""-: do

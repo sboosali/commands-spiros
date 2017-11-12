@@ -41,7 +41,7 @@ import Text.Printf (printf)
 import System.IO
 import System.Process
 import Data.Function as X
---import Numeric.Natural
+import Control.Monad  (replicateM_) 
 
 --import Prelude.Spiros -- already reexported by commands.extra
 import Prelude(toEnum)
@@ -339,3 +339,9 @@ constructors = enumFrom (toEnum 0)
 delaying
 
 -}
+
+replicateDelayingA :: (Applicative m) => Natural -> m a -> m ()
+replicateDelayingA k m = replicateM_ (k&integral) m
+
+integral :: (Integral i, Num j) => i -> j
+integral = toInteger > fromInteger

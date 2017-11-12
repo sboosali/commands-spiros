@@ -179,8 +179,11 @@ bracketMirrored s = Brackets s (reverse . fmap mirroredCharacter $ s)
     '>' -> '<'
     c -> c
 
+word2dictation :: String -> Dictation
+word2dictation = Dictation . (:[])
+
 word2phrase_ :: String -> Phrase_
-word2phrase_ = Dictated_ . Dictation . (:[])
+word2phrase_ = Dictated_ . word2dictation
 
 word2phrase :: String -> Phrase
 word2phrase = fromPhrase_ . word2phrase_

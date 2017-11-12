@@ -26,6 +26,6 @@ emacs = 'emacs <=> empty
 myBuffers :: R Phrase
 myBuffers = vocab
  [ ""-: ""
- , "shell"-: "*shell*"
+--  , "shell"-: "*shell*"
  , ""-: ""
  ]

@@ -37,8 +37,8 @@ globalShortcuts = shortcuts
  , "right"-: "<right>"
  , "F3"-: "<f3>"
  , "F4"-: "<f4>"
- , ""-: ""
- , ""-: ""
+ , "next tab"-: "C-<tab>"-- TODO 
+ , "back tab"-: "C-S-<tab>"-- TODO 
  , ""-: ""
  , ""-: ""
  , ""-: ""

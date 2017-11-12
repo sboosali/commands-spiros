@@ -112,7 +112,7 @@ or concurrency(the server is being run with `-threaded`).
 -}
 main = do
   --
-  hSetBuffering stdin LineBuffering
+  hSetBuffering stdin LineBuffering -- TODO NoBuffering ? 
   hSetBuffering stdout NoBuffering
 
   b <- Windows2.enableDebugPriv
@@ -389,6 +389,7 @@ spirosSetup environment = do
 
  let theShim = fmap (over _PythonFile _cleanShim) $ (DNS.applyShim DNS.getShim theConfig theGrammar)  -- TODO is this the right place?
 
+ -- TODO https://hackage.haskell.org/package/temporary-1.2.1.1/docs/System-IO-Temp.html
  case theShim of
 
   Left (PythonSyntaxError e s) -> do
