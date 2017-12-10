@@ -219,6 +219,9 @@ library
         -- ekmett
                   free,
 
+                  clock,
+                  time, 
+
 --         vty,
                   base >=4.8 && <5.0
 

@@ -48,6 +48,7 @@ import qualified Data.List as List
 import           Control.Monad
 import System.IO
 import System.Mem
+import System.Clock 
 
 -- import Prelude.Spiros
 import Prelude()
@@ -242,7 +243,7 @@ myHandle ePlugin (fmap T.pack -> recognition) = do
     Right () -> do
       go context ws
 
-  liftIO$ performGC
+  performGarbageCollection 
 
  where
  go context ws = do
@@ -274,6 +275,49 @@ myHandle ePlugin (fmap T.pack -> recognition) = do
 
  exec context value = liftIO$ do
     runSpirosMonad $ (ePlugin&vDesugar) context value
+
+ printingDurationInMilliseconds s m = do 
+   (x,t) <- measuringDuration m
+   putStrLn "" 
+   putStrLn $ "[action]:   " <> s 
+   putStrLn $ "[duration]: " <> show t <> "ms" 
+
+ -- NOTE http://chrisdone.com/posts/measuring-duration-in-haskell
+ -- 
+ {- 
+ Monotonic: a monotonic but not-absolute time which never changes after start-up.
+ Realtime: an absolute Epoch-based time (which is the system clock and can change).
+ ProcessCPUTime: CPU time taken by the process.
+ ThreadCPUTime: CPU time taken by the thread. 
+ -} 
+ -- 
+ -- https://ocharles.org.uk/blog/posts/2013-12-15-24-days-of-hackage-time.html
+ -- 
+ measuringDuration m = do 
+   tBefore <- getCurrentTime 
+   x <- m -- calculates the computation, doesn't necessarily evaluate the output 
+   _ <- evaluate x -- evaluate the output too
+   tAfter <- getCurrentTime -- TODO getTime Realtime  
+   let tDuration = diffUTCTime tAfter tBefore 
+   let t = millisecondsFromNominalDiffTime tDuration -- in milliseconds 
+   return !(!x, !t) -- pretty sure some of these are redundant or trivial, but I just want to make sure I'm actually measuring the computation 
+
+ -- the unit of NominalDiffTime seems to be seconds 
+ -- https://hackage.haskell.org/package/time-1.8.0.3/docs/Data-Time-Clock.html
+ -- 
+ millisecondsFromNominalDiffTime :: NominalDiffTime -> Natural -- TODO 
+ millisecondsFromNominalDiffTime = (*1000) > ceiling 
+
+ millisecondsFromTimeSpec :: TimeSpec -> Natural 
+ millisecondsFromTimeSpec = sec > (*1000) 
+ 
+ performGarbageCollection = do 
+    _ <- forkIO$ liftIO$ do
+    -- TODO verify that the child thread is actually asynchronous and independent from the parent request thread 
+        printingDurationInMilliseconds "collected garbage" $ do 
+            performMajorGC -- lol 
+
+--------------------------------------------------------------------------------
 
 runSpirosMonad = getSpirosMonad > Windows.runWorkflowWithT def
   { Windows.windowsCharacterDelay=0
