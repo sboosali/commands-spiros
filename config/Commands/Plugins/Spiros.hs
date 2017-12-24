@@ -13,7 +13,7 @@ module Commands.Plugins.Spiros
  , module Commands.Plugins.Spiros.TypeLevel
  , module Commands.Plugins.Spiros.Main
  , module Commands.Plugins.Spiros.Apply
- -- , module Commands.Plugins.Spiros.Finite
+--, module Commands.Plugins.Spiros.Finite
  , module Commands.Plugins.Spiros.Digit.Grammar
  -- , module Commands.Plugins.Spiros.Correct
  -- , module Commands.Plugins.Spiros.Server
